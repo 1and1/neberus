@@ -1,0 +1,10 @@
+.idea/
+*.iml
+git.properties
+atlassian-ide-plugin.xml
+.checkstyle
+.classpath
+.project
+.settings/
+log/
+target/

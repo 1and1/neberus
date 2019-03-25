@@ -1,0 +1,140 @@
+.tocify {
+    background: #2e3338;
+}
+
+.active {
+    background-color: #3e444c;
+}
+
+.reference {
+    border: 1px solid #CCC;
+    border-radius: 6px;
+}
+
+.overviewLink > a:focus, .overviewLink > a:hover, .reference > a:focus, .reference > a:hover {
+    background-color: #3e444c;
+}
+
+.deprecated .well:after {    
+    background: repeating-linear-gradient(
+        -45deg,
+        rgba(255,255,255,0.05),
+        rgba(255,255,255,0.05) 20px,
+        rgba(255,255,255,0.15) 20px,
+        rgba(255,255,255,0.15) 40px
+        );
+}
+
+code, pre {
+    background: #232323;
+    color: whitesmoke;
+}
+
+.table {
+    background: #40404b;
+}
+
+.table-striped > tbody > tr:nth-of-type(2n+1) {
+    background-color: #48484e;
+}
+
+.table > tbody > tr.success > td {
+    background-color: #2aaa2a;
+}
+
+.table > tbody > tr.warning > td {
+    background-color: #d47c00;
+}
+
+.table > tbody > tr.danger > td {
+    background-color: #a70400;
+}
+
+.table > tbody > tr.generic > td {
+    background-color: #656565;
+}
+
+.generic {
+    color: #fff;
+}
+
+.well {
+    border-color: #555;
+}
+
+.path-toc-list > li > a {
+    color: #c8c8c8;
+}
+
+.panel-body {
+    background: #333;
+}
+
+body {
+    background-color: #222;
+}
+
+.toggleParams:hover {
+    background-color: #333a54 !important;
+}
+
+.toggleParams.success:hover > td {
+    background-color: #239323 !important;
+}
+
+.toggleParams.warning:hover > td {
+    background-color: #b46a02 !important;
+}
+
+.toggleParams.danger:hover > td {
+    background-color: #900502 !important;
+}
+
+.toggleParams.generic:hover > td {
+    background-color: #5a5a5a !important;
+}
+
+.collapseToggle:hover {
+    background-color: #5f666c !important;
+}
+
+.table .table {
+    background-color: #3b495c;
+}
+
+.table .table-striped > tbody > tr:nth-of-type(2n+1) {
+    background-color: #3d4053;
+}
+
+.code {    
+    background: #232323;
+    color: whitesmoke;
+}
+
+input {
+    border: 1px solid #111;
+    padding: 0.5em;
+    font-size: 15px;
+    line-height: 1.2em;
+    width: 80%;
+    background: #333;
+    color: whitesmoke;
+    font-family: helvetica, sans-serif;
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #222), color-stop(0.12, #333));
+    background: -moz-gradient(linear, left top, left bottom, color-stop(0, #222), color-stop(0.12, #333));
+    background: -o-gradient(linear, left top, left bottom, color-stop(0, #222), color-stop(0.12, #333));
+    background: -ms-gradient(linear, left top, left bottom, color-stop(0, #222), color-stop(0.12, #333));
+    background: gradient(linear, left top, left bottom, color-stop(0, #222), color-stop(0.12, #333));
+    -webkit-appearance: none;
+    -webkit-box-shadow: 1px 1px 1px #333;
+    -moz-box-shadow: 1px 1px 1px #333;
+    box-shadow: 1px 1px 1px #333;
+}
+
+.highlight {
+    background-color: #333a54 !important;
+}
+
+.fixedParameterRow {
+    border-top: 1px solid black !important;
+}
