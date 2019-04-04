@@ -45,7 +45,7 @@ public class SpringMvcClassParser extends ClassParser {
                 return null;
             }
             StringJoiner sj = new StringJoiner(" | ");
-            Stream.of(annotationValue).forEach(v -> sj.add(((((FieldDoc) v.value()).name()))));
+            Stream.of(annotationValue).forEach(v -> sj.add(((FieldDoc) v.value()).name()));
             return sj.toString();
         }
 

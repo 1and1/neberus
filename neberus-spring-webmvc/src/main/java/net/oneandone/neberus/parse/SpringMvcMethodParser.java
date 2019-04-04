@@ -1,20 +1,14 @@
 package net.oneandone.neberus.parse;
 
-import com.sun.javadoc.AnnotationDesc;
-import com.sun.javadoc.AnnotationValue;
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.MethodDoc;
-import com.sun.javadoc.Parameter;
-import com.sun.javadoc.Type;
+import com.sun.javadoc.*;
 import net.oneandone.neberus.Options;
 import net.oneandone.neberus.ResponseType;
-import static net.oneandone.neberus.util.JavaDocUtils.*;
-import java.util.ArrayList;
-
 import net.oneandone.neberus.util.MvcUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import static net.oneandone.neberus.util.JavaDocUtils.*;
 
 /**
  * Parses all stuff related to a single REST method.
@@ -86,7 +80,6 @@ public class SpringMvcMethodParser extends MethodParser {
     protected AnnotationValue[] getProduces(MethodDoc method) {
         return MvcUtils.getMappingAnnotationValue(method, "produces");
     }
-
 
 
     @Override
