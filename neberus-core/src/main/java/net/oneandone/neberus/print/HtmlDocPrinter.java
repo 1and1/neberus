@@ -540,54 +540,69 @@ public class HtmlDocPrinter extends DocPrinter {
 
         //request headers
         if (requestData.parameters != null && !requestData.parameters.isEmpty()) {
-            requestData.parameters.stream()
-                    .filter(parameter -> parameter.parameterType == HEADER && parameter.entityClass != null)
-                    .filter(parameter -> !parameter.name.equals("Content-Type"))
-                    .filter(p -> !parameterOverrides.containsKey(p.name) || parameterOverrides.get(p.name) != null)
-                    .forEach(parameter -> sb
-                            .append(printWithParameterReference(parameter.name, parameter.parameterType, methodData, false,
-                                    "-H '" + parameter.name + ": "
-                                            + parameterOverrides.getOrDefault(parameter.name, "{String}")
-                                            + "'"))
-                            .append(" "));
+            appendCurlRequestHeader(requestData, methodData, parameterOverrides, sb);
         }
 
         //request body
         if (requestData.parameters != null && !requestData.parameters.isEmpty()) {
-            requestData.parameters.stream()
-                    .filter(parameter -> parameter.parameterType == BODY && parameter.entityClass != null).findFirst()
-                    .ifPresent(entity -> sb.append("-d '")
-                            .append(toTemplate(requestData.mediaType.get(0), entity.entityClass, parameterOverrides, methodData, false))
-                            .append("' "));
+            appendCurlRequestBody(requestData, methodData, parameterOverrides, sb);
         }
 
         //URL with known placeholder replaced by default values
+        appendCurlUrl(requestData, methodData, parameterOverrides, sb);
+
+        //query parameters, filled with defaults where possible
+        if (requestData.parameters != null && !requestData.parameters.isEmpty()) {
+            appendCurlQueryParameters(requestData, methodData, parameterOverrides, sb);
+        }
+
+        //replace multiple slashes with single slash where needed
+        return sb.append("'").toString().replaceAll("//+", "/")
+                .replaceAll("http:/", "http://").replaceAll("https:/", "https://"); //TODO simplify replacements
+    }
+
+    private void appendCurlUrl(RestMethodData.RequestData requestData, RestMethodData.MethodData methodData, Map<String, String> parameterOverrides, StringBuilder sb) {
         sb.append("'<span class='curlHost'>");
         if (!options.apiHost.startsWith("http://") && !options.apiHost.startsWith("https://")) { // add http:// if missing
             sb.append("http://");
         }
         sb.append(options.apiHost).append("</span>/").append(options.apiBasePath).append("/")
                 .append(replacePlaceholderWithAllowedValuesInPath(methodData.path, requestData, methodData, parameterOverrides));
+    }
 
-        //query parameters, filled with defaults where possible
-        if (requestData.parameters != null && !requestData.parameters.isEmpty()) {
-
-            StringJoiner sj = new StringJoiner("&");
-            requestData.parameters.stream().filter(parameter -> parameter.parameterType == QUERY)
-                    .filter(p -> !parameterOverrides.containsKey(p.name) || parameterOverrides.get(p.name) != null)
-                    .forEach(parameter -> {
-                        sj.add(printWithParameterReference(parameter.name, parameter.parameterType, methodData, false,
-                                parameter.name + "=" + parameterOverrides.getOrDefault(parameter.name,
-                                        "{" + getParameterType(parameter) + "}")));
-                    });
-            if (sj.length() != 0) {
-                sb.append("?").append(sj.toString());
-            }
+    private void appendCurlQueryParameters(RestMethodData.RequestData requestData, RestMethodData.MethodData methodData, Map<String, String> parameterOverrides, StringBuilder sb) {
+        StringJoiner sj = new StringJoiner("&");
+        requestData.parameters.stream().filter(parameter -> parameter.parameterType == QUERY)
+                .filter(p -> !parameterOverrides.containsKey(p.name) || parameterOverrides.get(p.name) != null)
+                .forEach(parameter -> {
+                    sj.add(printWithParameterReference(parameter.name, parameter.parameterType, methodData, false,
+                            parameter.name + "=" + parameterOverrides.getOrDefault(parameter.name,
+                                    "{" + getParameterType(parameter) + "}")));
+                });
+        if (sj.length() != 0) {
+            sb.append("?").append(sj.toString());
         }
+    }
 
-        //replace multiple slashes with single slash where needed
-        return sb.append("'").toString().replaceAll("//+", "/")
-                .replaceAll("http:/", "http://").replaceAll("https:/", "https://"); //TODO simplify replacements
+    private void appendCurlRequestBody(RestMethodData.RequestData requestData, RestMethodData.MethodData methodData, Map<String, String> parameterOverrides, StringBuilder sb) {
+        requestData.parameters.stream()
+                .filter(parameter -> parameter.parameterType == BODY && parameter.entityClass != null).findFirst()
+                .ifPresent(entity -> sb.append("-d '")
+                        .append(toTemplate(requestData.mediaType.get(0), entity.entityClass, parameterOverrides, methodData, false))
+                        .append("' "));
+    }
+
+    private void appendCurlRequestHeader(RestMethodData.RequestData requestData, RestMethodData.MethodData methodData, Map<String, String> parameterOverrides, StringBuilder sb) {
+        requestData.parameters.stream()
+                .filter(parameter -> parameter.parameterType == HEADER && parameter.entityClass != null)
+                .filter(parameter -> !parameter.name.equals("Content-Type"))
+                .filter(p -> !parameterOverrides.containsKey(p.name) || parameterOverrides.get(p.name) != null)
+                .forEach(parameter -> sb
+                        .append(printWithParameterReference(parameter.name, parameter.parameterType, methodData, false,
+                                "-H '" + parameter.name + ": "
+                                        + parameterOverrides.getOrDefault(parameter.name, "{String}")
+                                        + "'"))
+                        .append(" "));
     }
 
     private String printWithParameterReference(String name, RestMethodData.ParameterType type, RestMethodData.MethodData method,
@@ -1006,12 +1021,7 @@ public class HtmlDocPrinter extends DocPrinter {
 
         ObjectNode node = mapper.createObjectNode();
 
-        if (fieldName != null
-                && type.asClassDoc() != null
-                && !type.isPrimitive()
-                && !type.qualifiedTypeName().startsWith("java.lang")
-                && !type.asClassDoc().isEnum()
-                && type.asClassDoc().fields(false).length != 0) {
+        if (isDocumentableSimpleType(type, fieldName)) {
             node.replace(fieldName, toJsonNode(type, parameterOverrides, concat(parent, fieldName), methodData, skipEnhance));
         } else if (isMapType(type)) {
             ObjectNode mapNode = processMapType(type, parameterOverrides, concat(parent, fieldName), methodData, skipEnhance);
@@ -1036,6 +1046,15 @@ public class HtmlDocPrinter extends DocPrinter {
         }
 
         return node;
+    }
+
+    private boolean isDocumentableSimpleType(Type type, String fieldName) {
+        return fieldName != null
+                && type.asClassDoc() != null
+                && !type.isPrimitive()
+                && !type.qualifiedTypeName().startsWith("java.lang")
+                && !type.asClassDoc().isEnum()
+                && type.asClassDoc().fields(false).length != 0;
     }
 
     private ObjectNode processMapType(Type type, Map<String, String> paramterOverrides, String parent,

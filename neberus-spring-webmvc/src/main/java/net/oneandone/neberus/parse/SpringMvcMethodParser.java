@@ -103,20 +103,7 @@ public class SpringMvcMethodParser extends MethodParser {
             responseData.entityClass = typeCantBeDocumented(method.returnType(), options) ? null : method.returnType();
         }
 
-        String contentTypeFromResponse = extractValue(response, "contentType");
-        if (contentTypeFromResponse != null) {
-            //store the Content-Type defined in the annotation
-            responseData.contentType = contentTypeFromResponse;
-        } else if (produces != null && produces.length > 0 && responseData.entityClass != null) {
-            //or take the first value from @Produces, if it is available and an entityClass is defined
-            responseData.contentType = (String) produces[0].value();
-        }
-
-        if (responseData.entityClass != null) {
-            addNestedParameters(responseData.entityClass, responseData.nestedParameters, new ArrayList<>());
-        }
-
-        data.responseData.add(responseData);
+        addResponseData(response, data, produces, responseData);
     }
 
     @Override

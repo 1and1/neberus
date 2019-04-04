@@ -1,6 +1,7 @@
 package net.oneandone.neberus;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Options that may be specified for the doclet
@@ -18,41 +19,29 @@ public class Options {
     public Map<String, String> otherOptions = new HashMap<>();
 
     public static Options parse(String[][] options) {
+
         Options parsedOptions = new Options();
 
+        Map<String, Consumer<String>> setters = new HashMap<>();
+        setters.put("-d", v -> parsedOptions.outputDirectory = v + "/");
+        setters.put("-docBasePath", v -> parsedOptions.docBasePath = v);
+        setters.put("-apiHost", v -> parsedOptions.apiHost = v);
+        setters.put("-apiBasePath", v -> parsedOptions.apiBasePath = v);
+        setters.put("-apiVersion", v -> parsedOptions.apiVersion = v);
+        setters.put("-apiTitle", v -> parsedOptions.apiTitle = v);
+        setters.put("-scanPackages", v -> parsedOptions.scanPackages = new HashSet<>(Arrays.asList(v.split(";"))));
+        setters.put("-ignoreErrors", v -> parsedOptions.ignoreErrors = true);
+
         for (String[] option : options) {
-            switch (option[0]) {
-                case "-d":
-                    parsedOptions.outputDirectory = option[1] + "/";
-                    break;
-                case "-docBasePath":
-                    parsedOptions.docBasePath = option[1];
-                    break;
-                case "-apiHost":
-                    parsedOptions.apiHost = option[1];
-                    break;
-                case "-apiBasePath":
-                    parsedOptions.apiBasePath = option[1];
-                    break;
-                case "-apiVersion":
-                    parsedOptions.apiVersion = option[1];
-                    break;
-                case "-apiTitle":
-                    parsedOptions.apiTitle = option[1];
-                    break;
-                case "-scanPackages":
-                    parsedOptions.scanPackages = new HashSet<>(Arrays.asList(option[1].split(";")));
-                    break;
-                case "-ignoreErrors":
-                    parsedOptions.ignoreErrors = true;
-                    break;
-                default:
-                    if (option.length == 2) {
-                        parsedOptions.otherOptions.put(option[0], option[1]);
-                    } else {
-                        parsedOptions.otherOptions.put(option[0], "true");
-                    }
-                    break;
+
+            if (setters.containsKey(option[0])) {
+                setters.get(option[0]).accept(option.length == 2 ? option[1] : null);
+            } else {
+                if (option.length == 2) {
+                    parsedOptions.otherOptions.put(option[0], option[1]);
+                } else {
+                    parsedOptions.otherOptions.put(option[0], "true");
+                }
             }
         }
 
@@ -78,19 +67,21 @@ public class Options {
         return Objects.hash(outputDirectory, docBasePath, apiHost, apiBasePath, apiVersion, apiTitle, scanPackages, ignoreErrors);
     }
 
+    @SuppressWarnings("CyclomaticComplexity")
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
         final Options other = (Options) obj;
 
+        return allFieldsAreEqual(other);
+    }
+
+    private boolean allFieldsAreEqual(Options other) {
         return Objects.equals(this.outputDirectory, other.outputDirectory)
                 && Objects.equals(this.docBasePath, other.docBasePath)
                 && Objects.equals(this.apiHost, other.apiHost)

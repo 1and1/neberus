@@ -395,33 +395,7 @@ public abstract class JavaDocUtils {
         });
 
         if (fields.isEmpty()) {
-
-            List<MethodDoc> getters = getVisibleGetters(type);
-
-            if (!isJavaType(type)) {
-
-                getters.forEach(getter -> {
-                    Type fieldType = getter.returnType();
-                    dataFields.put(getNameFromGetter(getter), fieldType);
-                });
-            }
-
-            if (getters.isEmpty()) {
-                ConstructorDoc chosenCtor = null;
-                for (ConstructorDoc ctor : type.asClassDoc().constructors()) {
-                    if (chosenCtor == null) {
-                        chosenCtor = ctor;
-                    } else if (ctor.parameters().length > chosenCtor.parameters().length) {
-                        chosenCtor = ctor;
-                    }
-                }
-                if (chosenCtor != null) {
-                    for (Parameter param : chosenCtor.parameters()) {
-                        dataFields.put(getPublicCtorParmeterName(param), param.type());
-                    }
-                }
-            }
-
+            getGetters(type, dataFields);
         }
 
         if (classDoc.superclass() != null && !isJavaType(classDoc.superclassType())) {
@@ -429,6 +403,34 @@ public abstract class JavaDocUtils {
         }
 
         return dataFields;
+    }
+
+    private static void getGetters(Type type, Map<String, Type> dataFields) {
+        List<MethodDoc> getters = getVisibleGetters(type);
+
+        if (!isJavaType(type)) {
+
+            getters.forEach(getter -> {
+                Type fieldType = getter.returnType();
+                dataFields.put(getNameFromGetter(getter), fieldType);
+            });
+        }
+
+        if (getters.isEmpty()) {
+            ConstructorDoc chosenCtor = null;
+            for (ConstructorDoc ctor : type.asClassDoc().constructors()) {
+                if (chosenCtor == null) {
+                    chosenCtor = ctor;
+                } else if (ctor.parameters().length > chosenCtor.parameters().length) {
+                    chosenCtor = ctor;
+                }
+            }
+            if (chosenCtor != null) {
+                for (Parameter param : chosenCtor.parameters()) {
+                    dataFields.put(getPublicCtorParmeterName(param), param.type());
+                }
+            }
+        }
     }
 
     public static boolean isArrayType(Type type) {

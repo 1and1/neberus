@@ -184,112 +184,128 @@ public abstract class MethodParser {
 
             List<FieldDoc> fields = getVisibleFields(type);
 
-            fields.forEach(field -> {
-                RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
+            fields.forEach(field -> addNestedField(type, parentList, parentTypes, field));
 
-                nestedInfo.parameterType = BODY;
-                nestedInfo.name = getPublicFieldName(field);
-                nestedInfo.description = field.commentText();
-                nestedInfo.allowedValues = getAllowedValuesFromType(field.type());
-
-                nestedInfo.entityClass = typeCantBeDocumented(field.type(), options) ? null : field.type();
-
-                Tag[] inlineTags = field.inlineTags();
-
-                getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
-                getAllowedValuesFromSeeTag(field.tags()).ifPresent(av -> nestedInfo.allowedValues = av);
-
-                //strip inlinetags and use only the text, if present
-                Stream.of(inlineTags).filter(tag -> tag.name().equals("Text"))
-                        .findFirst().ifPresent(textTag -> nestedInfo.description = textTag.text());
-
-                parentList.add(nestedInfo);
-
-                if (!type.equals(field.type()) && !parentTypes.contains(field.type())) {
-                    // break loops
-                    addNestedParameters(field.type(), nestedInfo.nestedParameters, parentTypes); // recursive
-                }
-            });
-
-            if (fields.isEmpty()) {
-
-                List<MethodDoc> getters = getVisibleGetters(type);
-
-                getters.forEach(getter -> {
-                    RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
-                    nestedInfo.name = getNameFromGetter(getter);
-
-                    Tag[] inlineTags = getter.inlineTags();
-
-                    if (getter.tags("return").length == 1) {
-                        nestedInfo.description = getter.tags("return")[0].text();
-                    } else {
-                        nestedInfo.description = getter.commentText();
-
-                        //strip inlinetags and use only the text, if present
-                        Stream.of(inlineTags).filter(tag -> tag.name().equals("Text"))
-                                .findFirst().ifPresent(textTag -> nestedInfo.description = textTag.text());
-                    }
-
-                    nestedInfo.allowedValues = getAllowedValuesFromType(getter.returnType());
-
-                    nestedInfo.entityClass = typeCantBeDocumented(getter.returnType(), options) ? null : getter.returnType();
-
-                    getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
-                    getAllowedValuesFromSeeTag(getter.tags()).ifPresent(av -> nestedInfo.allowedValues = av);
-
-                    parentList.add(nestedInfo);
-
-                    if (!type.equals(getter.returnType()) && !parentTypes.contains(getter.returnType())) {
-                        // break loops
-                        addNestedParameters(getter.returnType(), nestedInfo.nestedParameters, parentTypes); // recursive
-                    }
-                });
-
-                if (getters.isEmpty()) {
-
-                    ConstructorDoc chosenCtor = null;
-
-                    for (ConstructorDoc ctor : type.asClassDoc().constructors()) {
-                        if (chosenCtor == null) {
-                            chosenCtor = ctor;
-                        } else if (ctor.parameters().length > chosenCtor.parameters().length) {
-                            chosenCtor = ctor;
-                        }
-                    }
-
-                    if (chosenCtor != null) {
-
-                        Map<String, ParamTag> paramTags = getParamTags(chosenCtor);
-
-                        for (Parameter param : chosenCtor.parameters()) {
-                            RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
-
-                            ParamTag paramTag = paramTags.get(param.name());
-
-                            nestedInfo.name = getPublicCtorParmeterName(param);
-                            nestedInfo.allowedValues = getAllowedValuesFromType(param.type());
-                            nestedInfo.entityClass = typeCantBeDocumented(param.type(), options) ? null : param.type();
-
-                            if (paramTag != null) {
-                                nestedInfo.description = paramTag.parameterComment();
-                                Tag[] inlineTags = paramTag.inlineTags();
-                                getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
-
-                                //strip inlinetags and use only the text, if present
-                                Stream.of(inlineTags).filter(tag -> tag.name().equals("Text"))
-                                        .findFirst().ifPresent(textTag -> nestedInfo.description = textTag.text());
-                            }
-
-                            parentList.add(nestedInfo);
-
-                            if (!type.equals(param.type()) && !parentTypes.contains(param.type())) { // break loops
-                                addNestedParameters(param.type(), nestedInfo.nestedParameters, parentTypes); // recursive
-                            }
-                        }
-                    }
-                }
+            if (!fields.isEmpty()) {
+                return;
             }
+
+            List<MethodDoc> getters = getVisibleGetters(type);
+
+            getters.forEach(getter -> addNestedGetter(type, parentList, parentTypes, getter));
+
+            if (!getters.isEmpty()) {
+                return;
+            }
+
+            ConstructorDoc chosenCtor = getCtorDoc(type);
+
+            if (chosenCtor == null) {
+                return;
+            }
+
+            Map<String, ParamTag> paramTags = getParamTags(chosenCtor);
+
+            for (Parameter param : chosenCtor.parameters()) {
+                addNestedCtorParam(type, parentList, parentTypes, paramTags, param);
+            }
+        }
+    }
+
+    private ConstructorDoc getCtorDoc(Type type) {
+        ConstructorDoc chosenCtor = null;
+
+        for (ConstructorDoc ctor : type.asClassDoc().constructors()) {
+            if (chosenCtor == null) {
+                chosenCtor = ctor;
+            } else if (ctor.parameters().length > chosenCtor.parameters().length) {
+                chosenCtor = ctor;
+            }
+        }
+        return chosenCtor;
+    }
+
+    private void addNestedCtorParam(Type type, List<RestMethodData.ParameterInfo> parentList, List<Type> parentTypes, Map<String, ParamTag> paramTags, Parameter param) {
+        RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
+
+        ParamTag paramTag = paramTags.get(param.name());
+
+        nestedInfo.name = getPublicCtorParmeterName(param);
+        nestedInfo.allowedValues = getAllowedValuesFromType(param.type());
+        nestedInfo.entityClass = typeCantBeDocumented(param.type(), options) ? null : param.type();
+
+        if (paramTag != null) {
+            nestedInfo.description = paramTag.parameterComment();
+            Tag[] inlineTags = paramTag.inlineTags();
+            getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
+
+            //strip inlinetags and use only the text, if present
+            Stream.of(inlineTags).filter(tag -> tag.name().equals("Text"))
+                    .findFirst().ifPresent(textTag -> nestedInfo.description = textTag.text());
+        }
+
+        parentList.add(nestedInfo);
+
+        if (!type.equals(param.type()) && !parentTypes.contains(param.type())) { // break loops
+            addNestedParameters(param.type(), nestedInfo.nestedParameters, parentTypes); // recursive
+        }
+    }
+
+    private void addNestedGetter(Type type, List<RestMethodData.ParameterInfo> parentList, List<Type> parentTypes, MethodDoc getter) {
+        RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
+        nestedInfo.name = getNameFromGetter(getter);
+
+        Tag[] inlineTags = getter.inlineTags();
+
+        if (getter.tags("return").length == 1) {
+            nestedInfo.description = getter.tags("return")[0].text();
+        } else {
+            nestedInfo.description = getter.commentText();
+
+            //strip inlinetags and use only the text, if present
+            Stream.of(inlineTags).filter(tag -> tag.name().equals("Text"))
+                    .findFirst().ifPresent(textTag -> nestedInfo.description = textTag.text());
+        }
+
+        nestedInfo.allowedValues = getAllowedValuesFromType(getter.returnType());
+
+        nestedInfo.entityClass = typeCantBeDocumented(getter.returnType(), options) ? null : getter.returnType();
+
+        getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
+        getAllowedValuesFromSeeTag(getter.tags()).ifPresent(av -> nestedInfo.allowedValues = av);
+
+        parentList.add(nestedInfo);
+
+        if (!type.equals(getter.returnType()) && !parentTypes.contains(getter.returnType())) {
+            // break loops
+            addNestedParameters(getter.returnType(), nestedInfo.nestedParameters, parentTypes); // recursive
+        }
+    }
+
+    private void addNestedField(Type type, List<RestMethodData.ParameterInfo> parentList, List<Type> parentTypes, FieldDoc field) {
+        RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
+
+        nestedInfo.parameterType = BODY;
+        nestedInfo.name = getPublicFieldName(field);
+        nestedInfo.description = field.commentText();
+        nestedInfo.allowedValues = getAllowedValuesFromType(field.type());
+
+        nestedInfo.entityClass = typeCantBeDocumented(field.type(), options) ? null : field.type();
+
+        Tag[] inlineTags = field.inlineTags();
+
+        getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
+        getAllowedValuesFromSeeTag(field.tags()).ifPresent(av -> nestedInfo.allowedValues = av);
+
+        //strip inlinetags and use only the text, if present
+        Stream.of(inlineTags).filter(tag -> tag.name().equals("Text"))
+                .findFirst().ifPresent(textTag -> nestedInfo.description = textTag.text());
+
+        parentList.add(nestedInfo);
+
+        if (!type.equals(field.type()) && !parentTypes.contains(field.type())) {
+            // break loops
+            addNestedParameters(field.type(), nestedInfo.nestedParameters, parentTypes); // recursive
         }
     }
 
@@ -596,6 +612,10 @@ public abstract class MethodParser {
 
         responseData.entityClass = extractValue(response, "entityClass");
 
+        addResponseData(response, data, produces, responseData);
+    }
+
+    protected void addResponseData(AnnotationDesc response, RestMethodData data, AnnotationValue[] produces, RestMethodData.ResponseData responseData) {
         String contentTypeFromResponse = extractValue(response, "contentType");
         if (contentTypeFromResponse != null) {
             //store the Content-Type defined in the annotation
@@ -621,20 +641,7 @@ public abstract class MethodParser {
 
         responseData.entityClass = extractValue(response, "entityClass");
 
-        String contentTypeFromResponse = extractValue(response, "contentType");
-        if (contentTypeFromResponse != null) {
-            //store the Content-Type defined in the annotation
-            responseData.contentType = contentTypeFromResponse;
-        } else if (produces != null && produces.length > 0 && responseData.entityClass != null) {
-            //or take the first value from @Produces, if it is available and an entityClass is defined
-            responseData.contentType = (String) produces[0].value();
-        }
-
-        if (responseData.entityClass != null) {
-            addNestedParameters(responseData.entityClass, responseData.nestedParameters, new ArrayList<>());
-        }
-
-        data.responseData.add(responseData);
+        addResponseData(response, data, produces, responseData);
     }
 
     protected void addProblemResponse(MethodDoc method, AnnotationDesc response, RestMethodData data) {
