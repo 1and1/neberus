@@ -11,9 +11,11 @@ import java.lang.annotation.Target;
 @Target({ ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ApiCurl {
-    
+
     /**
      * If provided, this will be included in the documentation and no curl will be generated.
+     *
+     * @return the value
      */
     String value() default "";
 

@@ -22,11 +22,15 @@ public @interface ApiProblemResponse {
 
     /**
      * The "title" displayed in the Problem. Will be ignored, if no {@link #type() } is set.
+     *
+     * @return the title
      */
     String title() default "";
 
     /**
      * The "detail" displayed in the Problem. Will be ignored, if no {@link #type() } is set.
+     *
+     * @return the detail
      */
     String detail() default "";
 

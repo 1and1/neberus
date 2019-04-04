@@ -96,8 +96,8 @@ public class UsecaseParser {
             Optional<RestClassData> linkedRestClass =
                     restClasses.stream()
                             .filter(rc -> rc.classDoc.equals(linkedClass)
-                                    || (JavaDocUtils.getInterfaceClass(rc.classDoc).isPresent()
-                                    && JavaDocUtils.getInterfaceClass(rc.classDoc).get().equals(linkedClass)))
+                                    || JavaDocUtils.getInterfaceClass(rc.classDoc).isPresent()
+                                    && JavaDocUtils.getInterfaceClass(rc.classDoc).get().equals(linkedClass))
                             .findFirst();
 
             if (linkedRestClass.isPresent()) {

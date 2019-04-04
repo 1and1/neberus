@@ -4,15 +4,12 @@ import com.sun.javadoc.AnnotationDesc;
 import com.sun.javadoc.AnnotationValue;
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.MethodDoc;
-import net.oneandone.neberus.annotation.ApiDescription;
-import net.oneandone.neberus.annotation.ApiHeader;
-import net.oneandone.neberus.annotation.ApiHeaders;
-import net.oneandone.neberus.annotation.ApiLabel;
-import net.oneandone.neberus.util.JavaDocUtils;
+import net.oneandone.neberus.annotation.*;
 
-import static net.oneandone.neberus.util.JavaDocUtils.*;
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import static net.oneandone.neberus.util.JavaDocUtils.*;
 
 /**
  * Parses class related things.
@@ -64,6 +61,9 @@ public abstract class ClassParser {
 
     /**
      * Use the value defined in {@link ApiLabel} or use the name of the class.
+     *
+     * @param classDoc classDoc
+     * @param restClassData restClassData
      */
     protected void addLabel(ClassDoc classDoc, RestClassData restClassData) {
         String label = getAnnotationValue(classDoc, ApiLabel.class, "value");
@@ -76,6 +76,9 @@ public abstract class ClassParser {
 
     /**
      * Use the value defined in {@link ApiDescription} or use the javadoc comment of the class.
+     *
+     * @param classDoc classDoc
+     * @param restClassData restClassData
      */
     protected void addDescription(ClassDoc classDoc, RestClassData restClassData) {
         String description = getAnnotationValue(classDoc, ApiDescription.class, "value");
@@ -95,15 +98,13 @@ public abstract class ClassParser {
         } else {
             //check if a single annotation is defined
             Optional<AnnotationDesc> singleResponse = getAnnotationDesc(classDoc, ApiHeader.class);
-            if (singleResponse.isPresent()) {
-                addHeader(singleResponse.get(), restClassData);
-            }
+            singleResponse.ifPresent(annotationDesc -> addHeader(annotationDesc, restClassData));
         }
     }
 
     protected void addHeader(AnnotationDesc headerDesc, RestClassData restClassData) {
-        String name = JavaDocUtils.extractValue(headerDesc, "name");
-        String description = JavaDocUtils.extractValue(headerDesc, "description");
+        String name = extractValue(headerDesc, "name");
+        String description = extractValue(headerDesc, "description");
 
         RestMethodData.HeaderInfo headerInfo = new RestMethodData.HeaderInfo();
 

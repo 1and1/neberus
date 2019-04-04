@@ -22,23 +22,31 @@ public @interface ApiParameter {
 
     /**
      * Define the type such as "path", "query" or "header".
+     *
+     * @return the type
      */
     RestMethodData.ParameterType type() default RestMethodData.ParameterType.UNSET;
 
     /**
      * Define allowed values that should be provided by the client. If missing, the possible value will be generated.
      * In case of an enum, all enum values will be shown, otherwise it will be something like {String}.
+     *
+     * @return the allowed values
      */
     String allowedValues() default "";
 
     /**
-     * If set, the parameter will be grouped under the corresponding request entitiy description. Defining a class that is not
+     * If set, the parameter will be grouped under the corresponding request entity description. Defining a class that is not
      * used for any request entity will cause this parameter to disappear.
+     *
+     * @return the container class
      */
     Class containerClass() default Void.class;
 
     /**
-     * Define the class of the parameter. May be used for templates and as containerClass for other paramters.
+     * Define the class of the parameter. May be used for templates and as containerClass for other parameters.
+     *
+     * @return the entity class
      */
     Class entityClass() default Void.class;
 

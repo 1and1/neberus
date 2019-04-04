@@ -144,10 +144,12 @@ public abstract class Neberus {
      * Check for doclet-added options. Returns the number of
      * arguments you must specify on the command line for the
      * given option. For example, "-d docs" would return 2.
-     * <p/>
+     * <p>
      * This method is required if the doclet contains any options.
      * If this method is missing, Javadoc will print an invalid flag
      * error for every option.
+     *
+     * @param option option
      *
      * @return number of arguments on the command line for an option
      * including the option name itself. Zero return means
@@ -178,7 +180,7 @@ public abstract class Neberus {
     /**
      * Return the version of the Java Programming Language supported
      * by this doclet.
-     * <p/>
+     * <p>
      * This method is required by any doclet supporting a language version
      * newer than 1.1.
      *

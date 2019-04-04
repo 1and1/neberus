@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.Type;
+import j2html.tags.ContainerTag;
+import j2html.tags.Tag;
 import net.oneandone.neberus.NeberusModule;
 import net.oneandone.neberus.Options;
 import net.oneandone.neberus.model.CustomMediaType;
@@ -17,8 +19,6 @@ import net.oneandone.neberus.parse.RestMethodData;
 import net.oneandone.neberus.parse.RestUsecaseData;
 import net.oneandone.neberus.shortcode.ShortCodeExpander;
 import net.oneandone.neberus.util.FileUtils;
-import j2html.tags.ContainerTag;
-import j2html.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -26,10 +26,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static j2html.TagCreator.*;
 import static net.oneandone.neberus.parse.RestMethodData.ParameterType.*;
 import static net.oneandone.neberus.parse.RestUsecaseData.getParameter;
 import static net.oneandone.neberus.util.JavaDocUtils.*;
-import static j2html.TagCreator.*;
 
 /**
  * Prints REST Documentation to HTML.
@@ -1305,7 +1305,7 @@ public class HtmlDocPrinter extends DocPrinter {
         for (Map.Entry<String, RestUsecaseData.UsecaseValueInfo> entry : method.parameters.entrySet()) {
             path = path.replace("{" + entry.getKey() + "}", printWithParameterReference(entry.getKey(), PATH,
                     method.linkedMethod.methodData, false,
-                    (entry.getValue().value != null && !entry.getValue().value.equals(""))
+                    entry.getValue().value != null && !entry.getValue().value.equals("")
                     ? entry.getValue().value
                     : "{" + entry.getKey() + "}"));
         }
@@ -1388,7 +1388,7 @@ public class HtmlDocPrinter extends DocPrinter {
                                                     span(key),
                                                     span(!linkedParam.isPresent() || linkedParam.get().parameterType == null
                                                          ? ""
-                                                         : (" (" + linkedParam.get().parameterType.name().toLowerCase() + ")"))
+                                                         : " (" + linkedParam.get().parameterType.name().toLowerCase() + ")")
                                                             .withClass("italic valueHint noselect")
                                             ), linkedParam)
                             ),

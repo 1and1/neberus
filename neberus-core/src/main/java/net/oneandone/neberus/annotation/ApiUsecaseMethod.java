@@ -16,27 +16,37 @@ public @interface ApiUsecaseMethod {
 
     /**
      * The name of the method. If {@link #restClass() } is defined, this must match the value of a {@link ApiLabel } of one
-     * method in the linked class
+     * method in the linked class.
+     *
+     * @return the name
      */
     String name();
 
     /**
-     * Description of the usage of this method
+     * Description of the usage of this method.
+     *
+     * @return the description
      */
     String description();
 
     /**
-     * The REST class containing the referenced method
+     * The REST class containing the referenced method.
+     *
+     * @return the rest class
      */
     Class restClass() default Void.class;
 
     /**
-     * Usage explanation of the parameters
+     * Usage explanation of the parameters.
+     *
+     * @return the parameters
      */
     ApiUsecaseParam[] parameters() default {};
 
     /**
-     * Usage explanation of the response value
+     * Usage explanation of the response value.
+     *
+     * @return the response values
      */
     ApiUsecaseResponseValue[] responseValue() default {};
 

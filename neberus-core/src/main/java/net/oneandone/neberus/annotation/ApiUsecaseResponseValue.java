@@ -12,17 +12,23 @@ import java.lang.annotation.Target;
 public @interface ApiUsecaseResponseValue {
 
     /**
-     * Name of the response value. If the method is linked to an actual REST method, the name must exist in the linked method
+     * Name of the response value. If the method is linked to an actual REST method, the name must exist in the linked method.
+     *
+     * @return the name
      */
     String name();
 
     /**
-     * Exact returned value
+     * Exact returned value.
+     *
+     * @return the value
      */
     String value() default "";
 
     /**
-     * Hint about the returned value
+     * Hint about the returned value.
+     *
+     * @return the value hint
      */
     String valueHint() default "";
 

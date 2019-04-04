@@ -18,17 +18,23 @@ import java.lang.annotation.Target;
 public @interface ApiUsecase {
 
     /**
-     * Name of the usecase
+     * Name of the usecase.
+     *
+     * @return the name
      */
     String name();
 
     /**
-     * General description of the usecase
+     * General description of the usecase.
+     *
+     * @return the description
      */
     String description() default "";
 
     /**
-     * The REST methods to be used for this usecase in order of definition
+     * The REST methods to be used for this usecase in order of definition.
+     *
+     * @return the used methods
      */
     ApiUsecaseMethod[] methods() default {};
 

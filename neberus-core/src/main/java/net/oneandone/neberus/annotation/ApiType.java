@@ -14,6 +14,8 @@ public @interface ApiType {
 
     /**
      * The type to be displayed instead.
+     *
+     * @return the value
      */
     Class<?> value();
 

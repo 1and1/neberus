@@ -14,6 +14,8 @@ public @interface ApiAllowedValues {
 
     /**
      * Name or describe the allowed values for this parameter.
+     *
+     * @return the value
      */
     String value() default "";
 

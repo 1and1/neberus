@@ -19,6 +19,8 @@ public @interface ApiWarningResponse {
 
     /**
      * Define one or many Warnings that will be shown in an array in the entity.
+     *
+     * @return the warnings
      */
     ApiWarning[] warnings();
 

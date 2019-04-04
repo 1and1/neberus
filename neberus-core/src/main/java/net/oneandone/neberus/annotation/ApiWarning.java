@@ -17,11 +17,15 @@ public @interface ApiWarning {
 
     /**
      * The "title" displayed in the Warning. Will be ignored, if no {@link #type() } is set.
+     *
+     * @return the title
      */
     String title() default "";
 
     /**
      * The "detail" displayed in the Warning. Will be ignored, if no {@link #type() } is set.
+     *
+     * @return the detail
      */
     String detail() default "";
 

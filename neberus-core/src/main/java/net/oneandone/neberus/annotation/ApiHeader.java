@@ -19,6 +19,8 @@ public @interface ApiHeader {
 
     /**
      * Name of the header. May be used on a method to reference a header defined on the class.
+     *
+     * @return the name
      */
     String name();
 

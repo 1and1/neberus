@@ -21,12 +21,16 @@ public @interface ApiResponse {
 
     /**
      * Set the class of the DTO used for the response entity. Currently only the first level in a hierarchy will be printed.
+     *
+     * @return the entity class
      */
     Class entityClass() default Void.class;
 
     /**
-     * If an entityClass is set and this value is unset, the first Content-Type defined in the {@link Produces} annotation will
+     * If an entityClass is set and this value is unset, the first Content-Type defined in the @Produces annotation will
      * be used.
+     *
+     * @return the content type
      */
     String contentType() default "";
 
@@ -36,6 +40,8 @@ public @interface ApiResponse {
 
     /**
      * Define the type of the response.
+     *
+     * @return the response type
      */
     ResponseType responseType();
 }

@@ -420,7 +420,7 @@ public abstract class MethodParser {
 
         FieldDocImpl type = extractValue(parameterDesc, TYPE);
         if (type != null) {
-            parameterInfo.parameterType = RestMethodData.ParameterType.valueOf(type.name());
+            parameterInfo.parameterType = valueOf(type.name());
         } else {
             parameterInfo.parameterType = UNSET;
         }
