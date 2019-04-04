@@ -1,13 +1,8 @@
 package net.oneandone.neberus.util;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.*;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -19,8 +14,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.apache.commons.lang3.StringUtils;
 
 public abstract class FileUtils {
 
@@ -139,7 +132,10 @@ public abstract class FileUtils {
                 }
 
             } else {
-                files.addAll(Arrays.asList(new File(originUrl.getPath()).list()));
+                String[] list = new File(originUrl.getPath()).list();
+                if (list != null) {
+                    files.addAll(Arrays.asList(list));
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

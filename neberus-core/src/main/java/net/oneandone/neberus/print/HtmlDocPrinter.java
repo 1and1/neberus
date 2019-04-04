@@ -1132,13 +1132,16 @@ public class HtmlDocPrinter extends DocPrinter {
     }
 
     private String padRight(String s, int length) {
-        String padded = s;
+        StringBuilder sb = new StringBuilder();
+        sb.append(s);
+        int padded = s.length();
 
-        while (padded.length() < length) {
-            padded += " ";
+        while (padded < length) {
+            padded++;
+            sb.append(" ");
         }
 
-        return padded;
+        return sb.toString();
     }
 
     private String printMethodId(RestMethodData.MethodData methodData) {
