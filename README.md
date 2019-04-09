@@ -1,7 +1,6 @@
 # Neberus REST Documentation
 
 [![Build Status](https://travis-ci.org/1and1/neberus.svg?branch=master)](https://travis-ci.org/1and1/neberus)
-[![Latest release](https://img.shields.io/github/release/1and1/neberus.svg)](https://github.com/1and1/neberus/releases/latest)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.oneandone.neberus/neberus-doclet/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.oneandone.neberus/neberus-doclet)
 
 JavaDoc Doclet that automatically generates REST Documentation from your code!
@@ -113,6 +112,8 @@ REST methods can be documented either directly on the method or (recommended) in
 
 Definitions in the REST-class will be used as fallback in case the interface does not provide sufficient Documentation.
 
+![neberus-method-doc](docs/neberus-method-doc.png)
+
 ### Annotations
 
 | Name  | Description  |  Target |
@@ -219,7 +220,7 @@ public class RestService {
  * REST Class Documentation
  */
 @Path("/rootPath")
-public class RestService implement RestDoc {
+public class RestService implements RestDoc {
 
 	/**
 	 * Internal JavaDoc not visible in the ApiDocumentation because it is overwritten in the interface
@@ -315,6 +316,8 @@ It is also possible to write documentation for usecases that span multiple metho
 For this purpose a new dedicated `class` or `interface` should be defined that only contains the usecase documentation.
 
 The generated documentation will be appended to the index page.
+
+![neberus-usecase-doc](docs/neberus-usecase-doc.png)
 
 ### Annotations
 
