@@ -666,7 +666,8 @@ public class HtmlDocPrinter extends DocPrinter {
         return newPath;
     }
 
-    private List<ContainerTag> getNestedResponseValues(List<RestMethodData.ParameterInfo> nestedParameters,
+    private List<ContainerTag> getNestedResponseValues(RestMethodData.ResponseData response,
+                                                       List<RestMethodData.ParameterInfo> nestedParameters,
                                                        RestMethodData.MethodData methodData, String toggleId, int layer) {
         return nestedParameters.stream().flatMap(p -> {
             List<ContainerTag> rows = new ArrayList<>();
@@ -700,7 +701,8 @@ public class HtmlDocPrinter extends DocPrinter {
                 if (typeCantBeDocumented(p.entityClass, options)) {
                     row.with(td().withText(getSimpleTypeName(p.entityClass)));
                 } else {
-                    row.with(td().with(getPopover(prettyPrintJson(toJsonTemplate(p.entityClass, new HashMap<>(), p.name, methodData, true)),
+                    row.with(td().with(getPopover(prettyPrintJson(toTemplate(getContentType(response), p, new HashMap<>(),
+                            methodData, true, p.name)),
                             getSimpleTypeName(p.entityClass))));
                 }
             } else {
@@ -722,7 +724,7 @@ public class HtmlDocPrinter extends DocPrinter {
             rows.add(row);
 
             if (hasNestedParameters) {
-                rows.addAll(getNestedResponseValues(p.nestedParameters, methodData, subToggleId, layer + 1));
+                rows.addAll(getNestedResponseValues(response, p.nestedParameters, methodData, subToggleId, layer + 1));
             }
 
             return rows.stream();
@@ -759,7 +761,7 @@ public class HtmlDocPrinter extends DocPrinter {
             table.with(getResponseRow(response, hasRelatedResponseValues, restMethodData.methodData, toggleId, headerInfos));
 
             if (hasRelatedResponseValues) {
-                table.with(getNestedResponseValues(response.nestedParameters, restMethodData.methodData,
+                table.with(getNestedResponseValues(response, response.nestedParameters, restMethodData.methodData,
                         String.valueOf(toggleId), 2));
             }
 
@@ -799,8 +801,8 @@ public class HtmlDocPrinter extends DocPrinter {
                 row.with(td().withText(getSimpleTypeName(response.entityClass)));
             } else {
                 row.with(td().with(
-                        getPopover(prettyPrintJson(toJsonTemplate(response.entityClass, new HashMap<>(),
-                                response.entityClass.simpleTypeName(), methodData, true)), response.entityClass.asClassDoc()
+                        getPopover(prettyPrintJson(toTemplate(getContentType(response), response, new HashMap<>(),
+                                methodData, true)), response.entityClass.asClassDoc()
                                 .simpleTypeName())
                 ));
             }
@@ -858,6 +860,10 @@ public class HtmlDocPrinter extends DocPrinter {
     }
 
     private String prettyPrintJson(String jsonString) {
+        if (jsonString == null) {
+            return null;
+        }
+
         try {
             Object json = mapper.readValue(jsonString, Object.class);
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
@@ -918,6 +924,11 @@ public class HtmlDocPrinter extends DocPrinter {
     }
 
     protected ContainerTag getPopover(String content, String title) {
+
+        if (content == null) {
+            return div(title);
+        }
+
         return getPopover(content, title, "top");
     }
 
@@ -948,6 +959,11 @@ public class HtmlDocPrinter extends DocPrinter {
 
     private String toTemplate(String mediaType, RestMethodData.ParameterInfo parameter, Map<String, String> parameterOverrides,
                               RestMethodData.MethodData methodData, boolean skipEnhance) {
+        return toTemplate(mediaType, parameter, parameterOverrides, methodData, skipEnhance, null);
+    }
+
+    private String toTemplate(String mediaType, RestMethodData.ParameterInfo parameter, Map<String, String> parameterOverrides,
+                              RestMethodData.MethodData methodData, boolean skipEnhance, String parent) {
 
         Type usedType = parameter.displayClass != null ? parameter.displayClass : parameter.entityClass;
 
@@ -955,10 +971,28 @@ public class HtmlDocPrinter extends DocPrinter {
             return toEnumTemplate(usedType);
         }
 
-        if (mediaType.startsWith("application/x-www-form-urlencoded")) {
-            return toFormUrlEncodedTemplate(parameter, parameterOverrides, null, methodData, skipEnhance);
+        if (mediaType.startsWith("application") && mediaType.contains("x-www-form-urlencoded")) {
+            return toFormUrlEncodedTemplate(parameter, parameterOverrides, parent, methodData, skipEnhance);
+        } else if (mediaType.startsWith("application") && mediaType.contains("json")) {
+            return toJsonTemplate(usedType, parameterOverrides, parent, methodData, skipEnhance);
         } else {
+            return null;
+        }
+    }
+
+    private String toTemplate(String mediaType, RestMethodData.ResponseData responseData, Map<String, String> parameterOverrides,
+                              RestMethodData.MethodData methodData, boolean skipEnhance) {
+
+        Type usedType = responseData.entityClass;
+
+        if (!usedType.isPrimitive() && usedType.asClassDoc().isEnum()) {
+            return toEnumTemplate(usedType);
+        }
+
+        if (mediaType.startsWith("application") && mediaType.contains("json")) {
             return toJsonTemplate(usedType, parameterOverrides, null, methodData, skipEnhance);
+        } else {
+            return null;
         }
     }
 

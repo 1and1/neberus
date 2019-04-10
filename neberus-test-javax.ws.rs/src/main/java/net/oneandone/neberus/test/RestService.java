@@ -83,6 +83,7 @@ public class RestService {
     @ApiSuccessResponse(status = ApiStatus.OK, entityClass = FailureResultDto.class, contentType = MediaType.APPLICATION_JSON)
     @ApiSuccessResponse(status = ApiStatus.OK, entityClass = SomeDto.class, contentType = MediaType.APPLICATION_JSON)
     @ApiSuccessResponse(status = ApiStatus.OK, entityClass = SomeChildDto.class, contentType = MediaType.APPLICATION_JSON)
+    @ApiSuccessResponse(status = ApiStatus.OK, entityClass = SomeChildDto.class, contentType = MediaType.APPLICATION_XML)
     @ApiParameter(name = "jsonParam", description = "custom description", containerClass = SomeDto.class)
     @ApiParameter(name = "jsonParam", description = "custom description", containerClass = SomeCtorDto.class)
     @ApiParameter(name = "headerParam", description = "custom description <a href='index.html'>here</a>", type = RestMethodData.ParameterType.HEADER)
