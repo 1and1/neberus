@@ -544,7 +544,12 @@ public class HtmlDocPrinter extends DocPrinter {
 
         //Content-Type
         if (requestData.mediaType != null) {
-            sb.append("-H 'Content-Type: ").append(requestData.mediaType.get(0)).append(";charset=utf-8' ");
+            sb.append("-H 'Content-Type: ").append(requestData.mediaType.get(0));
+
+            if (!requestData.mediaType.get(0).contains("charset")) {
+                sb.append(";charset=utf-8");
+            }
+            sb.append("' ");
         }
 
         //request headers
@@ -950,7 +955,7 @@ public class HtmlDocPrinter extends DocPrinter {
             return toEnumTemplate(usedType);
         }
 
-        if (mediaType.equals("application/x-www-form-urlencoded")) {
+        if (mediaType.startsWith("application/x-www-form-urlencoded")) {
             return toFormUrlEncodedTemplate(parameter, parameterOverrides, null, methodData, skipEnhance);
         } else {
             return toJsonTemplate(usedType, parameterOverrides, null, methodData, skipEnhance);
