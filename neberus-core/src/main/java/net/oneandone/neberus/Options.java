@@ -1,7 +1,6 @@
 package net.oneandone.neberus;
 
 import com.sun.javadoc.RootDoc;
-import com.sun.tools.hat.internal.model.Root;
 
 import java.util.*;
 import java.util.function.Consumer;
