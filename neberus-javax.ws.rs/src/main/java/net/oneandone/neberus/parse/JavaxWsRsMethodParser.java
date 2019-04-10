@@ -6,14 +6,10 @@ import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.Parameter;
 import net.oneandone.neberus.Options;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.Produces;
+
 import static net.oneandone.neberus.util.JavaDocUtils.*;
-import javax.ws.rs.HeaderParam;
 
 /**
  * Parses all stuff related to a single REST method.
@@ -42,6 +38,11 @@ public class JavaxWsRsMethodParser extends MethodParser {
     @Override
     protected String getHeaderParam(MethodDoc method, Parameter parameter, int index) {
         return getAnnotationValue(method, parameter, HeaderParam.class, VALUE, index);
+    }
+
+    @Override
+    protected String getFormParam(MethodDoc method, Parameter parameter, int index) {
+        return getAnnotationValue(method, parameter, FormParam.class, VALUE, index);
     }
 
     @Override

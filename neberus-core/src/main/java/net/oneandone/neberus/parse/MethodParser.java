@@ -6,6 +6,7 @@ import net.oneandone.neberus.Options;
 import net.oneandone.neberus.ResponseType;
 import net.oneandone.neberus.annotation.*;
 import net.oneandone.neberus.model.ApiStatus;
+import net.oneandone.neberus.model.FormParameters;
 import net.oneandone.neberus.model.ProblemType;
 import org.apache.commons.lang3.StringUtils;
 
@@ -57,6 +58,7 @@ public abstract class MethodParser {
 
         //get the @param tags from the method's javadoc
         Map<String, ParamTag> paramTags = getParamTags(method);
+        RestMethodData.ParameterInfo formParamContainer = null;
 
         for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = parameters[i];
@@ -67,7 +69,23 @@ public abstract class MethodParser {
             }
 
             RestMethodData.ParameterInfo parameterInfo = parseParameter(method, parameter, paramTags, i);
-            data.requestData.parameters.add(parameterInfo);
+
+            if (getFormParam(method, parameters[i], i) != null) {
+                if (formParamContainer == null) {
+                    formParamContainer = new RestMethodData.ParameterInfo();
+                    formParamContainer.entityClass = options.rootDoc.classNamed(FormParameters.class.getCanonicalName());
+                    formParamContainer.parameterType = BODY;
+                    formParamContainer.name = "Form";
+
+                    data.requestData.parameters.add(formParamContainer);
+                }
+                parameterInfo.containerClass = formParamContainer.entityClass;
+                formParamContainer.nestedParameters.add(parameterInfo);
+
+            } else {
+                data.requestData.parameters.add(parameterInfo);
+            }
+
         }
     }
 
@@ -76,6 +94,8 @@ public abstract class MethodParser {
     protected abstract String getQueryParam(MethodDoc method, Parameter parameter, int index);
 
     protected abstract String getHeaderParam(MethodDoc method, Parameter parameter, int index);
+
+    protected abstract String getFormParam(MethodDoc method, Parameter parameter, int index);
 
     protected RestMethodData.ParameterInfo parseParameter(MethodDoc method, Parameter parameter, Map<String, ParamTag> paramTags,
                                                           int index) {
@@ -102,7 +122,8 @@ public abstract class MethodParser {
             parameterInfo.name = parameter.name();
             parameterInfo.parameterType = BODY;
 
-            addNestedParameters(parameterInfo.entityClass, parameterInfo.nestedParameters, new ArrayList<>());
+            addNestedParameters(parameterInfo.displayClass != null ? parameterInfo.displayClass : parameterInfo.entityClass,
+                    parameterInfo.nestedParameters, new ArrayList<>());
         }
 
         ParamTag paramTag = getParamTag(method, index, paramTags);
@@ -113,7 +134,7 @@ public abstract class MethodParser {
 
             getAllowedValuesFromSeeTag(paramTag.inlineTags()).ifPresent(av -> parameterInfo.allowedValues = av);
 
-            //strip inlinetags and use only the text, if present
+            //strip inline tags and use only the text, if present
             Stream.of(paramTag.inlineTags()).filter(tag -> tag.name().equals("Text"))
                     .findFirst().ifPresent(textTag -> parameterInfo.description = textTag.text());
         }
@@ -232,7 +253,7 @@ public abstract class MethodParser {
 
         nestedInfo.name = getPublicCtorParmeterName(param);
         nestedInfo.allowedValues = getAllowedValuesFromType(param.type());
-        nestedInfo.entityClass = typeCantBeDocumented(param.type(), options) ? null : param.type();
+        nestedInfo.entityClass = param.type();
 
         if (paramTag != null) {
             nestedInfo.description = paramTag.parameterComment();
@@ -269,7 +290,7 @@ public abstract class MethodParser {
 
         nestedInfo.allowedValues = getAllowedValuesFromType(getter.returnType());
 
-        nestedInfo.entityClass = typeCantBeDocumented(getter.returnType(), options) ? null : getter.returnType();
+        nestedInfo.entityClass = getter.returnType();
 
         getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
         getAllowedValuesFromSeeTag(getter.tags()).ifPresent(av -> nestedInfo.allowedValues = av);
@@ -290,7 +311,7 @@ public abstract class MethodParser {
         nestedInfo.description = field.commentText();
         nestedInfo.allowedValues = getAllowedValuesFromType(field.type());
 
-        nestedInfo.entityClass = typeCantBeDocumented(field.type(), options) ? null : field.type();
+        nestedInfo.entityClass = field.type();
 
         Tag[] inlineTags = field.inlineTags();
 

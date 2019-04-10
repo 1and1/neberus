@@ -445,13 +445,16 @@ public class HtmlDocPrinter extends DocPrinter {
 
         row.with(td(parameter.parameterType.name().toLowerCase()));
 
-        if (parameter.parameterType == BODY && parameter.entityClass != null) {
-            row.with(td().with(getPopover(prettyPrintJson(toTemplate(requestData.mediaType.get(0),
-                    parameter.entityClass, new HashMap<>(), methodData, true)),
-                    getSimpleTypeName(parameter.entityClass))));
+        Type usedType = parameter.displayClass != null ? parameter.displayClass : parameter.entityClass;
 
-        } else if (parameter.displayClass != null) {
-            row.with(td().withText(getSimpleTypeName(parameter.displayClass)));
+        if (parameter.parameterType == BODY && usedType != null) {
+            if (typeCantBeDocumented(usedType, options)) {
+                row.with(td().withText(getSimpleTypeName(usedType)));
+            } else {
+                row.with(td().with(getPopover(prettyPrintJson(toTemplate(requestData.mediaType.get(0),
+                        parameter, new HashMap<>(), methodData, true)),
+                        getSimpleTypeName(usedType))));
+            }
         } else {
             row.with(td());
         }
@@ -499,10 +502,16 @@ public class HtmlDocPrinter extends DocPrinter {
 
             row.with(td()); // empty cell for 'type'
 
-            if (p.entityClass != null) {
-                row.with(td().with(getPopover(prettyPrintJson(toTemplate(requestData.mediaType.get(0),
-                        p.entityClass, new HashMap<>(), methodData, true)),
-                        getSimpleTypeName(p.entityClass))));
+            Type usedType = p.displayClass != null ? p.displayClass : p.entityClass;
+
+            if (usedType != null) {
+                if (typeCantBeDocumented(usedType, options)) {
+                    row.with(td().withText(getSimpleTypeName(usedType)));
+                } else {
+                    row.with(td().with(getPopover(prettyPrintJson(toTemplate(requestData.mediaType.get(0),
+                            p, new HashMap<>(), methodData, true)),
+                            getSimpleTypeName(usedType))));
+                }
             } else {
                 row.with(td());
             }
@@ -587,8 +596,8 @@ public class HtmlDocPrinter extends DocPrinter {
     private void appendCurlRequestBody(RestMethodData.RequestData requestData, RestMethodData.MethodData methodData, Map<String, String> parameterOverrides, StringBuilder sb) {
         requestData.parameters.stream()
                 .filter(parameter -> parameter.parameterType == BODY && parameter.entityClass != null).findFirst()
-                .ifPresent(entity -> sb.append("-d '")
-                        .append(toTemplate(requestData.mediaType.get(0), entity.entityClass, parameterOverrides, methodData, false))
+                .ifPresent(parameter -> sb.append("-d '")
+                        .append(toTemplate(requestData.mediaType.get(0), parameter, parameterOverrides, methodData, false))
                         .append("' "));
     }
 
@@ -683,8 +692,12 @@ public class HtmlDocPrinter extends DocPrinter {
 
             // entity
             if (p.entityClass != null) {
-                row.with(td().with(getPopover(prettyPrintJson(toJsonTemplate(p.entityClass, new HashMap<>(), p.name, methodData, true)),
-                        getSimpleTypeName(p.entityClass))));
+                if (typeCantBeDocumented(p.entityClass, options)) {
+                    row.with(td().withText(getSimpleTypeName(p.entityClass)));
+                } else {
+                    row.with(td().with(getPopover(prettyPrintJson(toJsonTemplate(p.entityClass, new HashMap<>(), p.name, methodData, true)),
+                            getSimpleTypeName(p.entityClass))));
+                }
             } else {
                 row.with(td());
             }
@@ -777,11 +790,15 @@ public class HtmlDocPrinter extends DocPrinter {
         }
 
         if (response.entityClass != null) {
-            row.with(td().with(
-                    getPopover(prettyPrintJson(toJsonTemplate(response.entityClass, new HashMap<>(),
-                            response.entityClass.simpleTypeName(), methodData, true)), response.entityClass.asClassDoc()
-                            .simpleTypeName())
-            ));
+            if (typeCantBeDocumented(response.entityClass, options)) {
+                row.with(td().withText(getSimpleTypeName(response.entityClass)));
+            } else {
+                row.with(td().with(
+                        getPopover(prettyPrintJson(toJsonTemplate(response.entityClass, new HashMap<>(),
+                                response.entityClass.simpleTypeName(), methodData, true)), response.entityClass.asClassDoc()
+                                .simpleTypeName())
+                ));
+            }
         } else if (response.problem != null) {
             row.with(td().with(
                     getPopover(prettyPrintJson(toProblemTemplate(response.problem)), "Problem")
@@ -924,16 +941,19 @@ public class HtmlDocPrinter extends DocPrinter {
         }
     }
 
-    private String toTemplate(String mediaType, Type type, Map<String, String> parameterOverrides,
+    private String toTemplate(String mediaType, RestMethodData.ParameterInfo parameter, Map<String, String> parameterOverrides,
                               RestMethodData.MethodData methodData, boolean skipEnhance) {
-        if (type.asClassDoc().isEnum()) {
-            return toEnumTemplate(type);
+
+        Type usedType = parameter.displayClass != null ? parameter.displayClass : parameter.entityClass;
+
+        if (!usedType.isPrimitive() && usedType.asClassDoc().isEnum()) {
+            return toEnumTemplate(usedType);
         }
 
         if (mediaType.equals("application/x-www-form-urlencoded")) {
-            return toFormUrlEncodedTemplate(type, parameterOverrides, null, methodData, skipEnhance);
+            return toFormUrlEncodedTemplate(parameter, parameterOverrides, null, methodData, skipEnhance);
         } else {
-            return toJsonTemplate(type, parameterOverrides, null, methodData, skipEnhance);
+            return toJsonTemplate(usedType, parameterOverrides, null, methodData, skipEnhance);
         }
     }
 
@@ -1104,27 +1124,27 @@ public class HtmlDocPrinter extends DocPrinter {
         }
     }
 
-    private String toFormUrlEncodedTemplate(Type type, Map<String, String> paramterOverrides, String parent,
-                                            RestMethodData.MethodData methodData, boolean skipEnhance) {
+    private String toFormUrlEncodedTemplate(RestMethodData.ParameterInfo parameter, Map<String, String> paramterOverrides,
+                                            String parent, RestMethodData.MethodData methodData, boolean skipEnhance) {
 
-        if (isArrayType(type)) {
+        Type usedType = parameter.displayClass != null ? parameter.displayClass : parameter.entityClass;
+
+        if (isArrayType(usedType)) {
             return ""; // TODO find representation
-        } else if (isMapType(type)) {
+        } else if (isMapType(usedType)) {
             return ""; // TODO find representation
         } else {
             StringJoiner sj = new StringJoiner("&");
 
-            Map<String, Type> dataFields = getDataFields(type);
+            Map<String, Type> dataFields = getDataFields(parameter);
 
             dataFields.entrySet().stream()
                     .filter(e -> !paramterOverrides.containsKey(concat(parent, e.getKey()))
                             || paramterOverrides.get(concat(parent, e.getKey())) != null)
                     .forEach(e -> {
-                        StringBuilder fb = new StringBuilder();
-                        fb.append(printWithParameterReference(concat(parent, e.getKey()), BODY, methodData, skipEnhance,
+                        sj.add(printWithParameterReference(concat(parent, e.getKey()), BODY, methodData, skipEnhance,
                                 e.getKey() + "=" + paramterOverrides.getOrDefault(concat(parent, e.getKey()),
                                         "{" + getTypeString(e.getValue()) + "}")));
-                        sj.add(fb.toString());
                     });
 
             return sj.toString();
@@ -1370,7 +1390,7 @@ public class HtmlDocPrinter extends DocPrinter {
         // set null for body params that should be omitted
         method.linkedMethod.requestData.parameters.stream()
                 .filter(p -> p.parameterType == BODY)
-                .flatMap(p -> getDataFields(p.entityClass).entrySet().stream())
+                .flatMap(p -> getDataFields(p).entrySet().stream())
                 .filter(f -> !usedParams.contains(f.getKey()))
                 .forEach(f -> parameterOverrides.put(f.getKey(), null));
 

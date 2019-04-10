@@ -1,5 +1,8 @@
 package net.oneandone.neberus;
 
+import com.sun.javadoc.RootDoc;
+import com.sun.tools.hat.internal.model.Root;
+
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -8,6 +11,7 @@ import java.util.function.Consumer;
  */
 public class Options {
 
+    public RootDoc rootDoc;
     public String outputDirectory = "";
     public String docBasePath = "";
     public String apiHost = "";
@@ -18,9 +22,11 @@ public class Options {
     public boolean ignoreErrors = false;
     public Map<String, String> otherOptions = new HashMap<>();
 
-    public static Options parse(String[][] options) {
+    public static Options parse(String[][] options, RootDoc rootDoc) {
 
         Options parsedOptions = new Options();
+
+        parsedOptions.rootDoc = rootDoc;
 
         Map<String, Consumer<String>> setters = new HashMap<>();
         setters.put("-d", v -> parsedOptions.outputDirectory = v + "/");

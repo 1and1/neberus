@@ -1,30 +1,15 @@
 package net.oneandone.neberus.util;
 
-import com.sun.javadoc.AnnotationDesc;
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.ConstructorDoc;
-import com.sun.javadoc.FieldDoc;
-import com.sun.javadoc.MethodDoc;
-import com.sun.javadoc.ParamTag;
-import com.sun.javadoc.Parameter;
-import com.sun.javadoc.ProgramElementDoc;
-import com.sun.javadoc.Tag;
-import com.sun.javadoc.Type;
+import com.sun.javadoc.*;
 import net.oneandone.neberus.Options;
 import net.oneandone.neberus.annotation.ApiDocumentation;
+import net.oneandone.neberus.model.FormParameters;
+import net.oneandone.neberus.parse.RestMethodData;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.StringJoiner;
+import javax.xml.bind.annotation.XmlTransient;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.xml.bind.annotation.XmlTransient;
 
 public abstract class JavaDocUtils {
 
@@ -349,9 +334,9 @@ public abstract class JavaDocUtils {
     public static boolean containedFieldNamesAreNotAvailableOrPackageExcluded(Type fieldType, Options options) {
         return fieldType.asClassDoc() == null
                 || options.scanPackages.stream()
-                        .noneMatch(pack -> fieldType.asClassDoc().containingPackage().name().startsWith(pack))
+                .noneMatch(pack -> fieldType.asClassDoc().containingPackage().name().startsWith(pack))
                 || getDataFields(fieldType).keySet().stream()
-                        .anyMatch((String k) -> k.matches("arg\\d"));
+                .anyMatch((String k) -> k.matches("arg\\d"));
     }
 
     public static String getPublicFieldName(FieldDoc field) {
@@ -384,9 +369,31 @@ public abstract class JavaDocUtils {
         }
     }
 
+    public static Map<String, Type> getDataFields(RestMethodData.ParameterInfo param) {
+
+        Map<String, Type> dataFields = new LinkedHashMap<>();
+
+        if (param.entityClass.qualifiedTypeName().equals(FormParameters.class.getCanonicalName())) {
+            // manually grouped form parameters
+            param.nestedParameters
+                    .forEach(np -> dataFields.put(np.name, np.displayClass != null ? np.displayClass : np.entityClass));
+
+        } else {
+
+            dataFields.putAll(getDataFields(param.displayClass != null ? param.displayClass : param.entityClass));
+        }
+
+        return dataFields;
+    }
+
     public static Map<String, Type> getDataFields(Type type) {
+        if (type.isPrimitive()) {
+            return Collections.emptyMap();
+        }
+
         Map<String, Type> dataFields = new LinkedHashMap<>();
         ClassDoc classDoc = type.asClassDoc();
+
         List<FieldDoc> fields = getVisibleFields(type);
 
         fields.forEach(field -> {
@@ -406,6 +413,10 @@ public abstract class JavaDocUtils {
     }
 
     private static void getGetters(Type type, Map<String, Type> dataFields) {
+        if (type.isPrimitive()) {
+            return;
+        }
+
         List<MethodDoc> getters = getVisibleGetters(type);
 
         if (!isJavaType(type)) {
@@ -477,6 +488,10 @@ public abstract class JavaDocUtils {
     }
 
     public static boolean typeCantBeDocumented(Type type, Options options) {
+        if (type != null && type.qualifiedTypeName().equals(FormParameters.class.getCanonicalName())) {
+            return false;
+        }
+
         return type == null
                 || type.asClassDoc() == null
                 || type.isPrimitive()
@@ -490,6 +505,10 @@ public abstract class JavaDocUtils {
     }
 
     public static List<FieldDoc> getVisibleFields(Type type) {
+        if (type.isPrimitive()) {
+            return Collections.emptyList();
+        }
+
         List<FieldDoc> fields = new ArrayList<>();
         fields.addAll(Arrays.asList(type.asClassDoc().fields(true)));
 
@@ -510,7 +529,7 @@ public abstract class JavaDocUtils {
     }
 
     public static List<MethodDoc> getVisibleGetters(Type type) {
-        if (isJavaType(type)) {
+        if (isJavaType(type) || type.isPrimitive()) {
             return Collections.emptyList();
         }
         List<MethodDoc> methods = new ArrayList<>();

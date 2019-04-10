@@ -41,7 +41,7 @@ public abstract class Neberus {
     public static boolean start(RootDoc root) {
         System.out.println("Neberus running");
 
-        Options options = Options.parse(root.options());
+        Options options = Options.parse(root.options(), root);
 
         ShortCodeExpander expander = new ShortCodeExpander();
         List<NeberusModule> modules = loadModules(expander, options);

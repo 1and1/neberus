@@ -56,6 +56,11 @@ public class SpringMvcMethodParser extends MethodParser {
     }
 
     @Override
+    protected String getFormParam(MethodDoc method, Parameter parameter, int index) {
+        return null;
+    }
+
+    @Override
     protected String getRootPath(ClassDoc classDoc) {
         if (MvcUtils.getMappingAnnotationValue(classDoc, PATH) != null) {
             return (String) ((AnnotationValue[]) MvcUtils.getMappingAnnotationValue(classDoc, PATH))[0].value();

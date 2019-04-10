@@ -13,6 +13,7 @@ import net.oneandone.neberus.parse.RestMethodData;
 import javax.ws.rs.*;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +33,7 @@ public class RestService {
      * ApiDescription of this awesomely awesome method defined as javadoc!
      *
      * @param dto the body
+     *
      * @deprecated use this one {@link #justYetAnotherGetMethod(String, String, String, SomeDto, SomeCtorDto, SomeChildDto)}
      * or that one {@link #justYetAnotherGetMethod(String, String, String, SomeDto, SomeCtorDto, SomeChildDto)}
      * or even the one from the other resource
@@ -47,11 +49,11 @@ public class RestService {
     @ApiProblemResponse(status = ApiStatus.OK, description = "this should be handled as error",
                         type = ProblemType.EXPECTATION_FAILED, detail = "magic failed", title = "magic title")
     @ApiWarningResponse(status = ApiStatus.OK, description = "and this as warning", warnings =
-                        @ApiWarning(type = ProblemType.AUTHENTICATION_ERROR, title = "warning title"))
+    @ApiWarning(type = ProblemType.AUTHENTICATION_ERROR, title = "warning title"))
     @ApiSuccessResponse(status = ApiStatus.BAD_GATEWAY, description = "a bad thing happened", entityClass = SomeDto.class,
                         contentType = "crazyCustomType", headers = {
-                @ApiHeader(name = "123", description = "456"),
-                @ApiHeader(name = "header2") })
+            @ApiHeader(name = "123", description = "456"),
+            @ApiHeader(name = "header2") })
     @ApiCurl
     @Deprecated
     public void justAnotherGetMethod(@PathParam("pathParam") @ApiAllowedValues("default") String pathParam,
@@ -100,6 +102,19 @@ public class RestService {
     @ApiCurl
     public void againAnotherGetMethod(SomeGetterDto dto) {
 
+    }
+
+    @POST
+    @Path("/postFormParams")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiCurl
+    @ApiResponse(status = ApiStatus.BAD_REQUEST, responseType = ResponseType.PROBLEM)
+    @ApiSuccessResponse(status = ApiStatus.OK, entityClass = SomeDto.class, contentType = MediaType.APPLICATION_JSON)
+    public Response postMethodWithForParams(@FormParam("param1") String formParam1,
+                                            @FormParam("param2") @ApiType(String.class) WrappedString formParam2,
+                                            @FormParam("param3") int formParam3) {
+        return null;
     }
 
     public static class WrappedString {
@@ -184,7 +199,6 @@ public class RestService {
         private final NestedDto nestedDto;
 
         /**
-         *
          * @param jsonParam          paramDoc {@link SomeEnum}
          * @param jsonParam2         paramDoc
          * @param jsonIntParam
