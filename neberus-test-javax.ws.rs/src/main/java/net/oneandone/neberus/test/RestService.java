@@ -90,18 +90,18 @@ public class RestService {
     @ApiResponseValue(name = "jsonParam2", description = "custom description", containerClass = SomeCtorDto.class)
     @ApiResponseValue(name = "custom responseValue2", description = "custom description")
     public void justYetAnotherGetMethod(@HeaderParam(HttpHeaders.AUTHORIZATION) String header,
-                                        @PathParam("pathParam") @ApiAllowedValues("the expected default value") String pathParam,
+                                        @PathParam("pathParam") @ApiAllowedValues("the expected allowed value") String pathParam,
                                         @QueryParam("queryParam") String queryParam,
                                         SomeDto dto, SomeCtorDto otherDto, SomeChildDto childDto) {
 
     }
 
     @PATCH
-    @Path("/againAnotherGet")
+    @Path("{pathParamWithoutSlash}")
     @ApiLabel("This is another awesome method again")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiCurl
-    public void againAnotherGetMethod(SomeGetterDto dto) {
+    public void againAnotherGetMethod(SomeGetterDto dto, @PathParam("pathParamWithoutSlash") String pathparam) {
 
     }
 

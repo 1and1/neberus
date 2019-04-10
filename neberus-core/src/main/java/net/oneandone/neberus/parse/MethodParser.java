@@ -497,7 +497,8 @@ public abstract class MethodParser {
         //append the method path, if it's there
         String path = getPath(method);
         if (path != null) {
-            data.methodData.path += path;
+            String divider = data.methodData.path.endsWith("/") || path.startsWith("/") ? "" : "/";
+            data.methodData.path += divider + path;
         }
     }
 
