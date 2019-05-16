@@ -929,7 +929,7 @@ public class HtmlDocPrinter extends DocPrinter {
             return div(title);
         }
 
-        return getPopover(content, title, "top");
+        return getPopover(content, title, "auto");
     }
 
     private ContainerTag getPopover(String content, String title, String placement) {
