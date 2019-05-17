@@ -441,7 +441,7 @@ public class HtmlDocPrinter extends DocPrinter {
                     .attr("title", "Click to show contained rows")
                     .with(td().with(
                             rawHtml(parameter.name),
-                            span().withClass("glyphicon-toggle glyphicon glyphicon-menu-right glyphicon-" + toggleId)
+                            i().withClass("icon-toggle fas fa-angle-right icon-" + toggleId)
                     ));
         } else {
             row.with(td(parameter.name));
@@ -508,7 +508,7 @@ public class HtmlDocPrinter extends DocPrinter {
                         .attr("title", "Click to show contained rows")
                         .with(nameCell.with(
                                 rawHtml(p.name),
-                                span().withClass("glyphicon-toggle glyphicon glyphicon-menu-right glyphicon-" + subToggleId)
+                                span().withClass("icon-toggle fas fa-angle-right icon-" + subToggleId)
                         ));
             } else {
                 row.with(nameCell.with(rawHtml(p.name))).withData("toggle-parent", toggleId);
@@ -704,7 +704,7 @@ public class HtmlDocPrinter extends DocPrinter {
                         .attr("title", "Click to show contained rows")
                         .with(nameCell.with(
                                 rawHtml(p.name),
-                                span().withClass("glyphicon-toggle glyphicon glyphicon-menu-right glyphicon-" + subToggleId)
+                                span().withClass("icon-toggle fas fa-angle-right icon-" + subToggleId)
                         ));
             } else {
                 row.with(nameCell.with(rawHtml(p.name)));
@@ -802,7 +802,7 @@ public class HtmlDocPrinter extends DocPrinter {
                     .attr("title", "Click to show contained rows")
                     .with(td().with(
                             rawHtml(response.status.value + " " + response.status.reasonPhrase),
-                            span().withClass("glyphicon-toggle glyphicon glyphicon-menu-right glyphicon-" + toggleId)
+                            span().withClass("icon-toggle fas fa-angle-right icon-" + toggleId)
                     ));
         } else {
             row.with(td().with(
@@ -1252,7 +1252,7 @@ public class HtmlDocPrinter extends DocPrinter {
                 div().withClass("form-group w-100").with(
                         div().withClass("input-group w-100").with(
                                 input().withClass("w-100").withId("filter").withPlaceholder("Search"),
-                                span().withId("filterReset").withClass("glyphicon glyphicon-remove form-control-feedback")
+                                i().withId("filterReset").withClass("fas fa-times form-control-feedback")
                         )
                 )
                 // TODO implement ordering

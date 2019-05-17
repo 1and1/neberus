@@ -254,7 +254,7 @@ pre {
     border-radius: 0px;
 }
 
-.glyphicon-toggle {
+.icon-toggle {
     margin-left: 10px;
 }
 
@@ -274,16 +274,19 @@ pre {
     transition: none !important;
 }
 
-.toggleParams:hover .glyphicon-menu-right {
-    transform: rotate(30deg);
+.toggleParams:hover .icon-toggle {
+    transform: rotate(45deg);
+    transform-origin: left;
 }
 
-.toggleParams.expanded .glyphicon-menu-right {
+.toggleParams.expanded .icon-toggle {
     transform: rotate(90deg);
+    transform-origin: left;
 }
 
-.toggleParams.expanded:hover .glyphicon-menu-right {
-    transform: rotate(60deg);
+.toggleParams.expanded:hover .icon-toggle {
+    transform: rotate(45deg);
+    transform-origin: left;
 }
 
 .code {
@@ -303,6 +306,7 @@ pre {
 #filterReset {
     cursor: pointer;
     pointer-events: inherit;
+    margin-top: 10px;
 }
 
 .w-100 {

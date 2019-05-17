@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- add @ApiOptional to mark optional parameters
+
+### Changed
+
+- replace glyphicons with fontawesome
+
 ## [1.1.0] - 2019-04-10
 
 ### Added
