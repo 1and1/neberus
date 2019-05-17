@@ -50,4 +50,6 @@ public @interface ApiParameter {
      */
     Class entityClass() default Void.class;
 
+    boolean optional() default false;
+
 }

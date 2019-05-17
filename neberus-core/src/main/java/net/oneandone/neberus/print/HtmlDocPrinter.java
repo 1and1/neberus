@@ -82,6 +82,7 @@ public class HtmlDocPrinter extends DocPrinter {
                 link().withRel("stylesheet").withHref("lib/css/bootstrap-theme.min.css").attr("title", "dark"),
                 link().withRel("alternate stylesheet").withHref("lib/css/bootstrap-theme-light.min.css").attr("title", "light"),
                 link().withRel("stylesheet").withHref("lib/css/jquery.tocify.css"),
+                link().withRel("stylesheet").withHref("lib/css/fa-all.css"),
                 link().withRel("stylesheet").withHref("css/neberus.css"),
                 link().withRel("stylesheet").withHref("css/neberus-dark.css").attr("title", "dark"),
                 link().withRel("alternate stylesheet").withHref("css/neberus-light.css").attr("title", "light")
@@ -306,7 +307,7 @@ public class HtmlDocPrinter extends DocPrinter {
 
         if (!requestData.parameters.isEmpty()) {
             ContainerTag table = table().withClass("table table-striped parameters").with(
-                    tr().with(th("Name"), th("Type"), th("Entity"), th("Description"), th("Allowed Values"))
+                    tr().with(th(), th("Name"), th("Type"), th("Entity"), th("Description"), th("Allowed Values"))
             );
 
             requestDiv.with(div().withClass("panel panel-default").with(div().withClass("panel-heading").with(
@@ -323,7 +324,7 @@ public class HtmlDocPrinter extends DocPrinter {
 
                 if (hasNestedParameters) {
                     table.with(getNestedParameters(parameter.nestedParameters, toggleId + "", requestData, methodData,
-                            null, 2));
+                            null, 1));
                 }
             });
 
@@ -427,6 +428,9 @@ public class HtmlDocPrinter extends DocPrinter {
                 .withName(getParameterReference(parameter.name, parameter.parameterType, methodData.label))
                 .withClass("parameterHighlight");
 
+        row.with(
+                getRequiredIndicator(parameter));
+
         if (hasNestedParameters) {
             //add required classes, if this cell should act as "button" to collapse the related params
             row.withClass("toggleParams").withHref(toggleId + "").withData("toggle-id", toggleId + "")
@@ -467,6 +471,14 @@ public class HtmlDocPrinter extends DocPrinter {
         return row;
     }
 
+    private ContainerTag getRequiredIndicator(RestMethodData.ParameterInfo parameter) {
+        return td().withClass("optionalIndicator").with(
+                getTooltip(
+                        parameter.optional ? "Optional" : "Mandatory",
+                        i().withClass(parameter.optional ? "far fa-circle" : "fas fa-circle").render(),
+                        "top"));
+    }
+
     private List<ContainerTag> getNestedParameters(List<RestMethodData.ParameterInfo> nestedParameters, String toggleId,
                                                    RestMethodData.RequestData requestData, RestMethodData.MethodData methodData,
                                                    String parent, int layer) {
@@ -481,6 +493,8 @@ public class HtmlDocPrinter extends DocPrinter {
                     .withName(getParameterReference(concat(parent, p.name), BODY, methodData.label));
 
             ContainerTag nameCell = td().withStyle("padding-left: " + layer * 25 + "px");
+
+            row.with(getRequiredIndicator(p));
 
             if (hasNestedParameters) {
                 //add required classes, if this cell should act as "button" to collapse the related params

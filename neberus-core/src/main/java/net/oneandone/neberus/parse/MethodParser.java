@@ -145,6 +145,8 @@ public abstract class MethodParser {
             parameterInfo.allowedValues = allowedValues;
         }
 
+        parameterInfo.optional = hasAnnotation(method, parameter, ApiOptional.class, index);
+
         return parameterInfo;
     }
 
@@ -254,6 +256,7 @@ public abstract class MethodParser {
         nestedInfo.name = getPublicCtorParmeterName(param);
         nestedInfo.allowedValues = getAllowedValuesFromType(param.type());
         nestedInfo.entityClass = param.type();
+        nestedInfo.optional = hasAnnotation(param, ApiOptional.class);
 
         if (paramTag != null) {
             nestedInfo.description = paramTag.parameterComment();
@@ -289,8 +292,8 @@ public abstract class MethodParser {
         }
 
         nestedInfo.allowedValues = getAllowedValuesFromType(getter.returnType());
-
         nestedInfo.entityClass = getter.returnType();
+        nestedInfo.optional = hasAnnotation(getter, ApiOptional.class);
 
         getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
         getAllowedValuesFromSeeTag(getter.tags()).ifPresent(av -> nestedInfo.allowedValues = av);
@@ -310,8 +313,8 @@ public abstract class MethodParser {
         nestedInfo.name = getPublicFieldName(field);
         nestedInfo.description = field.commentText();
         nestedInfo.allowedValues = getAllowedValuesFromType(field.type());
-
         nestedInfo.entityClass = field.type();
+        nestedInfo.optional = hasAnnotation(field, ApiOptional.class);
 
         Tag[] inlineTags = field.inlineTags();
 
@@ -470,6 +473,9 @@ public abstract class MethodParser {
 
         parameterInfo.containerClass = extractValue(parameterDesc, "containerClass");
         parameterInfo.entityClass = extractValue(parameterDesc, "entityClass");
+
+        Boolean optional = extractValue(parameterDesc, "optional");
+        parameterInfo.optional = optional != null && optional;
 
         return parameterInfo;
     }

@@ -85,7 +85,7 @@ public class RestService {
     @ApiSuccessResponse(status = ApiStatus.OK, entityClass = SomeChildDto.class, contentType = MediaType.APPLICATION_JSON)
     @ApiSuccessResponse(status = ApiStatus.OK, entityClass = SomeChildDto.class, contentType = MediaType.APPLICATION_XML)
     @ApiParameter(name = "jsonParam", description = "custom description", containerClass = SomeDto.class)
-    @ApiParameter(name = "jsonParam", description = "custom description", containerClass = SomeCtorDto.class)
+    @ApiParameter(name = "jsonParam", description = "custom description", containerClass = SomeCtorDto.class, optional = true)
     @ApiParameter(name = "headerParam", description = "custom description <a href='index.html'>here</a>", type = RestMethodData.ParameterType.HEADER)
     @ApiResponseValue(name = "jsonParam2", description = "custom description", containerClass = SomeCtorDto.class)
     @ApiResponseValue(name = "custom responseValue2", description = "custom description")
@@ -136,6 +136,8 @@ public class RestService {
          */
         @JsonProperty("I_AM_FIELDMAN")
         public String jsonParam2;
+
+        @ApiOptional
         public int jsonIntParam;
         public byte[] jsonbyteArrayParam;
 
@@ -216,7 +218,7 @@ public class RestService {
          * @param nestedDto
          * @param nestedDtoList
          */
-        public SomeCtorDto(String jsonParam, @JsonProperty("I_AM_CTORMAN") String jsonParam2, int jsonIntParam,
+        public SomeCtorDto(String jsonParam, @JsonProperty("I_AM_CTORMAN") String jsonParam2, @ApiOptional int jsonIntParam,
                            byte[] jsonbyteArrayParam, String ignoreThisParam, Map<String, String> simpleMap,
                            Map<String, Map<String, String>> nestedMap, List<String> simpleList, List<List<String>> nestedList,
                            Set<String> simpleSet, Set<Set<String>> nestedSet, Map<String, List<Set<String>>> nestedMagic,
@@ -280,6 +282,7 @@ public class RestService {
             return jsonParam2;
         }
 
+        @ApiOptional
         public int getJsonIntParam() {
             return jsonIntParam;
         }

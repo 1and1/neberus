@@ -80,6 +80,7 @@ public class RestMethodData {
         public String description = "";
         public String allowedValues = "";
         public List<ParameterInfo> nestedParameters;
+        public boolean optional;
 
         public ParameterInfo() {
             nestedParameters = new ArrayList<>();
@@ -93,6 +94,7 @@ public class RestMethodData {
             entityClass = other.entityClass == null ? entityClass : other.entityClass;
             displayClass = other.displayClass == null ? displayClass : other.displayClass;
             containerClass = other.containerClass == null ? containerClass : other.containerClass;
+            optional = other.optional || optional;
             //TODO merge nestedParameters? those can't be specified in the annotation, so currently there is no need to...
         }
 
@@ -107,6 +109,7 @@ public class RestMethodData {
                     + ", description=" + description
                     + ", allowedValues=" + allowedValues
                     + ", nestedParameters=" + nestedParameters
+                    + ", optional=" + optional
                     + '}';
         }
 

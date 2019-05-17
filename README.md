@@ -139,6 +139,7 @@ Definitions in the REST-class will be used as fallback in case the interface doe
 | @ApiResponse | Document a Response that does not fit into Success-, Warning-, or Problem-Response. | Method |
 | @ApiResponses | Container annotation for @ApiResponse. | Method |
 | @ApiType | Define the type that should be displayed instead of the actual type. This can be used to hide internal wrapper DTOs. | Parameter |
+| @ApiOptional | Declare a parameter as optional. | Method, Parameter, Field |
 
 ### Example Usage
 
