@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- allow @ApiAllowedValues on fields, methods and parameters
 - replace glyphicons with fontawesome
 
 ## [1.1.0] - 2019-04-10

@@ -78,12 +78,12 @@ public class RestMethodData {
         public Type displayClass;
         public Type containerClass;
         public String description = "";
-        public String allowedValues = "";
-        public List<ParameterInfo> nestedParameters;
+        public List<String> allowedValues = new ArrayList<>();
+        public String allowedValueHint = "";
+        public List<ParameterInfo> nestedParameters = new ArrayList<>();
         public boolean optional;
 
         public ParameterInfo() {
-            nestedParameters = new ArrayList<>();
         }
 
         public void merge(ParameterInfo other) {
@@ -121,7 +121,7 @@ public class RestMethodData {
     public static class ResponseData {
 
         public ResponseData(ResponseType responseType) {
-            this.reponseType = responseType;
+            this.responseType = responseType;
             this.headers = new ArrayList<>();
             this.warnings = new ArrayList<>();
             this.nestedParameters = new ArrayList<>();
@@ -132,7 +132,7 @@ public class RestMethodData {
         public ProblemInfo problem;
         public List<ProblemInfo> warnings;
         public Type entityClass;
-        public ResponseType reponseType;
+        public ResponseType responseType;
         public String contentType = "";
         public List<HeaderInfo> headers;
         public List<ParameterInfo> nestedParameters;
@@ -140,7 +140,7 @@ public class RestMethodData {
         @Override
         public String toString() {
             return "ResponseData{" + "status=" + status + ", description=" + description + ", problem=" + problem + ", warnings=" +
-                    warnings + ", entityClass=" + entityClass + ", reponseType=" + reponseType + ", contentType=" + contentType +
+                    warnings + ", entityClass=" + entityClass + ", responseType=" + responseType + ", contentType=" + contentType +
                     ", headers=" + headers + ", nestedParameters=" + nestedParameters + '}';
         }
 

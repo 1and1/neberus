@@ -428,8 +428,7 @@ public class HtmlDocPrinter extends DocPrinter {
                 .withName(getParameterReference(parameter.name, parameter.parameterType, methodData.label))
                 .withClass("parameterHighlight");
 
-        row.with(
-                getRequiredIndicator(parameter));
+        row.with(getRequiredIndicator(parameter));
 
         if (hasNestedParameters) {
             //add required classes, if this cell should act as "button" to collapse the related params
@@ -465,10 +464,29 @@ public class HtmlDocPrinter extends DocPrinter {
 
         row.with(
                 td(rawHtml(expander.expand(parameter.description))),
-                td(parameter.allowedValues)
+                td(getAllowedValue(parameter))
         );
 
         return row;
+    }
+
+    private ContainerTag getAllowedValue(RestMethodData.ParameterInfo parameterInfo) {
+
+        String concatAllowedValues = concatAllowedValues(parameterInfo.allowedValues);
+
+        if (StringUtils.isBlank(concatAllowedValues)) {
+            return span(parameterInfo.allowedValueHint).withClass("valueHint noselect");
+        }
+
+        return parameterInfo.allowedValueHint == null
+               ? span(concatAllowedValues)
+               : getTooltipTop(parameterInfo.allowedValueHint, concatAllowedValues);
+    }
+
+    private String concatAllowedValues(List<String> allowedValues) {
+        StringJoiner sj = new StringJoiner(" | ");
+        allowedValues.forEach(sj::add);
+        return sj.toString();
     }
 
     private ContainerTag getRequiredIndicator(RestMethodData.ParameterInfo parameter) {
@@ -531,7 +549,7 @@ public class HtmlDocPrinter extends DocPrinter {
             }
 
             row.with(td(rawHtml(expander.expand(p.description))));
-            row.with(td(p.allowedValues));
+            row.with(td(getAllowedValue(p)));
 
             rows.add(row);
 
@@ -729,8 +747,8 @@ public class HtmlDocPrinter extends DocPrinter {
                     td() // headers
             );
 
-            if (!StringUtils.isBlank(p.allowedValues)) {
-                row.with(td(p.allowedValues));
+            if (!p.allowedValues.isEmpty()) {
+                row.with(td(getAllowedValue(p)));
             } else {
                 row.with(td());
             }
@@ -853,7 +871,7 @@ public class HtmlDocPrinter extends DocPrinter {
                     td(rv.name),
                     td(rv.parameterType.name().toLowerCase()),
                     td(rawHtml(expander.expand(rv.description))),
-                    td(rv.allowedValues)
+                    td(getAllowedValue(rv))
             ));
         });
 
@@ -957,7 +975,7 @@ public class HtmlDocPrinter extends DocPrinter {
     }
 
     private String getTableRowClass(RestMethodData.ResponseData responseData) {
-        switch (responseData.reponseType) {
+        switch (responseData.responseType) {
             case SUCCESS:
                 return "success";
             case WARNING:

@@ -8,7 +8,6 @@ import net.oneandone.neberus.annotation.*;
 import net.oneandone.neberus.model.ApiStatus;
 import net.oneandone.neberus.model.FormParameters;
 import net.oneandone.neberus.model.ProblemType;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -139,10 +138,16 @@ public abstract class MethodParser {
                     .findFirst().ifPresent(textTag -> parameterInfo.description = textTag.text());
         }
 
-        //add the default value, if specified
-        String allowedValues = getAnnotationValue(method, parameter, ApiAllowedValues.class, VALUE, index);
-        if (allowedValues != null) {
-            parameterInfo.allowedValues = allowedValues;
+        //add the allowed values, if specified
+        AnnotationValue[] allowedValues = getAnnotationValue(method, parameter, ApiAllowedValues.class, VALUE, index);
+        if (allowedValues != null && allowedValues.length > 0) {
+            parameterInfo.allowedValues = Arrays.stream(allowedValues)
+                    .map(av -> (String) av.value()).collect(Collectors.toList());
+        }
+
+        String allowedValueHint = getAnnotationValue(method, parameter, ApiAllowedValues.class, "valueHint", index);
+        if (allowedValueHint != null) {
+            parameterInfo.allowedValueHint = allowedValueHint;
         }
 
         parameterInfo.optional = hasAnnotation(method, parameter, ApiOptional.class, index);
@@ -258,6 +263,23 @@ public abstract class MethodParser {
         nestedInfo.entityClass = param.type();
         nestedInfo.optional = hasAnnotation(param, ApiOptional.class);
 
+        //add the allowed values, if specified
+        AnnotationValue[] allowedValues = getAnnotationValue(param, ApiAllowedValues.class, VALUE);
+        if (allowedValues != null && allowedValues.length > 0) {
+            nestedInfo.allowedValues = Arrays.stream(allowedValues)
+                    .map(av -> (String) av.value()).collect(Collectors.toList());
+        }
+
+        Type enumClass = getAnnotationValue(param, ApiAllowedValues.class, "enumValues");
+        if (enumClass != null) {
+            nestedInfo.allowedValues = enumValuesAsList(enumClass.asClassDoc());
+        }
+
+        String allowedValueHint = getAnnotationValue(param, ApiAllowedValues.class, "valueHint");
+        if (allowedValueHint != null) {
+            nestedInfo.allowedValueHint = allowedValueHint;
+        }
+
         if (paramTag != null) {
             nestedInfo.description = paramTag.parameterComment();
             Tag[] inlineTags = paramTag.inlineTags();
@@ -298,11 +320,24 @@ public abstract class MethodParser {
         getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
         getAllowedValuesFromSeeTag(getter.tags()).ifPresent(av -> nestedInfo.allowedValues = av);
 
+        if (nestedInfo.allowedValues.isEmpty()) {
+            addAllowedValuesFromAnnotation(getter, nestedInfo);
+        }
+
+        addAllowedValueHint(getter, nestedInfo);
+
         parentList.add(nestedInfo);
 
         if (!type.equals(getter.returnType()) && !parentTypes.contains(getter.returnType())) {
             // break loops
             addNestedParameters(getter.returnType(), nestedInfo.nestedParameters, parentTypes); // recursive
+        }
+    }
+
+    private void addAllowedValueHint(MemberDoc memberDoc, RestMethodData.ParameterInfo nestedInfo) {
+        String allowedValueHint = getAnnotationValue(memberDoc, ApiAllowedValues.class, "valueHint");
+        if (allowedValueHint != null) {
+            nestedInfo.allowedValueHint = allowedValueHint;
         }
     }
 
@@ -321,6 +356,13 @@ public abstract class MethodParser {
         getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
         getAllowedValuesFromSeeTag(field.tags()).ifPresent(av -> nestedInfo.allowedValues = av);
 
+        if (nestedInfo.allowedValues.isEmpty()) {
+            addAllowedValuesFromAnnotation(field, nestedInfo);
+        }
+
+        addAllowedValueHint(field, nestedInfo);
+
+
         //strip inlinetags and use only the text, if present
         Stream.of(inlineTags).filter(tag -> tag.name().equals("Text"))
                 .findFirst().ifPresent(textTag -> nestedInfo.description = textTag.text());
@@ -333,38 +375,50 @@ public abstract class MethodParser {
         }
     }
 
-    protected String getAllowedValuesFromType(Type type) {
-        String allowedValues = "";
+    private void addAllowedValuesFromAnnotation(MemberDoc memberDoc, RestMethodData.ParameterInfo nestedInfo) {
+        //add the allowed values, if specified
+        AnnotationValue[] allowedValues = getAnnotationValue(memberDoc, ApiAllowedValues.class, VALUE);
+        if (allowedValues != null && allowedValues.length > 0) {
+            nestedInfo.allowedValues = Arrays.stream(allowedValues)
+                    .map(av -> (String) av.value()).collect(Collectors.toList());
+        }
 
-        if (type.asClassDoc() != null
-                && type.asClassDoc().isEnum()
-                && StringUtils.isBlank(allowedValues)) {
+        Type enumClass = getAnnotationValue(memberDoc, ApiAllowedValues.class, "enumValues");
+        if (enumClass != null) {
+            nestedInfo.allowedValues = enumValuesAsList(enumClass.asClassDoc());
+        }
+    }
 
-            allowedValues = concatEnumValues(type.asClassDoc());
+    protected List<String> getAllowedValuesFromType(Type type) {
+        List<String> allowedValues = Collections.emptyList();
+
+        if (type.asClassDoc() != null && type.asClassDoc().isEnum()) {
+            allowedValues = enumValuesAsList(type.asClassDoc());
+
         }
         return allowedValues;
     }
 
-    protected Optional<String> getAllowedValuesFromSeeTag(Tag[] tags) {
+    protected Optional<List<String>> getAllowedValuesFromSeeTag(Tag[] tags) {
         return Stream.of(tags).filter(tag -> tag instanceof SeeTag).map(tag -> (SeeTag) tag)
                 .findFirst().map(seeTag -> {
                     ClassDoc referencedClass = seeTag.referencedClass();
 
                     if (referencedClass != null && referencedClass.isEnum()) {
-                        return concatEnumValues(referencedClass);
+                        return enumValuesAsList(referencedClass);
                     }
                     return null;
                 });
     }
 
-    protected String concatEnumValues(ClassDoc enumClassDoc) {
-        StringJoiner sj = new StringJoiner(" | ");
+    protected List<String> enumValuesAsList(ClassDoc enumClassDoc) {
+        List<String> list = new ArrayList<>();
 
         for (FieldDoc enumConstant : enumClassDoc.enumConstants()) {
-            sj.add(enumConstant.name());
+            list.add(enumConstant.name());
         }
 
-        return sj.toString();
+        return list;
     }
 
     protected void addCustomParameters(MethodDoc method, RestMethodData data) {
@@ -372,9 +426,7 @@ public abstract class MethodParser {
         AnnotationValue[] parameters = getAnnotationValue(method, ApiParameters.class, VALUE);
         if (parameters != null) {
             //...and iterate over it's content
-            Stream.of(parameters).forEach(repsonse -> {
-                addCustomParameter((AnnotationDesc) repsonse.value(), data);
-            });
+            Stream.of(parameters).forEach(repsonse -> addCustomParameter((AnnotationDesc) repsonse.value(), data));
         } else {
             //or look for a single annotation
             Optional<AnnotationDesc> singleParameter = getAnnotationDesc(method, ApiParameter.class);
@@ -466,9 +518,9 @@ public abstract class MethodParser {
         }
 
 
-        String allowedValues = extractValue(parameterDesc, "allowedValues");
+        String[] allowedValues = extractValue(parameterDesc, "allowedValues");
         if (allowedValues != null) {
-            parameterInfo.allowedValues = allowedValues;
+            parameterInfo.allowedValues = Arrays.asList(allowedValues);
         }
 
         parameterInfo.containerClass = extractValue(parameterDesc, "containerClass");

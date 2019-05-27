@@ -90,7 +90,9 @@ public class RestService {
     @ApiResponseValue(name = "jsonParam2", description = "custom description", containerClass = SomeCtorDto.class)
     @ApiResponseValue(name = "custom responseValue2", description = "custom description")
     public void justYetAnotherGetMethod(@HeaderParam(HttpHeaders.AUTHORIZATION) String header,
-                                        @PathParam("pathParam") @ApiAllowedValues("the expected allowed value") String pathParam,
+                                        @PathParam("pathParam") @ApiAllowedValues(
+                                                value = { "the", "expected", "allowed", "values" },
+                                                valueHint = "something like this") String pathParam,
                                         @QueryParam("queryParam") String queryParam,
                                         SomeDto dto, SomeCtorDto otherDto, SomeChildDto childDto) {
 
@@ -138,7 +140,10 @@ public class RestService {
         public String jsonParam2;
 
         @ApiOptional
+        @ApiAllowedValues(valueHint = "[0-100]")
         public int jsonIntParam;
+
+        @ApiAllowedValues(enumValues = SomeEnum.class)
         public byte[] jsonbyteArrayParam;
 
         @JsonIgnore
@@ -218,7 +223,8 @@ public class RestService {
          * @param nestedDto
          * @param nestedDtoList
          */
-        public SomeCtorDto(String jsonParam, @JsonProperty("I_AM_CTORMAN") String jsonParam2, @ApiOptional int jsonIntParam,
+        public SomeCtorDto(String jsonParam, @JsonProperty("I_AM_CTORMAN") String jsonParam2,
+                           @ApiOptional @ApiAllowedValues(valueHint = "[0-100]") int jsonIntParam,
                            byte[] jsonbyteArrayParam, String ignoreThisParam, Map<String, String> simpleMap,
                            Map<String, Map<String, String>> nestedMap, List<String> simpleList, List<List<String>> nestedList,
                            Set<String> simpleSet, Set<Set<String>> nestedSet, Map<String, List<Set<String>>> nestedMagic,
@@ -283,6 +289,7 @@ public class RestService {
         }
 
         @ApiOptional
+        @ApiAllowedValues(valueHint = "[0-100]")
         public int getJsonIntParam() {
             return jsonIntParam;
         }

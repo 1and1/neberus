@@ -120,7 +120,7 @@ Definitions in the REST-class will be used as fallback in case the interface doe
 |---|---|---|
 | @ApiDocumentation | Enables neberus documentation for a class containing REST methods.  | Type |
 | @ApiCurl | Generate an example curl. | Method |
-| @ApiAllowedValues | Define the allowed values for a parameter. | Parameter |
+| @ApiAllowedValues | Define the allowed values for a parameter. | Method, Parameter, Field |
 | @ApiDescription | If provided, the value of this will be used as description of the method instead of the javadoc comment. | Method, Type |
 | @ApiHeader | Define a Header.<br>If defined within a @ApiResponse, it will represent a response header.<br>If defined on class level, this can be used to provied descriptions of headers that are reused many times. The header name will be used for reference. | Type |
 | @ApiHeaders | Container annotation for @ApiHeader. | Type |
