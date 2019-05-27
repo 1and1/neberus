@@ -307,7 +307,7 @@ public class HtmlDocPrinter extends DocPrinter {
 
         if (!requestData.parameters.isEmpty()) {
             ContainerTag table = table().withClass("table table-striped parameters").with(
-                    tr().with(th(), th("Name"), th("Type"), th("Entity"), th("Description"), th("Allowed Values"))
+                    tr().with(th("Name"), th("Type"), th("Entity"), th("Description"), th("Allowed Values"))
             );
 
             requestDiv.with(div().withClass("panel panel-default").with(div().withClass("panel-heading").with(
@@ -428,8 +428,6 @@ public class HtmlDocPrinter extends DocPrinter {
                 .withName(getParameterReference(parameter.name, parameter.parameterType, methodData.label))
                 .withClass("parameterHighlight");
 
-        row.with(getRequiredIndicator(parameter));
-
         if (hasNestedParameters) {
             //add required classes, if this cell should act as "button" to collapse the related params
             row.withClass("toggleParams").withHref(toggleId + "").withData("toggle-id", toggleId + "")
@@ -439,14 +437,15 @@ public class HtmlDocPrinter extends DocPrinter {
                     .withData("trigger", "hover")
                     .attr("title", "Click to show contained rows")
                     .with(td().with(
+                            getOptionalIndicator(parameter),
                             rawHtml(parameter.name),
                             i().withClass("icon-toggle fas fa-angle-right icon-" + toggleId)
                     ));
         } else {
-            row.with(td(parameter.name));
+            row.with(td().with(getOptionalIndicator(parameter), rawHtml(parameter.name)));
         }
 
-        row.with(td(parameter.parameterType.name().toLowerCase()));
+        row.with(td(parameter.parameterType.name().toLowerCase()).withClass("valueHint noselect"));
 
         Type usedType = parameter.displayClass != null ? parameter.displayClass : parameter.entityClass;
 
@@ -489,8 +488,8 @@ public class HtmlDocPrinter extends DocPrinter {
         return sj.toString();
     }
 
-    private ContainerTag getRequiredIndicator(RestMethodData.ParameterInfo parameter) {
-        return td().withClass("optionalIndicator").with(
+    private ContainerTag getOptionalIndicator(RestMethodData.ParameterInfo parameter) {
+        return span().withClass("optionalIndicator").with(
                 getTooltip(
                         parameter.optional ? "Optional" : "Mandatory",
                         i().withClass(parameter.optional ? "far fa-circle" : "fas fa-circle").render(),
@@ -510,9 +509,7 @@ public class HtmlDocPrinter extends DocPrinter {
             ContainerTag row = tr().withClasses("collapse out " + toggleId, "parameterHighlight")
                     .withName(getParameterReference(concat(parent, p.name), BODY, methodData.label));
 
-            ContainerTag nameCell = td().withStyle("padding-left: " + layer * 25 + "px");
-
-            row.with(getRequiredIndicator(p));
+            ContainerTag nameCell = td().withStyle("padding-left: " + (10 + layer * 15) + "px");
 
             if (hasNestedParameters) {
                 //add required classes, if this cell should act as "button" to collapse the related params
@@ -525,11 +522,13 @@ public class HtmlDocPrinter extends DocPrinter {
                         .withData("trigger", "hover")
                         .attr("title", "Click to show contained rows")
                         .with(nameCell.with(
+                                getOptionalIndicator(p),
                                 rawHtml(p.name),
                                 span().withClass("icon-toggle fas fa-angle-right icon-" + subToggleId)
                         ));
             } else {
-                row.with(nameCell.with(rawHtml(p.name))).withData("toggle-parent", toggleId);
+                row.with(nameCell.with(getOptionalIndicator(p), rawHtml(p.name))
+                ).withData("toggle-parent", toggleId);
             }
 
             row.with(td()); // empty cell for 'type'
