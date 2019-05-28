@@ -79,7 +79,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>2.9.8</version>
+                <version>2.9.9</version>
                 <optional>true</optional>
             </dependency>
             <dependency>
@@ -92,13 +92,13 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.7</version>
+                <version>3.8</version>
                 <optional>true</optional>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-webmvc</artifactId>
-                <version>5.1.4.RELEASE</version>
+                <version>5.1.6.RELEASE</version>
                 <optional>true</optional>
             </dependency>
             <dependency>
@@ -117,7 +117,7 @@
             <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
-                <version>3.8.0</version>
+                <version>3.11.1</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
