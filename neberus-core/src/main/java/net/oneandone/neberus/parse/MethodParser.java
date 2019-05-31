@@ -100,34 +100,7 @@ public abstract class MethodParser {
 
     protected RestMethodData.ParameterInfo parseParameter(MethodDoc method, Parameter parameter, Map<String, ParamTag> paramTags,
                                                           int index) {
-        RestMethodData.ParameterInfo parameterInfo = new RestMethodData.ParameterInfo();
-
-        //check whether it is a "path", "query" or "body" parameter
-        String pathParam = getPathParam(method, parameter, index);
-        String queryParam = getQueryParam(method, parameter, index);
-        String headerParam = getHeaderParam(method, parameter, index);
-
-        parameterInfo.entityClass = parameter.type();
-        parameterInfo.displayClass = getAnnotationValue(method, parameter, ApiType.class, VALUE, index);
-
-        if (pathParam != null) {
-            parameterInfo.name = pathParam;
-            parameterInfo.parameterType = PATH;
-        } else if (queryParam != null) {
-            parameterInfo.name = queryParam;
-            parameterInfo.parameterType = QUERY;
-        } else if (headerParam != null) {
-            parameterInfo.name = headerParam;
-            parameterInfo.parameterType = HEADER;
-        } else {
-            parameterInfo.name = parameter.name();
-            parameterInfo.parameterType = BODY;
-
-            addNestedParameters(parameterInfo.displayClass != null ? parameterInfo.displayClass : parameterInfo.entityClass,
-                    parameterInfo.nestedParameters, new ArrayList<>());
-
-            parameterInfo.nestedParameters.sort((a, b) -> a.optional && !b.optional ? 1 : a.optional && b.optional ? 0 : -1);
-        }
+        RestMethodData.ParameterInfo parameterInfo = getBasicParameterInfo(method, parameter, index);
 
         ParamTag paramTag = getParamTag(method, index, paramTags);
 
@@ -156,6 +129,38 @@ public abstract class MethodParser {
 
         parameterInfo.optional = hasAnnotation(method, parameter, ApiOptional.class, index);
 
+        return parameterInfo;
+    }
+
+    private RestMethodData.ParameterInfo getBasicParameterInfo(MethodDoc method, Parameter parameter, int index) {
+        RestMethodData.ParameterInfo parameterInfo = new RestMethodData.ParameterInfo();
+
+        //check whether it is a "path", "query" or "body" parameter
+        String pathParam = getPathParam(method, parameter, index);
+        String queryParam = getQueryParam(method, parameter, index);
+        String headerParam = getHeaderParam(method, parameter, index);
+
+        parameterInfo.entityClass = parameter.type();
+        parameterInfo.displayClass = getAnnotationValue(method, parameter, ApiType.class, VALUE, index);
+
+        if (pathParam != null) {
+            parameterInfo.name = pathParam;
+            parameterInfo.parameterType = PATH;
+        } else if (queryParam != null) {
+            parameterInfo.name = queryParam;
+            parameterInfo.parameterType = QUERY;
+        } else if (headerParam != null) {
+            parameterInfo.name = headerParam;
+            parameterInfo.parameterType = HEADER;
+        } else {
+            parameterInfo.name = parameter.name();
+            parameterInfo.parameterType = BODY;
+
+            addNestedParameters(parameterInfo.displayClass != null ? parameterInfo.displayClass : parameterInfo.entityClass,
+                    parameterInfo.nestedParameters, new ArrayList<>());
+
+            parameterInfo.nestedParameters.sort((a, b) -> a.optional && !b.optional ? 1 : a.optional && b.optional ? 0 : -1);
+        }
         return parameterInfo;
     }
 
