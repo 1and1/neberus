@@ -7,7 +7,9 @@ import net.oneandone.neberus.model.ApiStatus;
 import net.oneandone.neberus.model.ProblemType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RestMethodData {
 
@@ -82,6 +84,7 @@ public class RestMethodData {
         public String allowedValueHint = "";
         public List<ParameterInfo> nestedParameters = new ArrayList<>();
         public boolean optional;
+        public Map<String, Map<String, String>> constraints = new HashMap<>();
 
         public ParameterInfo() {
         }
@@ -90,11 +93,12 @@ public class RestMethodData {
             name = other.name.equals("") ? name : other.name;
             parameterType = other.parameterType == null ? parameterType : other.parameterType;
             description = other.description.equals("") ? description : other.description;
-            allowedValues = other.allowedValues.equals("") ? allowedValues : other.allowedValues;
+            allowedValues.addAll(other.allowedValues);
             entityClass = other.entityClass == null ? entityClass : other.entityClass;
             displayClass = other.displayClass == null ? displayClass : other.displayClass;
             containerClass = other.containerClass == null ? containerClass : other.containerClass;
             optional = other.optional || optional;
+            constraints.putAll(other.constraints);
             //TODO merge nestedParameters? those can't be specified in the annotation, so currently there is no need to...
         }
 
@@ -110,6 +114,7 @@ public class RestMethodData {
                     + ", allowedValues=" + allowedValues
                     + ", nestedParameters=" + nestedParameters
                     + ", optional=" + optional
+                    + ", constraints=" + constraints
                     + '}';
         }
 

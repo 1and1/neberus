@@ -473,13 +473,20 @@ public class HtmlDocPrinter extends DocPrinter {
 
         String concatAllowedValues = concatAllowedValues(parameterInfo.allowedValues);
 
-        if (StringUtils.isBlank(concatAllowedValues)) {
-            return span(parameterInfo.allowedValueHint).withClass("valueHint noselect");
+        String constraints = printConstraints(parameterInfo.constraints);
+        String allowedValueHint = parameterInfo.allowedValueHint;
+
+        if (StringUtils.isNotBlank(constraints)) {
+            allowedValueHint = allowedValueHint == null ? constraints : constraints  + "<br>" + allowedValueHint;
         }
 
-        return parameterInfo.allowedValueHint == null
+        if (StringUtils.isBlank(concatAllowedValues)) {
+            return span(rawHtml(allowedValueHint)).withClass("valueHint noselect");
+        }
+
+        return allowedValueHint == null
                ? span(concatAllowedValues)
-               : getTooltipTop(parameterInfo.allowedValueHint, concatAllowedValues);
+               : getTooltipTop(allowedValueHint.replace("<br>", " "), concatAllowedValues);
     }
 
     private String concatAllowedValues(List<String> allowedValues) {
@@ -558,6 +565,36 @@ public class HtmlDocPrinter extends DocPrinter {
             }
             return rows.stream();
         }).collect(Collectors.toList());
+    }
+
+    private String printConstraints(Map<String, Map<String, String>> constraints) {
+
+        StringJoiner sj = new StringJoiner(" ");
+
+        constraints.forEach((name, config) -> {
+            StringBuilder sb = new StringBuilder();
+            sb.append("@").append(name);
+
+            if (!config.isEmpty()) {
+                sb.append("(");
+                StringJoiner configJoiner = new StringJoiner(", ");
+
+                if (config.size() == 1 && config.containsKey("value")) {
+                    // omit 'value' when it is the only field
+                    configJoiner.add(config.get("value"));
+                } else {
+                    config.forEach((key, value) -> {
+                        configJoiner.add(key + "=" + value);
+                    });
+                }
+                sb.append(configJoiner.toString());
+                sb.append(")");
+            }
+
+            sj.add(sb.toString());
+        });
+
+        return sj.toString();
     }
 
     private String printCurl(RestMethodData.RequestData requestData, RestMethodData.MethodData methodData,
@@ -746,11 +783,7 @@ public class HtmlDocPrinter extends DocPrinter {
                     td() // headers
             );
 
-            if (!p.allowedValues.isEmpty()) {
-                row.with(td(getAllowedValue(p)));
-            } else {
-                row.with(td());
-            }
+            row.with(td(getAllowedValue(p)));
 
             rows.add(row);
 

@@ -265,6 +265,7 @@ public abstract class MethodParser {
         nestedInfo.name = getPublicCtorParmeterName(param);
         nestedInfo.allowedValues = getAllowedValuesFromType(param.type());
         nestedInfo.entityClass = param.type();
+        nestedInfo.constraints = getConstraints(param.annotations());
         nestedInfo.optional = hasAnnotation(param, ApiOptional.class);
 
         //add the allowed values, if specified
@@ -319,6 +320,7 @@ public abstract class MethodParser {
 
         nestedInfo.allowedValues = getAllowedValuesFromType(getter.returnType());
         nestedInfo.entityClass = getter.returnType();
+        nestedInfo.constraints = getConstraints(getter.annotations());
         nestedInfo.optional = hasAnnotation(getter, ApiOptional.class);
 
         getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
@@ -353,6 +355,7 @@ public abstract class MethodParser {
         nestedInfo.description = field.commentText();
         nestedInfo.allowedValues = getAllowedValuesFromType(field.type());
         nestedInfo.entityClass = field.type();
+        nestedInfo.constraints = getConstraints(field.annotations());
         nestedInfo.optional = hasAnnotation(field, ApiOptional.class);
 
         Tag[] inlineTags = field.inlineTags();
@@ -534,6 +537,42 @@ public abstract class MethodParser {
         parameterInfo.optional = optional != null && optional;
 
         return parameterInfo;
+    }
+
+    private Map<String, Map<String, String>> getConstraints(AnnotationDesc[] annotations) {
+        Map<String, Map<String, String>> constraints = new HashMap<>();
+
+        Arrays.stream(annotations).filter(this::isValidationConstraint).forEach(annotation -> {
+            String key = annotation.annotationType().simpleTypeName();
+
+            HashMap<String, String> params = new HashMap<>();
+
+            // add default values
+            Arrays.stream(annotation.annotationType().elements()).forEach(element -> {
+                if (element.defaultValue() == null) {
+                    return;
+                }
+
+                Object defaultValue = element.defaultValue().value();
+
+                if (defaultValue instanceof Number) {
+                    params.put(element.name(), defaultValue.toString());
+                }
+            });
+
+            // overwrite with defined values
+            Arrays.stream(annotation.elementValues())
+                    .forEach(pair -> params.put(pair.element().name(), pair.value().value().toString()));
+
+            constraints.put(key, params);
+        });
+
+        return constraints;
+    }
+
+    private boolean isValidationConstraint(AnnotationDesc annotation) {
+        return Arrays.stream(annotation.annotationType().annotations())
+                .anyMatch(a -> a.annotationType().qualifiedName().equals("javax.validation.Constraint"));
     }
 
     protected void addMethodData(MethodDoc method, RestMethodData data) {

@@ -10,6 +10,10 @@ import net.oneandone.neberus.model.ProblemType;
 import net.oneandone.neberus.annotation.*;
 import net.oneandone.neberus.parse.RestMethodData;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import javax.ws.rs.*;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -93,7 +97,7 @@ public class RestService {
                                         @PathParam("pathParam") @ApiAllowedValues(
                                                 value = { "the", "expected", "allowed", "values" },
                                                 valueHint = "something like this") String pathParam,
-                                        @QueryParam("queryParam") String queryParam,
+                                        @ApiOptional @QueryParam("queryParam") String queryParam,
                                         SomeDto dto, SomeCtorDto otherDto, SomeChildDto childDto) {
 
     }
@@ -137,10 +141,13 @@ public class RestService {
          * my fieldDoc {@link SomeEnum}
          */
         @JsonProperty("I_AM_FIELDMAN")
+        @Pattern(regexp = "abc.123")
         public String jsonParam2;
 
         @ApiOptional
-        @ApiAllowedValues(valueHint = "[0-100]")
+        @ApiAllowedValues(value = "33", valueHint = "[-5, 42]")
+        @Min(-5)
+        @Max(42)
         public int jsonIntParam;
 
         @ApiAllowedValues(enumValues = SomeEnum.class)
@@ -149,7 +156,9 @@ public class RestService {
         @JsonIgnore
         public String ignoreThisParam;
 
+        @Size(max = 42)
         public Map<String, String> simpleMap;
+
         public Map<String, Map<String, String>> nestedMap;
 
         public List<String> simpleList;
@@ -223,9 +232,9 @@ public class RestService {
          * @param nestedDto
          * @param nestedDtoList
          */
-        public SomeCtorDto(String jsonParam, @JsonProperty("I_AM_CTORMAN") String jsonParam2,
-                           @ApiOptional @ApiAllowedValues(valueHint = "[0-100]") int jsonIntParam,
-                           byte[] jsonbyteArrayParam, String ignoreThisParam, Map<String, String> simpleMap,
+        public SomeCtorDto(String jsonParam, @JsonProperty("I_AM_CTORMAN") @Pattern(regexp = "abc.123") String jsonParam2,
+                           @ApiOptional @ApiAllowedValues(value = "33", valueHint = "[-5, 42]") @Min(-5) @Max(42) int jsonIntParam,
+                           byte[] jsonbyteArrayParam, String ignoreThisParam, @Size(max = 42) Map<String, String> simpleMap,
                            Map<String, Map<String, String>> nestedMap, List<String> simpleList, List<List<String>> nestedList,
                            Set<String> simpleSet, Set<Set<String>> nestedSet, Map<String, List<Set<String>>> nestedMagic,
                            List<Map<String, Set<String>>> nestedMagic2, NestedDto nestedDto, List<NestedDto> nestedDtoList) {
@@ -284,12 +293,15 @@ public class RestService {
          * @return this is the return tag text
          */
         @JsonProperty("I_AM_GETTERMAN")
+        @Pattern(regexp = "abc.123")
         public String getJsonParam2() {
             return jsonParam2;
         }
 
         @ApiOptional
-        @ApiAllowedValues(valueHint = "[0-100]")
+        @ApiAllowedValues(value = "33", valueHint = "[-5, 42]")
+        @Min(-5)
+        @Max(42)
         public int getJsonIntParam() {
             return jsonIntParam;
         }
@@ -302,6 +314,7 @@ public class RestService {
             return ignoreThisParam;
         }
 
+        @Size(max = 42)
         public Map<String, String> getSimpleMap() {
             return simpleMap;
         }
