@@ -84,8 +84,10 @@ public abstract class MethodParser {
             } else {
                 data.requestData.parameters.add(parameterInfo);
             }
-
         }
+
+        data.requestData.parameters.sort((a, b) -> a.optional && !b.optional ? 1 : a.optional && b.optional ? 0 : -1);
+
     }
 
     protected abstract String getPathParam(MethodDoc method, Parameter parameter, int index);
@@ -123,6 +125,8 @@ public abstract class MethodParser {
 
             addNestedParameters(parameterInfo.displayClass != null ? parameterInfo.displayClass : parameterInfo.entityClass,
                     parameterInfo.nestedParameters, new ArrayList<>());
+
+            parameterInfo.nestedParameters.sort((a, b) -> a.optional && !b.optional ? 1 : a.optional && b.optional ? 0 : -1);
         }
 
         ParamTag paramTag = getParamTag(method, index, paramTags);
