@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.2.0]
+
 ### Added
 
 - add @ApiOptional to mark optional parameters
@@ -17,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - allow @ApiAllowedValues on fields, methods and parameters
 - replace glyphicons with fontawesome
+- use auto placement for template popovers
 
 ## [1.1.0] - 2019-04-10
 
