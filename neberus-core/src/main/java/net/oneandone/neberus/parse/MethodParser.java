@@ -142,6 +142,7 @@ public abstract class MethodParser {
 
         parameterInfo.entityClass = parameter.type();
         parameterInfo.displayClass = getAnnotationValue(method, parameter, ApiType.class, VALUE, index);
+        parameterInfo.constraints = getConstraints(parameter.annotations());
 
         if (pathParam != null) {
             parameterInfo.name = pathParam;

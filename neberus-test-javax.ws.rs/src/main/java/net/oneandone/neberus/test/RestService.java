@@ -93,11 +93,11 @@ public class RestService {
     @ApiParameter(name = "headerParam", description = "custom description <a href='index.html'>here</a>", type = RestMethodData.ParameterType.HEADER)
     @ApiResponseValue(name = "jsonParam2", description = "custom description", containerClass = SomeCtorDto.class)
     @ApiResponseValue(name = "custom responseValue2", description = "custom description")
-    public void justYetAnotherGetMethod(@HeaderParam(HttpHeaders.AUTHORIZATION) String header,
+    public void justYetAnotherGetMethod(@HeaderParam(HttpHeaders.AUTHORIZATION) @Size(max = 42) String header,
                                         @PathParam("pathParam") @ApiAllowedValues(
                                                 value = { "the", "expected", "allowed", "values" },
-                                                valueHint = "something like this") String pathParam,
-                                        @ApiOptional @QueryParam("queryParam") String queryParam,
+                                                valueHint = "something like this") @Size(max = 42) String pathParam,
+                                        @ApiOptional @QueryParam("queryParam") @Size(max = 42) String queryParam,
                                         SomeDto dto, SomeCtorDto otherDto, SomeChildDto childDto) {
 
     }
