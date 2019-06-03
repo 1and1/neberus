@@ -1,6 +1,8 @@
 package net.oneandone.neberus.test;
 
 import net.oneandone.neberus.annotation.ApiCurl;
+
+import javax.validation.constraints.Size;
 import javax.ws.rs.core.MediaType;
 import net.oneandone.neberus.annotation.ApiDescription;
 import net.oneandone.neberus.annotation.ApiDocumentation;
@@ -52,7 +54,7 @@ public interface RestServiceInterfaceDoc {
     )
     @ApiCurl
     Response justAnotherGetMethodWithInterfaceDoc(@ApiAllowedValues("default") String pathParam,
-                                                         String anotherPathParam,
+                                                         @Size(max = 42) String anotherPathParam,
                                                          @ApiType(UUID.class) String queryParam,
                                                          SomeDto dto);
 

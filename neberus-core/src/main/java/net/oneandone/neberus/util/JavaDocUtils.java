@@ -153,6 +153,16 @@ public abstract class JavaDocUtils {
         return extractValue(findFirst.get(), key);
     }
 
+    public static AnnotationDesc[] getAnnotations(MethodDoc method, Parameter parameter, int index) {
+        Optional<Parameter> interfaceParam = getInterfaceParameter(method, index);
+
+        ArrayList<AnnotationDesc> annotations = new ArrayList<>(Arrays.asList(parameter.annotations()));
+
+        interfaceParam.ifPresent(value -> annotations.addAll(Arrays.asList(value.annotations())));
+
+        return annotations.toArray(new AnnotationDesc[0]);
+    }
+
     public static boolean hasAnnotation(ProgramElementDoc field, Class annotationClass) {
         return hasAnnotation(field, annotationClass.getName());
     }
