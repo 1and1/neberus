@@ -86,7 +86,7 @@ public abstract class MethodParser {
             }
         }
 
-        data.requestData.parameters.sort((a, b) -> a.optional && !b.optional ? 1 : a.optional && b.optional ? 0 : -1);
+        sortByOptionalState(data.requestData.parameters);
 
     }
 
@@ -109,6 +109,7 @@ public abstract class MethodParser {
             parameterInfo.description = paramTag.parameterComment();
 
             getAllowedValuesFromSeeTag(paramTag.inlineTags()).ifPresent(av -> parameterInfo.allowedValues = av);
+            getConstraintsFromSeeTag(paramTag.inlineTags()).ifPresent(av -> parameterInfo.constraints = av);
 
             //strip inline tags and use only the text, if present
             Stream.of(paramTag.inlineTags()).filter(tag -> tag.name().equals("Text"))
@@ -160,7 +161,7 @@ public abstract class MethodParser {
             addNestedParameters(parameterInfo.displayClass != null ? parameterInfo.displayClass : parameterInfo.entityClass,
                     parameterInfo.nestedParameters, new ArrayList<>());
 
-            parameterInfo.nestedParameters.sort((a, b) -> a.optional && !b.optional ? 1 : a.optional && b.optional ? 0 : -1);
+            sortByOptionalState(parameterInfo.nestedParameters);
         }
         return parameterInfo;
     }
@@ -250,8 +251,12 @@ public abstract class MethodParser {
                 }
             }
         } finally {
-            parentList.sort((a, b) -> a.optional && !b.optional ? 1 : a.optional && b.optional ? 0 : -1);
+            sortByOptionalState(parentList);
         }
+    }
+
+    private void sortByOptionalState(List<RestMethodData.ParameterInfo> parentList) {
+        parentList.sort((a, b) -> a.optional && !b.optional ? 1 : a.optional && b.optional ? 0 : -1);
     }
 
     private ConstructorDoc getCtorDoc(Type type) {
@@ -299,6 +304,7 @@ public abstract class MethodParser {
             nestedInfo.description = paramTag.parameterComment();
             Tag[] inlineTags = paramTag.inlineTags();
             getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
+            getConstraintsFromSeeTag(paramTag.inlineTags()).ifPresent(av -> nestedInfo.constraints = av);
 
             //strip inlinetags and use only the text, if present
             Stream.of(inlineTags).filter(tag -> tag.name().equals("Text"))
@@ -335,6 +341,8 @@ public abstract class MethodParser {
 
         getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
         getAllowedValuesFromSeeTag(getter.tags()).ifPresent(av -> nestedInfo.allowedValues = av);
+        getConstraintsFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.constraints = av);
+        getConstraintsFromSeeTag(getter.tags()).ifPresent(av -> nestedInfo.constraints = av);
 
         if (nestedInfo.allowedValues.isEmpty()) {
             addAllowedValuesFromAnnotation(getter, nestedInfo);
@@ -372,6 +380,8 @@ public abstract class MethodParser {
 
         getAllowedValuesFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
         getAllowedValuesFromSeeTag(field.tags()).ifPresent(av -> nestedInfo.allowedValues = av);
+        getConstraintsFromSeeTag(inlineTags).ifPresent(av -> nestedInfo.constraints = av);
+        getConstraintsFromSeeTag(field.tags()).ifPresent(av -> nestedInfo.constraints = av);
 
         if (nestedInfo.allowedValues.isEmpty()) {
             addAllowedValuesFromAnnotation(field, nestedInfo);
@@ -424,6 +434,19 @@ public abstract class MethodParser {
                     if (referencedClass != null && referencedClass.isEnum()) {
                         return enumValuesAsList(referencedClass);
                     }
+                    return null;
+                });
+    }
+
+    protected Optional<Map<String, Map<String, String>>> getConstraintsFromSeeTag(Tag[] tags) {
+        return Stream.of(tags).filter(tag -> tag instanceof SeeTag).map(tag -> (SeeTag) tag)
+                .findFirst().map(seeTag -> {
+                    MemberDoc referencedMember = seeTag.referencedMember();
+
+                    if (referencedMember != null) {
+                        return getConstraints(referencedMember.annotations());
+                    }
+
                     return null;
                 });
     }
@@ -491,7 +514,7 @@ public abstract class MethodParser {
             }
         }
 
-        data.responseValues.sort((a, b) -> a.optional && !b.optional ? 1 : a.optional && b.optional ? 0 : -1);
+        sortByOptionalState(data.responseValues);
     }
 
     protected void addCustomResponseValue(AnnotationDesc parameterDesc, RestMethodData data) {

@@ -144,6 +144,11 @@ public class RestService {
         @Pattern(regexp = "abc.123")
         public String jsonParam2;
 
+        /**
+         * @see IncludedDto#constraintReference
+         */
+        public String referencedConstraintsParam;
+
         @ApiOptional
         @ApiAllowedValues(value = "33", valueHint = "[-5, 42]")
         @Min(-5)

@@ -199,6 +199,11 @@ public class RestService {
 		 * @see SomeEnum <- this will do the same
 		 */
 		public String string1;
+		
+		/**
+		 * @see SomeWrapperClass#value <- can be used to reference the javax.validation constraints of another field
+         */
+		public String string2;
 
 		/**
 		 * If the fields are private, the doc can be placed on the getter
