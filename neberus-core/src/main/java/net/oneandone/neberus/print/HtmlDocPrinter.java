@@ -207,7 +207,7 @@ public class HtmlDocPrinter extends DocPrinter {
                                             getTooltipLeft(
                                                     method.methodData.label
                                                             + (needsDeprecatedLabel(method.methodData) ? " - DEPRECATED" : ""),
-                                                    divEntry.toString()
+                                                    divEntry.render()
                                             )
                                     )
                     );
@@ -242,7 +242,7 @@ public class HtmlDocPrinter extends DocPrinter {
                         relatedUsecases.forEach(usecase -> {
                             sj.add(a(usecase.name)
                                     .withHref("index.html#" + usecase.name.replace(" ", ""))
-                                    .toString()
+                                    .render()
                             );
                         });
 
@@ -693,7 +693,7 @@ public class HtmlDocPrinter extends DocPrinter {
             return value;
         }
         return span().withName(getParameterReference(name, type, method.label)).withClass("parameterHighlight")
-                .with(rawHtml(value)).toString().replace("\"", "'");
+                .with(rawHtml(value)).render().replace("\"", "'");
     }
 
     private String concat(String... s) {
@@ -1121,10 +1121,10 @@ public class HtmlDocPrinter extends DocPrinter {
                     .filter(e -> !paramterOverrides.containsKey(e.getKey()) || paramterOverrides.get(e.getKey()) != null)
                     .forEach(e -> {
                         if (isArrayType(e.getValue())) {
-                            dataTable.put(printWithParameterReference(concat(parent, e.getKey()), BODY, methodData, skipEnhance, e.getKey()),
+                            dataTable.set(printWithParameterReference(concat(parent, e.getKey()), BODY, methodData, skipEnhance, e.getKey()),
                                     processArrayType(e.getValue(), paramterOverrides, parent, methodData, skipEnhance));
                         } else if (isMapType(e.getValue())) {
-                            dataTable.put(printWithParameterReference(concat(parent, e.getKey()), BODY, methodData, skipEnhance, e.getKey()),
+                            dataTable.set(printWithParameterReference(concat(parent, e.getKey()), BODY, methodData, skipEnhance, e.getKey()),
                                     processMapType(e.getValue(), paramterOverrides, parent, methodData, skipEnhance));
                         } else if (containedFieldNamesAreNotAvailableOrPackageExcluded(e.getValue(), options) // stop at 'arg0' etc. this does not provide useful information
                                 || e.getValue().equals(type)) {  // break simple recursive loops
@@ -1187,11 +1187,11 @@ public class HtmlDocPrinter extends DocPrinter {
         Type[] typeArguments = type.asParameterizedType().typeArguments();
 
         if (isArrayType(typeArguments[1])) {
-            mapNode.put("{" + getTypeString(typeArguments[0]) + "}",
+            mapNode.set("{" + getTypeString(typeArguments[0]) + "}",
                     processArrayType(typeArguments[1], paramterOverrides, parent, methodData, skipEnhance));
         } else if (typeArguments[1] != null && typeArguments[1].asClassDoc() != null && !typeArguments[1].isPrimitive()
                 && !typeArguments[1].qualifiedTypeName().startsWith("java.lang") && !typeArguments[1].asClassDoc().isEnum()) {
-            mapNode.put("{" + getTypeString(typeArguments[0]) + "}",
+            mapNode.set("{" + getTypeString(typeArguments[0]) + "}",
                     processType(typeArguments[1], null, paramterOverrides, parent, methodData, skipEnhance));
         } else {
             mapNode.put("{" + getTypeString(typeArguments[0]) + "}", "{" + getTypeString(typeArguments[1]) + "}");

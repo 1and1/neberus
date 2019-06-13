@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.3.1] - 2019-06-13
+
+### Fixed
+
+- fix toString() issues after j2html upgrade
+
 ## [1.3.0] - 2019-06-13
 
 ### Added
