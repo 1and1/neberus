@@ -33,7 +33,7 @@ public @interface ApiParameter {
      *
      * @return the allowed values
      */
-    String allowedValues() default "";
+    String[] allowedValues() default {};
 
     /**
      * If set, the parameter will be grouped under the corresponding request entity description. Defining a class that is not

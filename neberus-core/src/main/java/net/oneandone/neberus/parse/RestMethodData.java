@@ -93,6 +93,7 @@ public class RestMethodData {
             name = other.name.equals("") ? name : other.name;
             parameterType = other.parameterType == null ? parameterType : other.parameterType;
             description = other.description.equals("") ? description : other.description;
+            allowedValues = new ArrayList<>(allowedValues);
             allowedValues.addAll(other.allowedValues);
             entityClass = other.entityClass == null ? entityClass : other.entityClass;
             displayClass = other.displayClass == null ? displayClass : other.displayClass;

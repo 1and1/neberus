@@ -32,7 +32,7 @@ public @interface ApiResponseValue {
      *
      * @return the allowed values
      */
-    String allowedValues() default "";
+    String[] allowedValues() default {};
 
     /**
      * If set, the responseValue will be grouped under the corresponding response entity description. Defining a class that is

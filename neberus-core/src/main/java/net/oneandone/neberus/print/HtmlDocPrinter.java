@@ -746,7 +746,7 @@ public class HtmlDocPrinter extends DocPrinter {
 
             ContainerTag row = tr().withClass("collapse out " + toggleId);
 
-            ContainerTag nameCell = td().withStyle("padding-left: " + layer * 25 + "px");
+            ContainerTag nameCell = td().withStyle("padding-left: " + (10 + layer * 15) + "px");
 
             if (hasNestedParameters) {
                 //add required classes, if this cell should act as "button" to collapse the related params
@@ -757,11 +757,12 @@ public class HtmlDocPrinter extends DocPrinter {
                         .withData("trigger", "hover")
                         .attr("title", "Click to show contained rows")
                         .with(nameCell.with(
+                                getOptionalIndicator(p),
                                 rawHtml(p.name),
                                 span().withClass("icon-toggle fas fa-angle-right icon-" + subToggleId)
                         ));
             } else {
-                row.with(nameCell.with(rawHtml(p.name)));
+                row.with(nameCell.with(getOptionalIndicator(p), rawHtml(p.name)));
             }
 
             // entity
@@ -826,7 +827,7 @@ public class HtmlDocPrinter extends DocPrinter {
 
             if (hasRelatedResponseValues) {
                 table.with(getNestedResponseValues(response, response.nestedParameters, restMethodData.methodData,
-                        String.valueOf(toggleId), 2));
+                        String.valueOf(toggleId), 1));
             }
 
         });

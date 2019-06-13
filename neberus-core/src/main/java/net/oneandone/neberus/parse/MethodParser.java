@@ -207,46 +207,50 @@ public abstract class MethodParser {
     }
 
     protected void addNestedParameters(Type type, List<RestMethodData.ParameterInfo> parentList, List<Type> parentTypes) {
-        //add nested parameters (ie. fields)
-        if (typeCantBeDocumented(type, options)) {
-            return;
-        }
-
-        parentTypes.add(type);
-
-        if (isArrayType(type)) {
-            addNestedArray(type, parentList);
-        } else if (isMapType(type)) {
-            addNestedMap(type, parentList);
-        } else {
-
-            List<FieldDoc> fields = getVisibleFields(type);
-
-            fields.forEach(field -> addNestedField(type, parentList, parentTypes, field));
-
-            if (!fields.isEmpty()) {
+        try {
+            //add nested parameters (ie. fields)
+            if (typeCantBeDocumented(type, options)) {
                 return;
             }
 
-            List<MethodDoc> getters = getVisibleGetters(type);
+            parentTypes.add(type);
 
-            getters.forEach(getter -> addNestedGetter(type, parentList, parentTypes, getter));
+            if (isArrayType(type)) {
+                addNestedArray(type, parentList);
+            } else if (isMapType(type)) {
+                addNestedMap(type, parentList);
+            } else {
 
-            if (!getters.isEmpty()) {
-                return;
+                List<FieldDoc> fields = getVisibleFields(type);
+
+                fields.forEach(field -> addNestedField(type, parentList, parentTypes, field));
+
+                if (!fields.isEmpty()) {
+                    return;
+                }
+
+                List<MethodDoc> getters = getVisibleGetters(type);
+
+                getters.forEach(getter -> addNestedGetter(type, parentList, parentTypes, getter));
+
+                if (!getters.isEmpty()) {
+                    return;
+                }
+
+                ConstructorDoc chosenCtor = getCtorDoc(type);
+
+                if (chosenCtor == null) {
+                    return;
+                }
+
+                Map<String, ParamTag> paramTags = getParamTags(chosenCtor);
+
+                for (Parameter param : chosenCtor.parameters()) {
+                    addNestedCtorParam(type, parentList, parentTypes, paramTags, param);
+                }
             }
-
-            ConstructorDoc chosenCtor = getCtorDoc(type);
-
-            if (chosenCtor == null) {
-                return;
-            }
-
-            Map<String, ParamTag> paramTags = getParamTags(chosenCtor);
-
-            for (Parameter param : chosenCtor.parameters()) {
-                addNestedCtorParam(type, parentList, parentTypes, paramTags, param);
-            }
+        } finally {
+            parentList.sort((a, b) -> a.optional && !b.optional ? 1 : a.optional && b.optional ? 0 : -1);
         }
     }
 
@@ -486,6 +490,8 @@ public abstract class MethodParser {
                 addCustomResponseValue(singleResponseValue.get(), data);
             }
         }
+
+        data.responseValues.sort((a, b) -> a.optional && !b.optional ? 1 : a.optional && b.optional ? 0 : -1);
     }
 
     protected void addCustomResponseValue(AnnotationDesc parameterDesc, RestMethodData data) {
@@ -531,9 +537,10 @@ public abstract class MethodParser {
         }
 
 
-        String[] allowedValues = extractValue(parameterDesc, "allowedValues");
+        AnnotationValue[] allowedValues = extractValue(parameterDesc, "allowedValues");
         if (allowedValues != null) {
-            parameterInfo.allowedValues = Arrays.asList(allowedValues);
+            parameterInfo.allowedValues = Arrays.stream(allowedValues)
+                    .map(av -> (String) av.value()).collect(Collectors.toList());
         }
 
         parameterInfo.containerClass = extractValue(parameterDesc, "containerClass");
