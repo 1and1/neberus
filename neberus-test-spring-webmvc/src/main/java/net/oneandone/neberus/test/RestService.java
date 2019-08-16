@@ -11,6 +11,7 @@ import net.oneandone.neberus.model.ProblemType;
 import net.oneandone.neberus.parse.RestMethodData;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -59,7 +60,7 @@ public class RestService {
                                        @PathVariable("anotherPathParam") String anotherPathParam,
                                        @PathVariable("wrappedPathParam") @ApiType(String.class) WrappedString wrappedPathParam,
                                        @RequestParam("queryParam") String queryParam,
-                                       SomeDto dto, SomeCtorDto otherDto) {
+                                       @RequestBody SomeDto dto, SomeCtorDto otherDto) {
         return "";
     }
 
@@ -89,8 +90,8 @@ public class RestService {
     @ApiResponseValue(name = "custom responseValue2", description = "custom description")
     public void justYetAnotherGetMethod(@RequestHeader(HttpHeaders.AUTHORIZATION) String header,
                                         @PathVariable("pathParam") @ApiAllowedValues("the expected default value") String pathParam,
-                                        @RequestParam("queryParam") String queryParam,
-                                        SomeDto dto, SomeCtorDto otherDto, SomeChildDto childDto) {
+                                        @RequestParam(value = "queryParam", required = false) String queryParam,
+                                        SomeDto dto, @RequestBody SomeCtorDto otherDto, SomeChildDto childDto) {
 
     }
 
@@ -100,7 +101,7 @@ public class RestService {
                     name = "This is another awesome method again")
     @ApiSuccessResponse(status = ApiStatus.OK)
     @ApiCurl
-    public SomeDto againAnotherGetMethod(SomeGetterDto dto) {
+    public SomeDto againAnotherGetMethod(@RequestBody SomeGetterDto dto) {
         return null;
     }
 
@@ -110,6 +111,14 @@ public class RestService {
     @ApiSuccessResponse(status = ApiStatus.OK)
     @ApiCurl
     public void deleteMethod() {
+    }
+
+    @GetMapping(path = "/getEntity",
+                   name = "The first awesome get entity method")
+    @ApiSuccessResponse(status = ApiStatus.OK, entityClass = SomeDto.class)
+    @ApiCurl
+    public ResponseEntity<?> getEntityMethod() {
+        return null;
     }
 
     public static class WrappedString {

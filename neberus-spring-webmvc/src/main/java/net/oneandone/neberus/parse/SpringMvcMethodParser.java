@@ -5,6 +5,7 @@ import net.oneandone.neberus.Options;
 import net.oneandone.neberus.ResponseType;
 import net.oneandone.neberus.util.MvcUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -17,6 +18,7 @@ public class SpringMvcMethodParser extends MethodParser {
 
     public static final String PATH = "path";
     public static final String NAME = "name";
+    public static final String REQUIRED = "required";
 
     public SpringMvcMethodParser(Options options) {
         super(options);
@@ -24,7 +26,10 @@ public class SpringMvcMethodParser extends MethodParser {
 
     @Override
     protected boolean skipParameter(MethodDoc methodDoc, Parameter parameter, int index) {
-        return false;
+        return !hasAnnotation(parameter, PathVariable.class)
+                && !hasAnnotation(parameter, RequestParam.class)
+                && !hasAnnotation(parameter, RequestBody.class)
+                && !hasAnnotation(parameter, RequestHeader.class);
     }
 
     @Override
@@ -112,6 +117,23 @@ public class SpringMvcMethodParser extends MethodParser {
             if (mvcName != null) {
                 data.methodData.label = mvcName;
             }
+        }
+    }
+
+    @Override
+    protected boolean isOptional(MethodDoc method, Parameter parameter, int index) {
+        Boolean required = null;
+
+        if (hasAnnotation(method, parameter, PathVariable.class, index)) {
+            required = getAnnotationValue(method, parameter, PathVariable.class, REQUIRED, index);
+        } else if (hasAnnotation(method, parameter, RequestParam.class, index)) {
+            required = getAnnotationValue(method, parameter, RequestParam.class, REQUIRED, index);
+        }
+
+        if (required != null) {
+            return !required;
+        } else {
+            return super.isOptional(method, parameter, index);
         }
     }
 

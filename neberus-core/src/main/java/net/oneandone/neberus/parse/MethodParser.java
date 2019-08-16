@@ -128,9 +128,13 @@ public abstract class MethodParser {
             parameterInfo.allowedValueHint = allowedValueHint;
         }
 
-        parameterInfo.optional = hasAnnotation(method, parameter, ApiOptional.class, index);
+        parameterInfo.optional = isOptional(method, parameter, index);
 
         return parameterInfo;
+    }
+
+    protected boolean isOptional(MethodDoc method, Parameter parameter, int index) {
+        return hasAnnotation(method, parameter, ApiOptional.class, index);
     }
 
     private RestMethodData.ParameterInfo getBasicParameterInfo(MethodDoc method, Parameter parameter, int index) {
