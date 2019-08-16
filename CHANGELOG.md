@@ -8,6 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2019-08-16
+
+### Fixed
+
+- spring-webmvc: add missing handling for @DeleteMapping
+
+### Added
+
+- add @ApiIgnore to exclude a request parameter, DTO field or a whole REST method from documentation
+
+### Changed
+
+- spring-webmvc: parse 'required' attribute also from annotations
+- spring-webmvc: skip method parameters without known annotations
+- add basic validation of parsed RestMethodData
+- replace webfont version of fontawesome with svg + js
+
+
 ## [1.3.1] - 2019-06-13
 
 ### Fixed
