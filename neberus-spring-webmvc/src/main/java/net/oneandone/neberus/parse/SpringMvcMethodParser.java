@@ -26,10 +26,11 @@ public class SpringMvcMethodParser extends MethodParser {
 
     @Override
     protected boolean skipParameter(MethodDoc methodDoc, Parameter parameter, int index) {
-        return !hasAnnotation(parameter, PathVariable.class)
+        return super.skipParameter(methodDoc, parameter, index)
+                || (!hasAnnotation(parameter, PathVariable.class)
                 && !hasAnnotation(parameter, RequestParam.class)
                 && !hasAnnotation(parameter, RequestBody.class)
-                && !hasAnnotation(parameter, RequestHeader.class);
+                && !hasAnnotation(parameter, RequestHeader.class));
     }
 
     @Override

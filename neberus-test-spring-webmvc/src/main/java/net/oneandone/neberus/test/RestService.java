@@ -83,14 +83,15 @@ public class RestService {
             MediaType.APPLICATION_JSON_VALUE)
     @ApiSuccessResponse(status = ApiStatus.OK, entityClass = SomeDto.class, contentType = MediaType.APPLICATION_JSON_VALUE)
     @ApiSuccessResponse(status = ApiStatus.OK, entityClass = SomeChildDto.class, contentType = MediaType.APPLICATION_JSON_VALUE)
-    @ApiParameter(name = "jsonParam", description = "custom description", containerClass = SomeDto.class)
-    @ApiParameter(name = "jsonParam", description = "custom description", containerClass = SomeCtorDto.class)
+    @ApiParameter(name = "jsonParam", description = "custom description", containerClass = SomeDto.class, allowedValues = "not allowed")
+    @ApiParameter(name = "jsonIntParam", description = "custom description", containerClass = SomeCtorDto.class, allowedValues = "not allowed")
     @ApiParameter(name = "headerParam", description = "custom description <a href='index.html'>here</a>", type = RestMethodData.ParameterType.HEADER)
     @ApiResponseValue(name = "jsonParam2", description = "custom description", containerClass = SomeCtorDto.class)
     @ApiResponseValue(name = "custom responseValue2", description = "custom description")
     public void justYetAnotherGetMethod(@RequestHeader(HttpHeaders.AUTHORIZATION) String header,
                                         @PathVariable("pathParam") @ApiAllowedValues("the expected default value") String pathParam,
                                         @RequestParam(value = "queryParam", required = false) String queryParam,
+                                        @ApiIgnore @RequestParam(value = "queryParamIgnored") String queryParamIgnored,
                                         SomeDto dto, @RequestBody SomeCtorDto otherDto, SomeChildDto childDto) {
 
     }
@@ -145,6 +146,10 @@ public class RestService {
         @JsonIgnore
         public String ignoreThisParam;
 
+        @ApiIgnore
+        public String ignoreThisParamAsWell;
+
+        @ApiOptional
         public Map<String, String> simpleMap;
         public Map<String, Map<String, String>> nestedMap;
 
@@ -220,7 +225,7 @@ public class RestService {
          * @param nestedDtoList
          */
         public SomeCtorDto(String jsonParam, @JsonProperty("I_AM_CTORMAN") String jsonParam2, int jsonIntParam,
-                           byte[] jsonbyteArrayParam, String ignoreThisParam, Map<String, String> simpleMap,
+                           byte[] jsonbyteArrayParam, @ApiIgnore String ignoreThisParam, Map<String, String> simpleMap,
                            Map<String, Map<String, String>> nestedMap, List<String> simpleList, List<List<String>> nestedList,
                            Set<String> simpleSet, Set<Set<String>> nestedSet, Map<String, List<Set<String>>> nestedMagic,
                            List<Map<String, Set<String>>> nestedMagic2, NestedDto nestedDto, List<NestedDto> nestedDtoList) {
@@ -291,6 +296,7 @@ public class RestService {
             return jsonbyteArrayParam;
         }
 
+        @ApiIgnore
         public String getIgnoreThisParam() {
             return ignoreThisParam;
         }

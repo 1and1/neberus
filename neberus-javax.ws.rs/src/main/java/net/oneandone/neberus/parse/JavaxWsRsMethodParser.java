@@ -9,7 +9,8 @@ import net.oneandone.neberus.Options;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 
-import static net.oneandone.neberus.util.JavaDocUtils.*;
+import static net.oneandone.neberus.util.JavaDocUtils.getAnnotationValue;
+import static net.oneandone.neberus.util.JavaDocUtils.hasAnnotation;
 
 /**
  * Parses all stuff related to a single REST method.
@@ -22,7 +23,8 @@ public class JavaxWsRsMethodParser extends MethodParser {
 
     @Override
     protected boolean skipParameter(MethodDoc methodDoc, Parameter parameter, int index) {
-        return hasAnnotation(methodDoc, parameter, Context.class, index);
+        return super.skipParameter(methodDoc, parameter, index)
+                || hasAnnotation(methodDoc, parameter, Context.class, index);
     }
 
     @Override

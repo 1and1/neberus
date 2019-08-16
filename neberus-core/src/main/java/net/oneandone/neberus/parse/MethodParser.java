@@ -49,7 +49,9 @@ public abstract class MethodParser {
         addCustomParameters(method, data);
     }
 
-    protected abstract boolean skipParameter(MethodDoc methodDoc, Parameter parameter, int index);
+    protected boolean skipParameter(MethodDoc methodDoc, Parameter parameter, int index) {
+        return hasAnnotation(parameter, ApiIgnore.class);
+    }
 
     //TODO label for parameters
     protected void addParameters(MethodDoc method, RestMethodData data) {
@@ -250,7 +252,7 @@ public abstract class MethodParser {
 
                 Map<String, ParamTag> paramTags = getParamTags(chosenCtor);
 
-                for (Parameter param : chosenCtor.parameters()) {
+                for (Parameter param : getVisibleCtorParameters(chosenCtor)) {
                     addNestedCtorParam(type, parentList, parentTypes, paramTags, param);
                 }
             }

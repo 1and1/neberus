@@ -52,7 +52,7 @@ public abstract class ClassParser {
     private RestMethodData parseMethod(MethodDoc method) {
         String httpMethod = getHttpMethod(method);
 
-        if (httpMethod == null) {
+        if (httpMethod == null || hasAnnotation(method, ApiIgnore.class)) {
             return null;
         }
 
@@ -62,7 +62,7 @@ public abstract class ClassParser {
     /**
      * Use the value defined in {@link ApiLabel} or use the name of the class.
      *
-     * @param classDoc classDoc
+     * @param classDoc      classDoc
      * @param restClassData restClassData
      */
     protected void addLabel(ClassDoc classDoc, RestClassData restClassData) {
@@ -77,7 +77,7 @@ public abstract class ClassParser {
     /**
      * Use the value defined in {@link ApiDescription} or use the javadoc comment of the class.
      *
-     * @param classDoc classDoc
+     * @param classDoc      classDoc
      * @param restClassData restClassData
      */
     protected void addDescription(ClassDoc classDoc, RestClassData restClassData) {

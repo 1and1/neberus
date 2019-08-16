@@ -3,6 +3,7 @@ package net.oneandone.neberus.util;
 import com.sun.javadoc.*;
 import net.oneandone.neberus.Options;
 import net.oneandone.neberus.annotation.ApiDocumentation;
+import net.oneandone.neberus.annotation.ApiIgnore;
 import net.oneandone.neberus.model.FormParameters;
 import net.oneandone.neberus.parse.RestMethodData;
 
@@ -439,15 +440,17 @@ public abstract class JavaDocUtils {
 
         if (getters.isEmpty()) {
             ConstructorDoc chosenCtor = null;
+
             for (ConstructorDoc ctor : type.asClassDoc().constructors()) {
                 if (chosenCtor == null) {
                     chosenCtor = ctor;
-                } else if (ctor.parameters().length > chosenCtor.parameters().length) {
+                } else if (getVisibleCtorParameters(ctor).size() > getVisibleCtorParameters(chosenCtor).size()) {
                     chosenCtor = ctor;
                 }
             }
+
             if (chosenCtor != null) {
-                for (Parameter param : chosenCtor.parameters()) {
+                for (Parameter param : getVisibleCtorParameters(chosenCtor)) {
                     dataFields.put(getPublicCtorParmeterName(param), param.type());
                 }
             }
@@ -529,7 +532,8 @@ public abstract class JavaDocUtils {
     }
 
     private static boolean fieldIsVisible(FieldDoc field) {
-        return !hasAnnotation(field, XmlTransient.class)
+        return !hasAnnotation(field, ApiIgnore.class)
+                && !hasAnnotation(field, XmlTransient.class)
                 && !hasAnnotation(field, JSON_IGNORE)
                 && !hasAnnotation(field, JSON_IGNORE_LEGACY)
                 && !field.isStatic()
@@ -552,7 +556,8 @@ public abstract class JavaDocUtils {
     }
 
     private static boolean methodIsVisibleGetter(MethodDoc method) {
-        return !hasAnnotation(method, XmlTransient.class)
+        return !hasAnnotation(method, ApiIgnore.class)
+                && !hasAnnotation(method, XmlTransient.class)
                 && !hasAnnotation(method, JSON_IGNORE)
                 && !hasAnnotation(method, JSON_IGNORE_LEGACY)
                 && method.name().startsWith("get")
@@ -560,6 +565,14 @@ public abstract class JavaDocUtils {
                 && !method.isStatic()
                 && !method.isSynthetic()
                 && method.isPublic();
+    }
+
+    public static List<Parameter> getVisibleCtorParameters(ConstructorDoc chosenCtor) {
+        return Arrays.stream(chosenCtor.parameters()).filter(JavaDocUtils::parameterIsVisible).collect(Collectors.toList());
+    }
+
+    private static boolean parameterIsVisible(Parameter param) {
+        return !hasAnnotation(param, ApiIgnore.class);
     }
 
     public static String getNameFromGetter(MethodDoc getter) {
