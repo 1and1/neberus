@@ -306,7 +306,7 @@ pre {
 #filterReset {
     cursor: pointer;
     pointer-events: inherit;
-    margin-top: 10px;
+    margin-right: 5px;
 }
 
 .w-100 {

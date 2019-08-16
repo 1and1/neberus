@@ -82,7 +82,6 @@ public class HtmlDocPrinter extends DocPrinter {
                 link().withRel("stylesheet").withHref("lib/css/bootstrap-theme.min.css").attr("title", "dark"),
                 link().withRel("alternate stylesheet").withHref("lib/css/bootstrap-theme-light.min.css").attr("title", "light"),
                 link().withRel("stylesheet").withHref("lib/css/jquery.tocify.css"),
-                link().withRel("stylesheet").withHref("lib/css/fa-all.css"),
                 link().withRel("stylesheet").withHref("css/neberus.css"),
                 link().withRel("stylesheet").withHref("css/neberus-dark.css").attr("title", "dark"),
                 link().withRel("alternate stylesheet").withHref("css/neberus-light.css").attr("title", "light")
@@ -97,6 +96,7 @@ public class HtmlDocPrinter extends DocPrinter {
                 script().withSrc("lib/js/jquery-ui.min.js").withType("text/javascript"),
                 script().withSrc("lib/js/bootstrap.min.js").withType("text/javascript"),
                 script().withSrc("lib/js/jquery.tocify.min.js").withType("text/javascript"),
+                script().withSrc("lib/js/fa-all.js").withType("text/javascript"),
                 script().withSrc("js/neberus.js").withType("text/javascript")
         );
 
