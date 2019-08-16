@@ -55,8 +55,7 @@ public interface RestServiceInterfaceDoc {
     @ApiCurl
     Response justAnotherGetMethodWithInterfaceDoc(@ApiAllowedValues("default") String pathParam,
                                                          @Size(max = 42) String anotherPathParam,
-                                                         @ApiType(UUID.class) String queryParam,
-                                                         SomeDto dto);
+                                                         @ApiType(UUID.class) String queryParam);
 
     /**
      * ApiDescription of this awesomely awesome method defined as javadoc!
@@ -73,7 +72,6 @@ public interface RestServiceInterfaceDoc {
     @ApiResponseValue(name = "custom responseValue2", description = "custom description")
     void justYetAnotherGetMethodWithInterfaceDoc(
             @ApiAllowedValues("the expected default value") String pathParam,
-            String queryParam,
-            SomeDto dto);
+            String queryParam);
 
 }

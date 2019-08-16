@@ -46,7 +46,6 @@ public class RestService {
     @GET
     @Path("/anotherGet/{pathParam}/anotherPathParam/{anotherPathParam}/{wrappedPathParam}")
     @ApiLabel("This is an awesome method")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiDescription("Description of this awesomely awesome method defined in annotation!")
     @ApiSuccessResponse(status = ApiStatus.OK)
@@ -63,8 +62,7 @@ public class RestService {
     public void justAnotherGetMethod(@PathParam("pathParam") @ApiAllowedValues("default") String pathParam,
                                      @PathParam("anotherPathParam") String anotherPathParam,
                                      @PathParam("wrappedPathParam") @ApiType(String.class) WrappedString wrappedPathParam,
-                                     @QueryParam("queryParam") String queryParam,
-                                     SomeDto dto, SomeCtorDto otherDto) {
+                                     @QueryParam("queryParam") String queryParam) {
 
     }
 

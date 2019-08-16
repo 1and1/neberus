@@ -26,7 +26,7 @@ public class RestUsecaseData {
                         System.err.println("Parameter defined in usecase <" + usecase.name + "> contains "
                                 + "paramter <" + paramKey + "> that is not present in the linked method <" + method.name + ">");
                         if (!ignoreErrors) {
-                            throw new IllegalArgumentException();
+                            throw new IllegalStateException();
                         }
                     }
                 });
@@ -37,7 +37,7 @@ public class RestUsecaseData {
                         System.err.println("ResponseValue <" + responseValueKey + "> defined in usecase <" + usecase.name + "> "
                                 + "is not present in the linked method <" + method.name + ">");
                         if (!ignoreErrors) {
-                            throw new IllegalArgumentException();
+                            throw new IllegalStateException();
                         }
                     }
 

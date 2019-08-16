@@ -16,9 +16,7 @@ import net.oneandone.neberus.annotation.ApiUsecaseResponseValue;
                         description = "Call this first",
                         parameters = {
                             @ApiUsecaseParam(name = "pathParam123", value = "myId", valueHint = "the hint"),
-                            @ApiUsecaseParam(name = "queryParam123", valueHint = "not my type hint"),
-                            @ApiUsecaseParam(name = "jsonParam", value = "bodyValue"),
-                            @ApiUsecaseParam(name = "nestedDto.nestedString", value = "bodyValue")
+                            @ApiUsecaseParam(name = "queryParam123", valueHint = "not my type hint")
                         }),
                 @ApiUsecaseMethod(
                         name = "This is another awesome method",

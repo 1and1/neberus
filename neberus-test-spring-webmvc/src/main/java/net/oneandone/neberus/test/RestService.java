@@ -33,15 +33,13 @@ public class RestService {
      *
      * @param dto the body
      *
-     * @deprecated use this one {@link #justYetAnotherGetMethod(String, String, String, SomeDto, SomeCtorDto, SomeChildDto)}
-     * or that one {@link #justYetAnotherGetMethod(String, String, String, SomeDto, SomeCtorDto, SomeChildDto)}
+     * @deprecated use this one {@link #justYetAnotherGetMethod(String, String, String, String, SomeDto, SomeCtorDto, SomeChildDto)}
+     * or that one {@link #justYetAnotherGetMethod(String, String, String, String, SomeDto, SomeCtorDto, SomeChildDto)}
      * or even the one from the other resource
-     * {@link net.oneandone.neberus.test.RestServiceInterfaceDoc#justYetAnotherGetMethodWithInterfaceDoc(String, String,
-     * RestServiceWithInterfaceDoc.SomeDto)}
+     * {@link net.oneandone.neberus.test.RestServiceInterfaceDoc#justYetAnotherGetMethodWithInterfaceDoc(String, String)}
      */
     @RequestMapping(method = RequestMethod.GET,
                     path = "/anotherGet/{pathParam}/anotherPathParam/{anotherPathParam}/{wrappedPathParam}",
-                    consumes = MediaType.APPLICATION_JSON_VALUE,
                     produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiLabel("This is an awesome method")
     @ApiDescription("Description of this awesomely awesome method defined in annotation!")
@@ -59,8 +57,7 @@ public class RestService {
     public String justAnotherGetMethod(@PathVariable @ApiAllowedValues("default") String pathParam,
                                        @PathVariable("anotherPathParam") String anotherPathParam,
                                        @PathVariable("wrappedPathParam") @ApiType(String.class) WrappedString wrappedPathParam,
-                                       @RequestParam("queryParam") String queryParam,
-                                       @RequestBody SomeDto dto, SomeCtorDto otherDto) {
+                                       @RequestParam("queryParam") String queryParam) {
         return "";
     }
 
@@ -92,7 +89,7 @@ public class RestService {
                                         @PathVariable("pathParam") @ApiAllowedValues("the expected default value") String pathParam,
                                         @RequestParam(value = "queryParam", required = false) String queryParam,
                                         @ApiIgnore @RequestParam(value = "queryParamIgnored") String queryParamIgnored,
-                                        SomeDto dto, @RequestBody SomeCtorDto otherDto, SomeChildDto childDto) {
+                                        @RequestBody SomeDto dto, @RequestBody SomeCtorDto otherDto, SomeChildDto childDto) {
 
     }
 

@@ -29,13 +29,11 @@ public class RestServiceWithInterfaceDoc implements RestServiceInterfaceDoc {
      */
     @GET
     @Path("/anotherGet/{pathParam123}/anotherPathParam/{anotherPathParam123}")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Override
     public Response justAnotherGetMethodWithInterfaceDoc(@PathParam("pathParam123") String pathParam,
                                                          @PathParam("anotherPathParam123") String anotherPathParam,
-                                                         @QueryParam("queryParam123") String queryParam,
-                                                         SomeDto dto) {
+                                                         @QueryParam("queryParam123") String queryParam) {
         return null;
     }
 
@@ -44,12 +42,10 @@ public class RestServiceWithInterfaceDoc implements RestServiceInterfaceDoc {
      */
     @GET
     @Path("/anotherGet")
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Override
     @Deprecated
     public void justYetAnotherGetMethodWithInterfaceDoc(@PathParam("pathParam123") String pathParam,
-                                                        @QueryParam("queryParam123") String queryParam,
-                                                        SomeDto dto) {
+                                                        @QueryParam("queryParam123") String queryParam) {
     }
 
     public static class SomeDto {

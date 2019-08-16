@@ -26,26 +26,22 @@ public class RestServiceWithInterfaceDoc implements RestServiceInterfaceDoc {
      */
     @GetMapping(path = "/anotherGet/{pathParam123}/anotherPathParam/{anotherPathParam123}",
                 name = "This is an awesome method",
-                consumes = MediaType.APPLICATION_JSON_VALUE,
                 produces = MediaType.APPLICATION_JSON_VALUE)
     @Override
     @Deprecated
     public SomeDto justAnotherGetMethodWithInterfaceDoc(@PathVariable String pathParam,
                                                        @PathVariable("anotherPathParam123") String anotherPathParam,
-                                                       @RequestParam("queryParam123") String queryParam,
-                                                       SomeDto dto) {
+                                                       @RequestParam("queryParam123") String queryParam) {
         return null;
     }
 
     /**
      * internal javadoc
      */
-    @GetMapping(path = "/anotherGet/",
-                consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @GetMapping(path = "/anotherGet/")
     @Override
     public void justYetAnotherGetMethodWithInterfaceDoc(@PathVariable("pathParam123") String pathParam,
-                                                        @RequestParam("queryParam123") String queryParam,
-                                                        SomeDto dto) {
+                                                        @RequestParam("queryParam123") String queryParam) {
     }
 
     public static class SomeDto {

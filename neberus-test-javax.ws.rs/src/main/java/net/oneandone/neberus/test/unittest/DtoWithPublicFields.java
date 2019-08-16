@@ -7,6 +7,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import net.oneandone.neberus.annotation.ApiDocumentation;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+
 import net.oneandone.neberus.annotation.ApiSuccessResponse;
 import net.oneandone.neberus.model.ApiStatus;
 
@@ -20,11 +22,10 @@ public class DtoWithPublicFields {
 
     @GET
     @Path("/anotherGet/{pathParam}/anotherPathParam/{anotherPathParam}")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiSuccessResponse(status = ApiStatus.OK, entityClass = SomeDto.class)
-    public void getMethod(SomeDto dto) {
-
+    public Response getMethod() {
+        return null;
     }
 
     public static class SomeDto {
