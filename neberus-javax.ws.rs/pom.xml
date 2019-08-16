@@ -4,7 +4,7 @@
     <parent>
         <groupId>net.oneandone.neberus</groupId>
         <artifactId>neberus-parent</artifactId>
-        <version>1.4.0</version>
+        <version>1.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>neberus-javax.ws.rs</artifactId>
