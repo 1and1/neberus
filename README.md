@@ -140,6 +140,7 @@ Definitions in the REST-class will be used as fallback in case the interface doe
 | @ApiResponses | Container annotation for @ApiResponse. | Method |
 | @ApiType | Define the type that should be displayed instead of the actual type. This can be used to hide internal wrapper DTOs. | Parameter |
 | @ApiOptional | Declare a parameter as optional. | Method, Parameter, Field |
+| @ApiIgnore | Exclude a request parameter, DTO field or a whole REST method from documentation. | Method, Parameter, Field |
 
 ### Example Usage
 
