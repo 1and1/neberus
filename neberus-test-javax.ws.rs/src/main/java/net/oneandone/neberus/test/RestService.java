@@ -36,8 +36,6 @@ public class RestService {
     /**
      * ApiDescription of this awesomely awesome method defined as javadoc!
      *
-     * @param dto the body
-     *
      * @deprecated use this one {@link #justYetAnotherGetMethod(String, String, String, SomeDto, SomeCtorDto, SomeChildDto)}
      * or that one {@link #justYetAnotherGetMethod(String, String, String, SomeDto, SomeCtorDto, SomeChildDto)}
      * or even the one from the other resource

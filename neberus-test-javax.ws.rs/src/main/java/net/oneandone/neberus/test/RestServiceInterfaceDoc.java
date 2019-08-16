@@ -36,7 +36,6 @@ public interface RestServiceInterfaceDoc {
      * ApiDescription of this awesomely awesome method defined as javadoc!
      *
      * @param pathParam restdoc
-     * @param dto       the body
      *
      * @return some restdoc
      */
