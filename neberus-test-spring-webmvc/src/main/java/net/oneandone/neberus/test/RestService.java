@@ -5,9 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.included.IncludedDto;
 import com.notincluded.NotIncludedDto;
 import net.oneandone.neberus.ResponseType;
+import net.oneandone.neberus.annotation.*;
 import net.oneandone.neberus.model.ApiStatus;
 import net.oneandone.neberus.model.ProblemType;
-import net.oneandone.neberus.annotation.*;
 import net.oneandone.neberus.parse.RestMethodData;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -31,6 +31,7 @@ public class RestService {
      * ApiDescription of this awesomely awesome method defined as javadoc!
      *
      * @param dto the body
+     *
      * @deprecated use this one {@link #justYetAnotherGetMethod(String, String, String, SomeDto, SomeCtorDto, SomeChildDto)}
      * or that one {@link #justYetAnotherGetMethod(String, String, String, SomeDto, SomeCtorDto, SomeChildDto)}
      * or even the one from the other resource
@@ -47,11 +48,11 @@ public class RestService {
     @ApiProblemResponse(status = ApiStatus.OK, description = "this should be handled as error",
                         type = ProblemType.EXPECTATION_FAILED, detail = "magic failed", title = "magic title")
     @ApiWarningResponse(status = ApiStatus.OK, description = "and this as warning", warnings =
-                        @ApiWarning(type = ProblemType.AUTHENTICATION_ERROR, title = "warning title"))
+    @ApiWarning(type = ProblemType.AUTHENTICATION_ERROR, title = "warning title"))
     @ApiSuccessResponse(status = ApiStatus.BAD_GATEWAY, description = "a bad thing happened", entityClass = SomeDto.class,
                         contentType = "crazyCustomType", headers = {
-                @ApiHeader(name = "123", description = "456"),
-                @ApiHeader(name = "header2") })
+            @ApiHeader(name = "123", description = "456"),
+            @ApiHeader(name = "header2") })
     @ApiCurl
     @Deprecated
     public String justAnotherGetMethod(@PathVariable @ApiAllowedValues("default") String pathParam,
@@ -75,10 +76,10 @@ public class RestService {
     @ApiResponse(status = ApiStatus.BAD_REQUEST, responseType = ResponseType.GENERIC)
     @ApiResponse(status = ApiStatus.BAD_REQUEST, responseType = ResponseType.PROBLEM)
     @ApiResponse(status = ApiStatus.BAD_REQUEST, responseType = ResponseType.WARNING, contentType =
-                 MediaType.APPLICATION_JSON_VALUE,
+            MediaType.APPLICATION_JSON_VALUE,
                  entityClass = FailureResultDto.class)
     @ApiSuccessResponse(status = ApiStatus.OK, entityClass = FailureResultDto.class, contentType =
-                        MediaType.APPLICATION_JSON_VALUE)
+            MediaType.APPLICATION_JSON_VALUE)
     @ApiSuccessResponse(status = ApiStatus.OK, entityClass = SomeDto.class, contentType = MediaType.APPLICATION_JSON_VALUE)
     @ApiSuccessResponse(status = ApiStatus.OK, entityClass = SomeChildDto.class, contentType = MediaType.APPLICATION_JSON_VALUE)
     @ApiParameter(name = "jsonParam", description = "custom description", containerClass = SomeDto.class)
@@ -101,6 +102,14 @@ public class RestService {
     @ApiCurl
     public SomeDto againAnotherGetMethod(SomeGetterDto dto) {
         return null;
+    }
+
+
+    @DeleteMapping(path = "/delete",
+                   name = "The first awesome delete method")
+    @ApiSuccessResponse(status = ApiStatus.OK)
+    @ApiCurl
+    public void deleteMethod() {
     }
 
     public static class WrappedString {
@@ -185,7 +194,6 @@ public class RestService {
         private final NestedDto nestedDto;
 
         /**
-         *
          * @param jsonParam          paramDoc {@link SomeEnum}
          * @param jsonParam2         paramDoc
          * @param jsonIntParam

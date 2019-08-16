@@ -4,11 +4,8 @@ import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.MethodDoc;
 import static net.oneandone.neberus.util.JavaDocUtils.getAnnotationValue;
 import static net.oneandone.neberus.util.JavaDocUtils.hasAnnotation;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+
+import org.springframework.web.bind.annotation.*;
 
 public class MvcUtils {
 
@@ -24,6 +21,8 @@ public class MvcUtils {
             return getAnnotationValue(classDoc, PostMapping.class, key);
         } else if (hasAnnotation(classDoc, PatchMapping.class)) {
             return getAnnotationValue(classDoc, PatchMapping.class, key);
+        } else if (hasAnnotation(classDoc, DeleteMapping.class)) {
+            return getAnnotationValue(classDoc, DeleteMapping.class, key);
         } else {
             return getAnnotationValue(classDoc, RequestMapping.class, key);
         }
@@ -38,6 +37,8 @@ public class MvcUtils {
             return getAnnotationValue(method, PostMapping.class, key);
         } else if (hasAnnotation(method, PatchMapping.class)) {
             return getAnnotationValue(method, PatchMapping.class, key);
+        } else if (hasAnnotation(method, DeleteMapping.class)) {
+            return getAnnotationValue(method, DeleteMapping.class, key);
         } else {
             return getAnnotationValue(method, RequestMapping.class, key);
         }
