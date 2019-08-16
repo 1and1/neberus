@@ -28,12 +28,7 @@ public abstract class MethodParser {
     public static final String TYPE = "type";
     public static final String TITLE = "title";
     public static final String DESCRIPTION = "description";
-    public static final HashSet<String> NO_BODY_METHODS = new HashSet<>();
-
-    static {
-        NO_BODY_METHODS.add("GET");
-        NO_BODY_METHODS.add("DELETE");
-    }
+    private static final String[] NO_BODY_METHODS = { "GET", "DELETE" };
 
     public MethodParser(Options options) {
         this.options = options;
@@ -895,20 +890,22 @@ public abstract class MethodParser {
     }
 
     private void validate(RestMethodData restMethodData) {
-        boolean valid = true;
+        boolean invalid = false;
 
         String methodAndClass = " for method " + restMethodData.methodData.methodDoc;
 
-        if (restMethodData.methodData.printCurl && restMethodData.methodData.curl == null) {
-            if (!NO_BODY_METHODS.contains(restMethodData.methodData.httpMethod)
-                    && restMethodData.requestData.parameters.stream().anyMatch(p -> p.parameterType == BODY)
-                    && (restMethodData.requestData.mediaType == null || restMethodData.requestData.mediaType.isEmpty())) {
-                System.err.println("Consumes MediaType is required to generate curl" + methodAndClass);
-                valid = false;
-            }
-        }
+        invalid |= !validateForCurl(restMethodData, methodAndClass);
+        invalid |= !validateBodyExistence(restMethodData, methodAndClass);
 
-        if (NO_BODY_METHODS.contains(restMethodData.methodData.httpMethod)) {
+        if (invalid && !options.ignoreErrors) {
+            throw new IllegalStateException();
+        }
+    }
+
+    private boolean validateBodyExistence(RestMethodData restMethodData, String methodAndClass) {
+        boolean valid = true;
+
+        if (Arrays.stream(NO_BODY_METHODS).anyMatch(e -> e.equals(restMethodData.methodData.httpMethod))) {
             if (restMethodData.requestData.mediaType != null && !restMethodData.requestData.mediaType.isEmpty()) {
                 System.err.println("Consumes MediaType is not allowed in combination with HttpMethod "
                         + restMethodData.methodData.httpMethod + methodAndClass);
@@ -921,10 +918,20 @@ public abstract class MethodParser {
                 valid = false;
             }
         }
+        return valid;
+    }
 
-        if (!valid && !options.ignoreErrors) {
-            throw new IllegalStateException();
+    private boolean validateForCurl(RestMethodData restMethodData, String methodAndClass) {
+        boolean valid = true;
+
+        if (restMethodData.methodData.printCurl && restMethodData.methodData.curl == null
+                && Arrays.stream(NO_BODY_METHODS).noneMatch(e -> e.equals(restMethodData.methodData.httpMethod))
+                && restMethodData.requestData.parameters.stream().anyMatch(p -> p.parameterType == BODY)
+                && (restMethodData.requestData.mediaType == null || restMethodData.requestData.mediaType.isEmpty())) {
+            System.err.println("Consumes MediaType is required to generate curl" + methodAndClass);
+            valid = false;
         }
+        return valid;
     }
 
 }
