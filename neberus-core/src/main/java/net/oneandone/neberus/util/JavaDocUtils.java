@@ -1,14 +1,30 @@
 package net.oneandone.neberus.util;
 
-import com.sun.javadoc.*;
+import com.sun.javadoc.AnnotationDesc;
+import com.sun.javadoc.ClassDoc;
+import com.sun.javadoc.ConstructorDoc;
+import com.sun.javadoc.FieldDoc;
+import com.sun.javadoc.MethodDoc;
+import com.sun.javadoc.ParamTag;
+import com.sun.javadoc.Parameter;
+import com.sun.javadoc.ProgramElementDoc;
+import com.sun.javadoc.Tag;
+import com.sun.javadoc.Type;
 import net.oneandone.neberus.Options;
 import net.oneandone.neberus.annotation.ApiDocumentation;
 import net.oneandone.neberus.annotation.ApiIgnore;
 import net.oneandone.neberus.model.FormParameters;
 import net.oneandone.neberus.parse.RestMethodData;
 
-import javax.xml.bind.annotation.XmlTransient;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,6 +34,7 @@ public abstract class JavaDocUtils {
     private static final String JSON_IGNORE_LEGACY = "org.codehaus.jackson.annotate.JsonIgnore";
     private static final String JSON_PROPERTY = "com.fasterxml.jackson.annotation.JsonProperty";
     private static final String JSON_PROPERTY_LEGACY = "org.codehaus.jackson.annotate.JsonProperty";
+    public static final String XML_TRANSIENT = "javax.xml.bind.annotation.XmlTransient";
 
     private JavaDocUtils() {
     }
@@ -533,7 +550,7 @@ public abstract class JavaDocUtils {
 
     private static boolean fieldIsVisible(FieldDoc field) {
         return !hasAnnotation(field, ApiIgnore.class)
-                && !hasAnnotation(field, XmlTransient.class)
+                && !hasAnnotation(field, XML_TRANSIENT)
                 && !hasAnnotation(field, JSON_IGNORE)
                 && !hasAnnotation(field, JSON_IGNORE_LEGACY)
                 && !field.isStatic()
@@ -557,7 +574,7 @@ public abstract class JavaDocUtils {
 
     private static boolean methodIsVisibleGetter(MethodDoc method) {
         return !hasAnnotation(method, ApiIgnore.class)
-                && !hasAnnotation(method, XmlTransient.class)
+                && !hasAnnotation(method, XML_TRANSIENT)
                 && !hasAnnotation(method, JSON_IGNORE)
                 && !hasAnnotation(method, JSON_IGNORE_LEGACY)
                 && method.name().startsWith("get")

@@ -13,7 +13,7 @@
 
     <groupId>net.oneandone.neberus</groupId>
     <artifactId>neberus-parent</artifactId>
-    <version>1.4-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>https://github.com/1and1/neberus</url>
 
@@ -57,8 +57,8 @@
     </modules>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+<!--        <maven.compiler.source>1.11</maven.compiler.source>-->
+<!--        <maven.compiler.target>1.11</maven.compiler.target>-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -81,13 +81,6 @@
                 <artifactId>jackson-databind</artifactId>
                 <version>2.9.9.3</version>
                 <optional>true</optional>
-            </dependency>
-            <dependency>
-                <groupId>com.sun</groupId>
-                <artifactId>tools</artifactId>
-                <version>1.7.0</version>
-                <scope>system</scope>
-                <systemPath>${java.home}/../lib/tools.jar</systemPath>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -136,6 +129,14 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
                     <version>2.8.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.0</version>
+                    <configuration>
+                        <release>11</release>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

@@ -24,6 +24,12 @@ Out of the box compatibility with javax.ws.rs and spring-webmvc (experimental).
 
 ## Setup
 
+### Java 8 vs. Java 11
+
+Java 8 is only supported with version 1.x.
+
+All newer versions require Java 11. 
+
 ### Maven
 
 - Add a dependency to `neberus-doclet` to get access to Neberus' annotations in your code.

@@ -1,7 +1,6 @@
 package net.oneandone.neberus.parse;
 
 import com.sun.javadoc.*;
-import com.sun.tools.javadoc.FieldDocImpl;
 import net.oneandone.neberus.Options;
 import net.oneandone.neberus.ResponseType;
 import net.oneandone.neberus.annotation.*;
@@ -561,7 +560,7 @@ public abstract class MethodParser {
             parameterInfo.description = description;
         }
 
-        FieldDocImpl type = extractValue(parameterDesc, TYPE);
+        FieldDoc type = extractValue(parameterDesc, TYPE);
         if (type != null) {
             parameterInfo.parameterType = valueOf(type.name());
         } else {
@@ -771,7 +770,7 @@ public abstract class MethodParser {
     protected void addGenericResponse(MethodDoc method, AnnotationDesc response, RestMethodData data,
                                       AnnotationValue[] produces) {
 
-        FieldDocImpl responseType = extractValue(response, "responseType");
+        FieldDoc responseType = extractValue(response, "responseType");
         ResponseType type = ResponseType.valueOf(responseType.name());
 
         RestMethodData.ResponseData responseData = new RestMethodData.ResponseData(type);
@@ -868,7 +867,7 @@ public abstract class MethodParser {
     }
 
     protected void addCommonResponseData(MethodDoc method, AnnotationDesc response, RestMethodData.ResponseData responseData) {
-        FieldDocImpl status = extractValue(response, "status");
+        FieldDoc status = extractValue(response, "status");
         responseData.status = ApiStatus.valueOf(status.name());
 
         String description = extractValue(response, DESCRIPTION);
