@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2.0.0] - 2019-09-25
+
+### Changed
+
+- switch to Java 11
+
+
 ## [1.4.0] - 2019-08-16
 
 ### Fixed
