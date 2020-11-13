@@ -126,7 +126,7 @@ Definitions in the REST-class will be used as fallback in case the interface doe
 |---|---|---|
 | @ApiDocumentation | Enables neberus documentation for a class containing REST methods.  | Type |
 | @ApiCurl | Generate an example curl. | Method |
-| @ApiAllowedValues | Define the allowed values for a parameter. | Method, Parameter, Field |
+| @ApiAllowedValues | Define the allowed values for a parameter. | Method, VariableElement, Field |
 | @ApiDescription | If provided, the value of this will be used as description of the method instead of the javadoc comment. | Method, Type |
 | @ApiHeader | Define a Header.<br>If defined within a @ApiResponse, it will represent a response header.<br>If defined on class level, this can be used to provied descriptions of headers that are reused many times. The header name will be used for reference. | Type |
 | @ApiHeaders | Container annotation for @ApiHeader. | Type |
@@ -144,9 +144,9 @@ Definitions in the REST-class will be used as fallback in case the interface doe
 | @ApiProblemResponses | Container annotation for @ApiProblemResponse. | Method |
 | @ApiResponse | Document a Response that does not fit into Success-, Warning-, or Problem-Response. | Method |
 | @ApiResponses | Container annotation for @ApiResponse. | Method |
-| @ApiType | Define the type that should be displayed instead of the actual type. This can be used to hide internal wrapper DTOs. | Parameter |
-| @ApiOptional | Declare a parameter as optional. | Method, Parameter, Field |
-| @ApiIgnore | Exclude a request parameter, DTO field or a whole REST method from documentation. | Method, Parameter, Field |
+| @ApiType | Define the type that should be displayed instead of the actual type. This can be used to hide internal wrapper DTOs. | VariableElement |
+| @ApiOptional | Declare a parameter as optional. | Method, VariableElement, Field |
+| @ApiIgnore | Exclude a request parameter, DTO field or a whole REST method from documentation. | Method, VariableElement, Field |
 
 ### Example Usage
 
@@ -201,7 +201,7 @@ public class RestService {
 
 	public static class SomeDto {
 		/**
-		 * FieldDoc can be placed here.
+		 * VariableElement can be placed here.
 		 * {@link SomeEnum} <- this will place the enum values as 'allowed values'
 		 * @see SomeEnum <- this will do the same
 		 */
@@ -339,7 +339,7 @@ The generated documentation will be appended to the index page.
 | @ApiUsecase | Defines a specific usecase of the REST service. Usecases must be defined in seperate classes or interfaces apart from the normal apidoc.<br>The javadoc of the defining class (must be placed above the annotations) will be used as introduction. | Type |
 | @ApiUsecases | Container for multiple {@link ApiUsecase} annotations. | Type |
 | @ApiUsecaseMethod | A specific REST method used in an usecase.<br>If the method is documented within the same service, it can be referenced by providing the restClass and name (label) of the method. In this case a link will be created and all parameters and responseValues will be cross-checked so they actually exist in the referenced method. | - |
-| @ApiUsecaseParam | Parameter used by a REST method in a usecase. If the method is linked to an actual REST method, the name must exist in the linked method. Use dot-syntax for nested parameters, eg. 'myDto.myField' | - |
+| @ApiUsecaseParam | VariableElement used by a REST method in a usecase. If the method is linked to an actual REST method, the name must exist in the linked method. Use dot-syntax for nested parameters, eg. 'myDto.myField' | - |
 | @ApiUsecaseResponseValue | ResponseValue returned by a REST method in a usecase. | - |
 
 ### Example

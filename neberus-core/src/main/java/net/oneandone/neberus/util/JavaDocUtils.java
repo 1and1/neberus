@@ -1,23 +1,33 @@
 package net.oneandone.neberus.util;
 
-import com.sun.javadoc.AnnotationDesc;
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.ConstructorDoc;
-import com.sun.javadoc.FieldDoc;
-import com.sun.javadoc.MethodDoc;
-import com.sun.javadoc.ParamTag;
-import com.sun.javadoc.Parameter;
-import com.sun.javadoc.ProgramElementDoc;
-import com.sun.javadoc.Tag;
-import com.sun.javadoc.Type;
+import com.sun.source.doctree.DocCommentTree;
+import com.sun.source.doctree.DocTree;
+import com.sun.source.doctree.EndElementTree;
+import com.sun.source.doctree.ParamTree;
+import com.sun.source.doctree.StartElementTree;
+import com.sun.source.doctree.TextTree;
+import com.sun.source.util.DocTreePath;
+import com.sun.source.util.TreePath;
+import jdk.javadoc.doclet.DocletEnvironment;
 import net.oneandone.neberus.Options;
 import net.oneandone.neberus.annotation.ApiDocumentation;
 import net.oneandone.neberus.annotation.ApiIgnore;
 import net.oneandone.neberus.model.FormParameters;
 import net.oneandone.neberus.parse.RestMethodData;
 
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -26,7 +36,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public abstract class JavaDocUtils {
 
@@ -39,426 +48,455 @@ public abstract class JavaDocUtils {
     private JavaDocUtils() {
     }
 
-    public static Optional<AnnotationDesc> getAnnotationDesc(ClassDoc clazz, Class annotationClass) {
-        Optional<ClassDoc> interfaceClass = getInterfaceClass(clazz);
-        Optional<AnnotationDesc> onInterface = Optional.empty();
+    public static Optional<? extends AnnotationMirror> getAnnotationDesc(TypeElement clazz, Class annotationClass,
+                                                                         DocletEnvironment environment) {
+        Optional<TypeElement> interfaceClass = getInterfaceClass(clazz, environment);
+        Optional<? extends AnnotationMirror> onInterface = Optional.empty();
 
         if (interfaceClass.isPresent()) {
-            onInterface = getAnnotationDesc(interfaceClass.get().annotations(), annotationClass);
+            onInterface = getAnnotationDesc(interfaceClass.get().getAnnotationMirrors(), annotationClass);
         }
 
-        return onInterface.isPresent() ? onInterface : getAnnotationDesc(clazz.annotations(), annotationClass);
+        return onInterface.isPresent() ? onInterface : getAnnotationDesc(clazz.getAnnotationMirrors(), annotationClass);
 
     }
 
-    public static Optional<AnnotationDesc> getAnnotationDesc(MethodDoc method, Class annotationClass) {
-        return getAnnotationDesc(method, annotationClass.getName());
+    public static Optional<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, Class annotationClass,
+                                                                          DocletEnvironment environment) {
+        return getAnnotationDesc(method, annotationClass.getCanonicalName(), environment);
     }
 
-    public static Optional<AnnotationDesc> getAnnotationDesc(MethodDoc method, String annotationClass) {
-        Optional<MethodDoc> interfaceMethod = getInterfaceMethod(method);
-        Optional<AnnotationDesc> onInterface = Optional.empty();
+    public static Optional<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, String annotationClass,
+                                                                         DocletEnvironment environment) {
+        Optional<ExecutableElement> interfaceMethod = getInterfaceMethod(method, environment);
+        Optional<? extends AnnotationMirror> onInterface = Optional.empty();
 
         if (interfaceMethod.isPresent()) {
-            onInterface = getAnnotationDesc(interfaceMethod.get().annotations(), annotationClass);
+            onInterface = getDirectAnnotationDesc(interfaceMethod.get().getAnnotationMirrors(), annotationClass);
         }
 
-        return onInterface.isPresent() ? onInterface : getAnnotationDesc(method.annotations(), annotationClass);
+        return onInterface.isPresent() ? onInterface : getDirectAnnotationDesc(method.getAnnotationMirrors(), annotationClass);
     }
 
-    public static Optional<AnnotationDesc> getAnnotationDesc(MethodDoc method, Parameter param, Class annotationClass, int index) {
-        return getAnnotationDesc(method, param, annotationClass.getName(), index);
+    public static Optional<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, VariableElement param,
+                                                                         Class annotationClass, int index,
+                                                                         DocletEnvironment environment) {
+        return getAnnotationDesc(method, param, annotationClass.getCanonicalName(), index, environment);
     }
 
-    public static Optional<AnnotationDesc> getAnnotationDesc(MethodDoc method, Parameter param, String annotationClass, int index) {
-        Optional<Parameter> interfaceParam = getInterfaceParameter(method, index);
-        Optional<AnnotationDesc> onInterface = Optional.empty();
+    public static Optional<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, VariableElement param,
+                                                                         String annotationClass, int index,
+                                                                         DocletEnvironment environment) {
+        Optional<VariableElement> interfaceParam = getInterfaceParameter(method, index, environment);
+        Optional<? extends AnnotationMirror> onInterface = Optional.empty();
 
         if (interfaceParam.isPresent()) {
-            onInterface = getAnnotationDesc(interfaceParam.get().annotations(), annotationClass);
+            onInterface = getDirectAnnotationDesc(interfaceParam.get().getAnnotationMirrors(), annotationClass);
         }
 
-        return onInterface.isPresent() ? onInterface : getAnnotationDesc(param.annotations(), annotationClass);
+        return onInterface.isPresent() ? onInterface : getDirectAnnotationDesc(param.getAnnotationMirrors(), annotationClass);
     }
 
-    public static Optional<AnnotationDesc> getAnnotationDesc(ProgramElementDoc field, Class annotationClass) {
-        return getAnnotationDesc(field, annotationClass.getName());
+    private static Optional<? extends AnnotationMirror> getAnnotationDesc(Element field, String annotationClass) {
+        return getDirectAnnotationDesc(field.getAnnotationMirrors(), annotationClass);
     }
 
-    public static Optional<AnnotationDesc> getAnnotationDesc(ProgramElementDoc field, String annotationClass) {
-        return getAnnotationDesc(field.annotations(), annotationClass);
+    private static Optional<? extends AnnotationMirror> getAnnotationDesc(VariableElement ctorParam, String annotationClass) {
+        return getDirectAnnotationDesc(ctorParam.getAnnotationMirrors(), annotationClass);
     }
 
-    public static Optional<AnnotationDesc> getAnnotationDesc(Parameter ctorParam, Class annotationClass) {
-        return getAnnotationDesc(ctorParam, annotationClass.getName());
+    private static Optional<? extends AnnotationMirror> getAnnotationDesc(List<? extends AnnotationMirror> annotations,
+                                                                          Class annotationClass) {
+        return getDirectAnnotationDesc(annotations, annotationClass.getCanonicalName());
     }
 
-    public static Optional<AnnotationDesc> getAnnotationDesc(Parameter ctorParam, String annotationClass) {
-        return getAnnotationDesc(ctorParam.annotations(), annotationClass);
-    }
-
-    private static Optional<AnnotationDesc> getAnnotationDesc(AnnotationDesc[] annotations, Class annotationClass) {
-        return getAnnotationDesc(annotations, annotationClass.getName());
-    }
-
-    private static Optional<AnnotationDesc> getAnnotationDesc(AnnotationDesc[] annotations, String annotationClass) {
-        return Stream.of(annotations)
-                .filter((AnnotationDesc a) -> a.annotationType().qualifiedTypeName().equals(annotationClass))
+    private static Optional<? extends AnnotationMirror> getDirectAnnotationDesc(List<? extends AnnotationMirror> annotations,
+                                                                                String annotationClass) {
+        return annotations.stream()
+                .filter((AnnotationMirror a) -> ((TypeElement) a.getAnnotationType().asElement())
+                        .getQualifiedName().toString().equals(annotationClass))
                 .findFirst();
     }
 
-    public static <T> T getAnnotationValue(ClassDoc clazz, Class annotationClass, String key) {
-        Optional<AnnotationDesc> findFirst = getAnnotationDesc(clazz, annotationClass);
-        if (!findFirst.isPresent()) {
+    public static <T> T getAnnotationValue(TypeElement clazz, Class annotationClass, String key, DocletEnvironment environment) {
+        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(clazz, annotationClass, environment);
+        if (findFirst.isEmpty()) {
             return null;
         }
         return extractValue(findFirst.get(), key);
     }
 
-    public static <T> T getAnnotationValue(MethodDoc method, Class annotationClass, String key) {
-        return getAnnotationValue(method, annotationClass.getName(), key);
+    public static <T> T getAnnotationValue(ExecutableElement method, Class annotationClass, String key,
+                                           DocletEnvironment environment) {
+        return getAnnotationValue(method, annotationClass.getCanonicalName(), key, environment);
     }
 
-    public static <T> T getAnnotationValue(MethodDoc method, String annotationClass, String key) {
-        Optional<AnnotationDesc> findFirst = getAnnotationDesc(method, annotationClass);
-        if (!findFirst.isPresent()) {
+    public static <T> T getAnnotationValue(ExecutableElement method, String annotationClass, String key,
+                                           DocletEnvironment environment) {
+        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(method, annotationClass, environment);
+        if (findFirst.isEmpty()) {
             return null;
         }
         return extractValue(findFirst.get(), key);
     }
 
-    public static <T> T getAnnotationValue(ProgramElementDoc field, Class annotationClass, String key) {
-        return getAnnotationValue(field, annotationClass.getName(), key);
+    public static <T> T getDirectAnnotationValue(Element field, Class annotationClass, String key) {
+        return getDirectAnnotationValue(field, annotationClass.getCanonicalName(), key);
     }
 
-    public static <T> T getAnnotationValue(ProgramElementDoc field, String annotationClass, String key) {
-        Optional<AnnotationDesc> findFirst = getAnnotationDesc(field, annotationClass);
-        if (!findFirst.isPresent()) {
+    public static <T> T getDirectAnnotationValue(Element field, String annotationClass, String key) {
+        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(field, annotationClass);
+        if (findFirst.isEmpty()) {
             return null;
         }
         return extractValue(findFirst.get(), key);
     }
 
-    public static <T> T getAnnotationValue(MethodDoc method, Parameter param, Class annotationClass, int index, String key) {
-        return getAnnotationValue(method, param, annotationClass.getName(), index, key);
+    public static <T> T getAnnotationValue(ExecutableElement method, VariableElement param, Class annotationClass,
+                                           int index, String key, DocletEnvironment environment) {
+        return getAnnotationValue(method, param, annotationClass.getCanonicalName(), index, key, environment);
     }
 
-    public static <T> T getAnnotationValue(MethodDoc method, Parameter param, String annotationClass, int index, String key) {
-        Optional<AnnotationDesc> findFirst = getAnnotationDesc(method, param, annotationClass, index);
-        if (!findFirst.isPresent()) {
+    public static <T> T getAnnotationValue(ExecutableElement method, VariableElement param, String annotationClass,
+                                           int index, String key, DocletEnvironment environment) {
+        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(method, param, annotationClass, index, environment);
+        if (findFirst.isEmpty()) {
             return null;
         }
         return extractValue(findFirst.get(), key);
     }
 
-    public static <T> T getAnnotationValue(Parameter ctorParam, Class annotationClass, String key) {
-        return getAnnotationValue(ctorParam, annotationClass.getName(), key);
+    public static <T> T getDirectAnnotationValue(VariableElement ctorParam, Class annotationClass, String key) {
+        return getDirectAnnotationValue(ctorParam, annotationClass.getCanonicalName(), key);
     }
 
-    public static <T> T getAnnotationValue(Parameter ctorParam, String annotationClass, String key) {
-        Optional<AnnotationDesc> findFirst = getAnnotationDesc(ctorParam, annotationClass);
-        if (!findFirst.isPresent()) {
+    public static <T> T getDirectAnnotationValue(VariableElement ctorParam, String annotationClass, String key) {
+        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(ctorParam, annotationClass);
+        if (findFirst.isEmpty()) {
             return null;
         }
         return extractValue(findFirst.get(), key);
     }
 
-    public static <T> T getAnnotationValue(MethodDoc method, Parameter parameter, Class annotationClass, String key, int index) {
-        Optional<AnnotationDesc> findFirst = getAnnotationDesc(method, parameter, annotationClass, index);
-        if (!findFirst.isPresent()) {
+    public static <T> T getAnnotationValue(ExecutableElement method, VariableElement parameter,
+                                           Class annotationClass, String key, int index, DocletEnvironment environment) {
+        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(method, parameter, annotationClass,
+                index, environment);
+
+        if (findFirst.isEmpty()) {
             return null;
         }
         return extractValue(findFirst.get(), key);
     }
 
-    public static AnnotationDesc[] getAnnotations(MethodDoc method, Parameter parameter, int index) {
-        Optional<Parameter> interfaceParam = getInterfaceParameter(method, index);
+    public static List<? extends AnnotationMirror> getAnnotations(ExecutableElement method, VariableElement parameter,
+                                                                  int index, DocletEnvironment environment) {
+        Optional<VariableElement> interfaceParam = getInterfaceParameter(method, index, environment);
 
-        ArrayList<AnnotationDesc> annotations = new ArrayList<>(Arrays.asList(parameter.annotations()));
+        ArrayList<AnnotationMirror> annotations = new ArrayList<>(parameter.getAnnotationMirrors());
 
-        interfaceParam.ifPresent(value -> annotations.addAll(Arrays.asList(value.annotations())));
+        interfaceParam.ifPresent(value -> annotations.addAll(value.getAnnotationMirrors()));
 
-        return annotations.toArray(new AnnotationDesc[0]);
+        return annotations;
     }
 
-    public static boolean hasAnnotation(ProgramElementDoc field, Class annotationClass) {
-        return hasAnnotation(field, annotationClass.getName());
+    public static boolean hasDirectAnnotation(VariableElement param, Class annotationClass) {
+        return hasDirectAnnotation(param, annotationClass.getCanonicalName());
     }
 
-    public static boolean hasAnnotation(ProgramElementDoc field, String annotationClass) {
-        return hasAnnotation(field.annotations(), annotationClass);
+    public static boolean hasDirectAnnotation(VariableElement param, String annotationClass) {
+        return hasAnnotation(param.getAnnotationMirrors(), annotationClass);
     }
 
-    public static boolean hasAnnotation(Parameter param, Class annotationClass) {
-        return hasAnnotation(param, annotationClass.getName());
-    }
+    public static Optional<TypeElement> getInterfaceClass(TypeElement clazz, DocletEnvironment environment) {
 
-    public static boolean hasAnnotation(Parameter param, String annotationClass) {
-        return hasAnnotation(param.annotations(), annotationClass);
-    }
-
-    public static Optional<ClassDoc> getInterfaceClass(ClassDoc clazz) {
-        return Stream.of(clazz.interfaces()).filter(iface -> hasAnnotation(iface.annotations(),
-                ApiDocumentation.class)).findFirst();
-    }
-
-    private static Optional<ClassDoc> getInterfaceClass(MethodDoc method) {
-        return getInterfaceClass(method.containingClass());
-    }
-
-    private static Optional<MethodDoc> getInterfaceMethod(MethodDoc method) {
-        Optional<ClassDoc> interfaceClass = getInterfaceClass(method);
-
-        if (!interfaceClass.isPresent()) {
-            return Optional.empty();
-        }
-
-        return Stream.of(interfaceClass.get().methods())
-                .filter(method::overrides)
+        return clazz.getInterfaces().stream()
+                .filter(iface -> !iface.toString().startsWith("java.") && environment.getTypeUtils().asElement(iface) != null)
+                .map(iface -> (TypeElement) environment.getTypeUtils().asElement(iface))
+                .filter(element -> hasAnnotation(element.getAnnotationMirrors(), ApiDocumentation.class))
                 .findFirst();
     }
 
-    private static Optional<Parameter> getInterfaceParameter(MethodDoc method, int index) {
-        Optional<MethodDoc> methodInterface = getInterfaceMethod(method);
+    private static Optional<TypeElement> getInterfaceClass(ExecutableElement method, DocletEnvironment environment) {
+        return getInterfaceClass((TypeElement) method.getEnclosingElement(), environment);
+    }
 
-        if (!methodInterface.isPresent() || methodInterface.get().parameters().length < (index - 1)) {
+    private static Optional<ExecutableElement> getInterfaceMethod(ExecutableElement method, DocletEnvironment environment) {
+        Optional<TypeElement> interfaceClass = getInterfaceClass(method, environment);
+
+        if (interfaceClass.isEmpty()) {
             return Optional.empty();
         }
 
-        return Optional.of(methodInterface.get().parameters()[index]);
+        return getExecutableElements(interfaceClass.get()).stream()
+                .filter(e -> environment.getElementUtils().overrides(method, e, (TypeElement) method.getEnclosingElement()))
+                .findFirst();
     }
 
-    public static <T> T extractValue(AnnotationDesc findFirst, String key) {
-        Optional<AnnotationDesc.ElementValuePair> evPair =
-                Stream.of(findFirst.elementValues())
-                        .filter((AnnotationDesc.ElementValuePair ev) -> ev.element().name().equals(key)).findFirst();
-        if (!evPair.isPresent()) {
+    private static Optional<VariableElement> getInterfaceParameter(ExecutableElement method, int index,
+                                                                   DocletEnvironment environment) {
+        Optional<ExecutableElement> methodInterface = getInterfaceMethod(method, environment);
+
+        if (methodInterface.isEmpty() || methodInterface.get().getParameters().size() < (index - 1)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(methodInterface.get().getParameters().get(index));
+    }
+
+    public static <T> T extractValue(AnnotationMirror findFirst, String key) {
+        Optional<? extends Map.Entry<? extends ExecutableElement, ? extends AnnotationValue>> evPair =
+                findFirst.getElementValues().entrySet().stream()
+                        .filter(ev -> ev.getKey().getSimpleName().toString().equals(key)).findFirst();
+        if (evPair.isEmpty()) {
             return null;
         }
-        Object value = evPair.get().value().value();
+        Object value = evPair.get().getValue().getValue();
         return (T) value;
     }
 
-    public static boolean hasAnnotation(MethodDoc method, Parameter parameter, Class annotationClass, int index) {
-        Optional<Parameter> interfaceParam = getInterfaceParameter(method, index);
+    public static boolean hasAnnotation(ExecutableElement method, VariableElement parameter, Class annotationClass, int index,
+                                        DocletEnvironment environment) {
+        Optional<VariableElement> interfaceParam = getInterfaceParameter(method, index, environment);
 
         boolean definedOnInterface = false;
 
         if (interfaceParam.isPresent()) {
-            definedOnInterface = hasAnnotation(interfaceParam.get().annotations(), annotationClass);
+            definedOnInterface = hasAnnotation(interfaceParam.get().getAnnotationMirrors(), annotationClass);
         }
 
-        return definedOnInterface || hasAnnotation(parameter.annotations(), annotationClass);
+        return definedOnInterface || hasAnnotation(parameter.getAnnotationMirrors(), annotationClass);
     }
 
-    public static boolean hasAnnotation(MethodDoc method, Class annotationClass) {
-        return hasAnnotation(method, annotationClass.getName());
+    public static boolean hasAnnotation(ExecutableElement method, Class annotationClass, DocletEnvironment environment) {
+        return hasAnnotation(method, annotationClass.getCanonicalName(), environment);
     }
 
-    public static boolean hasAnnotation(MethodDoc method, String annotationClass) {
-        Optional<MethodDoc> interfaceMethod = getInterfaceMethod(method);
+    public static boolean hasAnnotation(ExecutableElement method, String annotationClass, DocletEnvironment environment) {
+        Optional<ExecutableElement> interfaceMethod = getInterfaceMethod(method, environment);
 
         boolean definedOnInterface = false;
 
         if (interfaceMethod.isPresent()) {
-            definedOnInterface = hasAnnotation(interfaceMethod.get().annotations(), annotationClass);
+            definedOnInterface = hasAnnotation(interfaceMethod.get().getAnnotationMirrors(), annotationClass);
         }
 
-        return definedOnInterface || hasAnnotation(method.annotations(), annotationClass);
+        return definedOnInterface || hasAnnotation(method.getAnnotationMirrors(), annotationClass);
     }
 
-    public static boolean hasAnnotation(ClassDoc clazz, Class annotationClass) {
-        Optional<ClassDoc> interfaceClass = getInterfaceClass(clazz);
+    public static boolean hasAnnotation(TypeElement clazz, Class annotationClass, DocletEnvironment environment) {
+        Optional<TypeElement> interfaceClass = getInterfaceClass(clazz, environment);
 
         boolean definedOnInterface = false;
 
         if (interfaceClass.isPresent()) {
-            definedOnInterface = hasAnnotation(interfaceClass.get().annotations(), annotationClass);
+            definedOnInterface = hasAnnotation(interfaceClass.get().getAnnotationMirrors(), annotationClass);
         }
 
-        return definedOnInterface || hasAnnotation(clazz.annotations(), annotationClass);
+        return definedOnInterface || hasAnnotation(clazz.getAnnotationMirrors(), annotationClass);
     }
 
-    private static boolean hasAnnotation(AnnotationDesc[] annotations, Class annotationClass) {
-        return hasAnnotation(annotations, annotationClass.getName());
+    private static boolean hasAnnotation(List<? extends AnnotationMirror> annotations, Class annotationClass) {
+        return hasAnnotation(annotations, annotationClass.getCanonicalName());
     }
 
-    private static boolean hasAnnotation(AnnotationDesc[] annotations, String annotationClass) {
-        return Arrays.asList(annotations).stream().anyMatch(a -> a.annotationType().qualifiedTypeName().equals(annotationClass));
+    private static boolean hasAnnotation(List<? extends AnnotationMirror> annotations, String annotationClass) {
+        return annotations.stream().anyMatch(a -> ((TypeElement) a.getAnnotationType().asElement())
+                .getQualifiedName().toString().equals(annotationClass));
     }
 
-    public static String getCommentText(ClassDoc clazz) {
-        Optional<ClassDoc> interfaceClass = getInterfaceClass(clazz);
+    public static String getCommentTextFromInterfaceOrClass(TypeElement clazz, DocletEnvironment environment,
+                                                            boolean stripInlineTags) {
+        Optional<TypeElement> interfaceClass = getInterfaceClass(clazz, environment);
 
         String onInterface = null;
 
         if (interfaceClass.isPresent()) {
-            onInterface = interfaceClass.get().commentText();
+            onInterface = getCommentText(interfaceClass.get(), environment, stripInlineTags);
         }
 
-        return onInterface != null ? onInterface : clazz.commentText();
+        return onInterface != null ? onInterface : getCommentText(clazz, environment, stripInlineTags);
     }
 
-    public static String getCommentText(MethodDoc method) {
-        Optional<MethodDoc> interfaceMethod = getInterfaceMethod(method);
+    public static String getCommentTextFromInterfaceOrClass(ExecutableElement method, DocletEnvironment environment,
+                                                            boolean stripInlineTags) {
+        Optional<ExecutableElement> interfaceMethod = getInterfaceMethod(method, environment);
 
         String onInterface = null;
 
         if (interfaceMethod.isPresent()) {
-            onInterface = interfaceMethod.get().commentText();
+            onInterface = getCommentText(interfaceMethod.get(), environment, stripInlineTags);
         }
 
-        return onInterface != null ? onInterface : method.commentText();
+        return onInterface != null
+               ? onInterface
+               : getCommentText(method, environment, stripInlineTags);
     }
 
-    public static ParamTag getParamTag(MethodDoc method, int index, Map<String, ParamTag> paramTags) {
-        Optional<MethodDoc> interfaceMethod = getInterfaceMethod(method);
+    public static ParamTree getParamTag(ExecutableElement method, int index, Map<String, ParamTree> paramTags,
+                                        DocletEnvironment environment) {
+        Optional<ExecutableElement> interfaceMethod = getInterfaceMethod(method, environment);
 
         if (interfaceMethod.isPresent()) { // from interface is preferred, so it can match paramTags precedence
-            String name = interfaceMethod.get().parameters()[index].name();
+            String name = interfaceMethod.get().getParameters().get(index).getSimpleName().toString();
             if (paramTags.containsKey(name)) {
                 return paramTags.get(name);
             }
         }
 
-        return paramTags.get(method.parameters()[index].name());
+        return paramTags.get(method.getParameters().get(index).getSimpleName().toString());
     }
 
-    public static Map<String, ParamTag> getParamTags(MethodDoc method) {
-        Optional<MethodDoc> interfaceMethod = getInterfaceMethod(method);
+    public static Map<String, ParamTree> getParamTags(ExecutableElement method, DocletEnvironment environment) {
+        Optional<ExecutableElement> interfaceMethod = getInterfaceMethod(method, environment);
 
-        Map<String, ParamTag> onInterface = new HashMap<>();
+        Map<String, ParamTree> onInterface = new HashMap<>();
 
         if (interfaceMethod.isPresent()) {
-            onInterface = Stream.of(interfaceMethod.get().paramTags())
-                    .collect(Collectors.toMap(ParamTag::parameterName, tag -> tag));
+            onInterface = getBlockTags(interfaceMethod.get(), environment).stream()
+                    .filter(d -> d instanceof ParamTree)
+                    .map(d -> (ParamTree) d)
+                    .collect(Collectors.toMap(p -> p.getName().getName().toString(), p -> p));
         }
 
-        Map<String, ParamTag> onClass = Stream.of(method.paramTags())
-                .collect(Collectors.toMap(ParamTag::parameterName, tag -> tag));
+        Map<String, ParamTree> onClass = getBlockTags(method, environment).stream()
+                .filter(d -> d instanceof ParamTree)
+                .map(d -> (ParamTree) d)
+                .collect(Collectors.toMap(p -> p.getName().getName().toString(), p -> p));
 
         onClass.putAll(onInterface); // onInterface has precedence
 
         return onClass;
     }
 
-    public static Map<String, ParamTag> getParamTags(ConstructorDoc ctor) {
-        return Stream.of(ctor.paramTags())
-                .collect(Collectors.toMap(ParamTag::parameterName, tag -> tag));
-    }
+    public static String getParamTreeComment(ParamTree param) {
+        List<? extends DocTree> description = param.getDescription();
 
-    public static Tag[] getTags(MethodDoc method) {
-        Optional<MethodDoc> interfaceMethod = getInterfaceMethod(method);
-
-        Tag[] onInterface = null;
-
-        if (interfaceMethod.isPresent()) {
-            onInterface = interfaceMethod.get().tags();
+        if (description.isEmpty()) {
+            return "";
         }
 
-        return onInterface != null ? onInterface : method.tags();
+        return getCommentTextWithoutInlineTags(description);
     }
 
-    public static boolean containedFieldNamesAreNotAvailableOrPackageExcluded(Type fieldType, Options options) {
-        return fieldType.asClassDoc() == null
+    public static List<? extends DocTree> getTags(ExecutableElement method, DocletEnvironment environment) {
+        Optional<ExecutableElement> interfaceMethod = getInterfaceMethod(method, environment);
+
+        List<? extends DocTree> onInterface = null;
+
+        if (interfaceMethod.isPresent()) {
+            onInterface = environment.getDocTrees().getDocCommentTree(interfaceMethod.get()).getBlockTags();
+        }
+
+        return onInterface != null ? onInterface : environment.getDocTrees().getDocCommentTree(method).getBlockTags();
+    }
+
+    public static boolean containedFieldNamesAreNotAvailableOrPackageExcluded(TypeMirror fieldType, Options options) {
+        var element = options.environment.getTypeUtils().asElement(fieldType);
+
+        return element == null
                 || options.scanPackages.stream()
-                .noneMatch(pack -> fieldType.asClassDoc().containingPackage().name().startsWith(pack))
-                || getDataFields(fieldType).keySet().stream()
+                .noneMatch(pack -> getPackageName(element, options.environment).startsWith(pack))
+                || getDataFields(fieldType, options.environment).keySet().stream()
                 .anyMatch((String k) -> k.matches("arg\\d"));
     }
 
-    public static String getPublicFieldName(FieldDoc field) {
-        if (hasAnnotation(field, JSON_PROPERTY)) {
-            return getAnnotationValue(field, JSON_PROPERTY, "value");
-        } else if (hasAnnotation(field, JSON_PROPERTY_LEGACY)) {
-            return getAnnotationValue(field, JSON_PROPERTY_LEGACY, "value");
+    public static String getPublicName(VariableElement param) {
+        if (hasDirectAnnotation(param, JSON_PROPERTY)) {
+            return getDirectAnnotationValue(param, JSON_PROPERTY, "value");
+        } else if (hasDirectAnnotation(param, JSON_PROPERTY_LEGACY)) {
+            return getDirectAnnotationValue(param, JSON_PROPERTY_LEGACY, "value");
         } else {
-            return field.name();
+            return param.getSimpleName().toString();
         }
     }
 
-    public static String getPublicParameterName(MethodDoc method, Parameter param, int index) {
-        if (hasAnnotation(param, JSON_PROPERTY)) {
-            return getAnnotationValue(method, param, JSON_PROPERTY, index, "value");
-        } else if (hasAnnotation(param, JSON_PROPERTY_LEGACY)) {
-            return getAnnotationValue(method, param, JSON_PROPERTY_LEGACY, index, "value");
-        } else {
-            return param.name();
-        }
-    }
+    public static Map<String, TypeMirror> getDataFields(RestMethodData.ParameterInfo param, DocletEnvironment environment) {
 
-    public static String getPublicCtorParmeterName(Parameter param) {
-        if (hasAnnotation(param, JSON_PROPERTY)) {
-            return getAnnotationValue(param, JSON_PROPERTY, "value");
-        } else if (hasAnnotation(param, JSON_PROPERTY_LEGACY)) {
-            return getAnnotationValue(param, JSON_PROPERTY_LEGACY, "value");
-        } else {
-            return param.name();
-        }
-    }
+        Map<String, TypeMirror> dataFields = new LinkedHashMap<>();
 
-    public static Map<String, Type> getDataFields(RestMethodData.ParameterInfo param) {
-
-        Map<String, Type> dataFields = new LinkedHashMap<>();
-
-        if (param.entityClass.qualifiedTypeName().equals(FormParameters.class.getCanonicalName())) {
+        if (equalsClass(param.entityClass, FormParameters.class, environment)) {
             // manually grouped form parameters
             param.nestedParameters
                     .forEach(np -> dataFields.put(np.name, np.displayClass != null ? np.displayClass : np.entityClass));
 
         } else {
 
-            dataFields.putAll(getDataFields(param.displayClass != null ? param.displayClass : param.entityClass));
+            dataFields.putAll(getDataFields(param.displayClass != null ? param.displayClass : param.entityClass, environment));
         }
 
         return dataFields;
     }
 
-    public static Map<String, Type> getDataFields(Type type) {
-        if (type.isPrimitive()) {
+    private static boolean equalsClass(TypeMirror typeMirror, Class<?> otherClass, DocletEnvironment environment) {
+        if (typeMirror.getKind().isPrimitive()) {
+            return false;
+        }
+
+        Element element = environment.getTypeUtils().asElement(typeMirror);
+
+        if (element == null) return false;
+
+        PackageElement packageElement = environment.getElementUtils().getPackageOf(element);
+
+        return element.getSimpleName().toString().equals(otherClass.getSimpleName())
+                && packageElement.getQualifiedName().toString().equals(otherClass.getPackageName());
+    }
+
+    public static Map<String, TypeMirror> getDataFields(TypeMirror type, DocletEnvironment environment) {
+        if (type.getKind().isPrimitive()) {
             return Collections.emptyMap();
         }
 
-        Map<String, Type> dataFields = new LinkedHashMap<>();
-        ClassDoc classDoc = type.asClassDoc();
+        Map<String, TypeMirror> dataFields = new LinkedHashMap<>();
 
-        List<FieldDoc> fields = getVisibleFields(type);
+        List<VariableElement> fields = getVisibleFields(type, environment);
 
         fields.forEach(field -> {
-            Type fieldType = field.type();
-            dataFields.put(getPublicFieldName(field), fieldType);
+            TypeMirror fieldType = field.asType();
+            dataFields.put(getPublicName(field), fieldType);
         });
 
         if (fields.isEmpty()) {
-            getGetters(type, dataFields);
+            getGetters(type, dataFields, environment);
         }
 
-        if (classDoc.superclass() != null && !isJavaType(classDoc.superclassType())) {
-            dataFields.putAll(getDataFields(classDoc.superclassType()));
+        Optional<? extends TypeMirror> superTypeMirror = environment.getTypeUtils().directSupertypes(type).stream().findFirst();
+
+        if (superTypeMirror.isPresent() && !isJavaType(superTypeMirror.get(), environment)) {
+            dataFields.putAll(getDataFields(superTypeMirror.get(), environment));
         }
 
         return dataFields;
     }
 
-    private static void getGetters(Type type, Map<String, Type> dataFields) {
-        if (type.isPrimitive()) {
+    private static void getGetters(TypeMirror type, Map<String, TypeMirror> dataFields, DocletEnvironment environment) {
+        if (type.getKind().isPrimitive()) {
             return;
         }
 
-        List<MethodDoc> getters = getVisibleGetters(type);
+        List<ExecutableElement> getters = getVisibleGetters(type, environment);
 
-        if (!isJavaType(type)) {
+        if (!isJavaType(type, environment)) {
 
             getters.forEach(getter -> {
-                Type fieldType = getter.returnType();
-                dataFields.put(getNameFromGetter(getter), fieldType);
+                TypeMirror fieldType = getter.getReturnType();
+                dataFields.put(getNameFromGetter(getter, environment), fieldType);
             });
         }
 
         if (getters.isEmpty()) {
-            ConstructorDoc chosenCtor = null;
+            ExecutableElement chosenCtor = null;
 
-            for (ConstructorDoc ctor : type.asClassDoc().constructors()) {
+            var element = (TypeElement) environment.getTypeUtils().asElement(type);
+            List<ExecutableElement> ctors = environment.getElementUtils().getAllMembers(element).stream()
+                    .filter(e -> e instanceof ExecutableElement)
+                    .map(e -> (ExecutableElement) e)
+                    .filter(e -> e.getKind() == ElementKind.CONSTRUCTOR)
+                    .collect(Collectors.toList());
+
+
+            for (ExecutableElement ctor : ctors) {
                 if (chosenCtor == null) {
                     chosenCtor = ctor;
                 } else if (getVisibleCtorParameters(ctor).size() > getVisibleCtorParameters(chosenCtor).size()) {
@@ -467,31 +505,51 @@ public abstract class JavaDocUtils {
             }
 
             if (chosenCtor != null) {
-                for (Parameter param : getVisibleCtorParameters(chosenCtor)) {
-                    dataFields.put(getPublicCtorParmeterName(param), param.type());
+                for (VariableElement param : getVisibleCtorParameters(chosenCtor)) {
+                    dataFields.put(getPublicName(param), param.asType());
                 }
             }
         }
     }
 
-    public static boolean isArrayType(Type type) {
-        return type != null && ("Set".equals(getTypeString(type)) || getTypeString(type).startsWith("Set<") || "List".equals(
-                getTypeString(type)) || getTypeString(type).startsWith("List<"));
+    public static boolean isArrayType(TypeMirror type, DocletEnvironment environment) {
+        return type != null
+                && (type instanceof ArrayType);
     }
 
-    public static boolean isMapType(Type type) {
-        return type != null && ("Map".equals(getTypeString(type)) || getTypeString(type).startsWith("Map<"));
+    public static boolean isCollectionType(TypeMirror type, DocletEnvironment environment) {
+        return type != null
+                && (type instanceof ArrayType
+                || type.toString().startsWith("java.util.List")
+                || type.toString().startsWith("java.util.Set"));
     }
 
-    public static String getTypeString(Type type) {
-        if (type.asClassDoc() != null && type.asClassDoc().isEnum()) {
-            FieldDoc[] enumConstants = type.asClassDoc().enumConstants();
+    public static boolean isMapType(TypeMirror type, DocletEnvironment environment) {
+        return type != null && type.toString().startsWith("java.util.Map");
+    }
+
+    public static String getTypeString(TypeMirror type, DocletEnvironment environment) {
+        if (type.getKind().isPrimitive()) {
+            return type.toString();
+        }
+
+        Element element = environment.getTypeUtils().asElement(type);
+
+        if (element == null) {
+            return "String";
+        }
+
+        if (isEnum(type, environment)) {
             StringJoiner sj = new StringJoiner("|");
-            Stream.of(enumConstants).forEach(constant -> sj.add(constant.name()));
+            getEnumValuesAsList(type, environment).forEach(sj::add);
             return sj.toString();
         }
 
-        String name = type.simpleTypeName() + type.dimension();
+        String name = element.getSimpleName().toString();
+
+        if (isArrayType(type, environment)) {
+            name += "[]";
+        }
 
         //printing out "byte[]" as type may confuse people, so change it to String
         if (name.equals("byte[]")) {
@@ -501,104 +559,249 @@ public abstract class JavaDocUtils {
         return name;
     }
 
-    public static String getSimpleTypeName(Type type) {
-
-        if (isArrayType(type)) {
-            return type.simpleTypeName() + "[" + getSimpleTypeName(type.asParameterizedType().typeArguments()[0]) + "]";
-        } else if (isMapType(type)) {
-            return type.simpleTypeName() + "["
-                    + getSimpleTypeName(type.asParameterizedType().typeArguments()[0])
-                    + ", "
-                    + getSimpleTypeName(type.asParameterizedType().typeArguments()[1])
-                    + "]";
-        } else {
-            return type.simpleTypeName();
+    public static String getSimpleTypeName(TypeMirror type, DocletEnvironment environment) {
+        if (type.getKind().isPrimitive()) {
+            return type.toString();
         }
 
+        Element element = environment.getTypeUtils().asElement(type);
+
+        if (element == null) {
+            return "String";
+        }
+
+        String simpleName = element.getSimpleName().toString();
+
+        if (isCollectionType(type, environment)) {
+            List<? extends TypeMirror> typeArguments = ((DeclaredType) type).getTypeArguments();
+            return simpleName + "[" + getSimpleTypeName(typeArguments.get(0), environment) + "]";
+        } else if (isMapType(type, environment)) {
+            List<? extends TypeMirror> typeArguments = ((DeclaredType) type).getTypeArguments();
+            return simpleName + "["
+                    + getSimpleTypeName(typeArguments.get(0), environment)
+                    + ", "
+                    + getSimpleTypeName(typeArguments.get(1), environment)
+                    + "]";
+        } else {
+            return simpleName;
+        }
     }
 
-    public static boolean typeCantBeDocumented(Type type, Options options) {
-        if (type != null && type.qualifiedTypeName().equals(FormParameters.class.getCanonicalName())) {
+    public static boolean typeCantBeDocumented(TypeMirror type, Options options) {
+        if (type != null && equalsClass(type, FormParameters.class, options.environment)) {
             return false;
         }
 
+        Element element = options.environment.getTypeUtils().asElement(type);
+
         return type == null
-                || type.asClassDoc() == null
-                || type.isPrimitive()
-                || type.qualifiedTypeName().startsWith("java.")
-                //                || type.asClassDoc().fields(false).length == 0
+                || element == null
+                || type.getKind().isPrimitive()
+                || getPackageName(element, options.environment).startsWith("java.")
                 || containedFieldNamesAreNotAvailableOrPackageExcluded(type, options);
     }
 
-    public static boolean isJavaType(Type type) {
-        return type.qualifiedTypeName().startsWith("java.");
+    public static boolean isJavaType(TypeMirror type, DocletEnvironment environment) {
+        var element = environment.getTypeUtils().asElement(type);
+        var packageName = getPackageName(element, environment);
+        return packageName.startsWith("java.");
     }
 
-    public static List<FieldDoc> getVisibleFields(Type type) {
-        if (type.isPrimitive()) {
+    public static List<VariableElement> getVisibleFields(TypeMirror type, DocletEnvironment environment) {
+        if (type.getKind().isPrimitive()) {
             return Collections.emptyList();
         }
 
-        List<FieldDoc> fields = new ArrayList<>();
-        fields.addAll(Arrays.asList(type.asClassDoc().fields(true)));
+        var element = (TypeElement) environment.getTypeUtils().asElement(type);
+        List<VariableElement> fields = environment.getElementUtils().getAllMembers(element).stream()
+                .filter(e -> e instanceof VariableElement)
+                .map(e -> (VariableElement) e)
+                .filter(e -> e.getModifiers().contains(Modifier.PUBLIC))
+                .collect(Collectors.toList());
 
-        if (type.asClassDoc().superclass() != null && !isJavaType(type.asClassDoc().superclassType())) {
-            fields.addAll(getVisibleFields(type.asClassDoc().superclassType()));
+        Optional<? extends TypeMirror> superTypeMirror = environment.getTypeUtils().directSupertypes(type).stream().findFirst();
+
+        if (superTypeMirror.isPresent() && !isJavaType(superTypeMirror.get(), environment)) {
+            fields.addAll(getVisibleFields(superTypeMirror.get(), environment));
         }
+
         return fields.stream().filter(JavaDocUtils::fieldIsVisible).collect(Collectors.toList());
     }
 
-    private static boolean fieldIsVisible(FieldDoc field) {
-        return !hasAnnotation(field, ApiIgnore.class)
-                && !hasAnnotation(field, XML_TRANSIENT)
-                && !hasAnnotation(field, JSON_IGNORE)
-                && !hasAnnotation(field, JSON_IGNORE_LEGACY)
-                && !field.isStatic()
-                && !field.isSynthetic()
-                && !field.isTransient()
-                && field.isPublic();
+    private static boolean fieldIsVisible(VariableElement field) {
+        return !hasDirectAnnotation(field, ApiIgnore.class)
+                && !hasDirectAnnotation(field, XML_TRANSIENT)
+                && !hasDirectAnnotation(field, JSON_IGNORE)
+                && !hasDirectAnnotation(field, JSON_IGNORE_LEGACY)
+                && !field.getModifiers().contains(Modifier.STATIC)
+                && !field.getModifiers().contains(Modifier.TRANSIENT)
+                && field.getModifiers().contains(Modifier.PUBLIC);
     }
 
-    public static List<MethodDoc> getVisibleGetters(Type type) {
-        if (isJavaType(type) || type.isPrimitive()) {
+    public static List<ExecutableElement> getVisibleGetters(TypeMirror type, DocletEnvironment environment) {
+        if (isJavaType(type, environment) || type.getKind().isPrimitive()) {
             return Collections.emptyList();
         }
-        List<MethodDoc> methods = new ArrayList<>();
-        methods.addAll(Arrays.asList(type.asClassDoc().methods()));
 
-        if (type.asClassDoc().superclass() != null && !isJavaType(type.asClassDoc().superclassType())) {
-            methods.addAll(getVisibleGetters(type.asClassDoc().superclassType()));
+        var element = (TypeElement) environment.getTypeUtils().asElement(type);
+        List<ExecutableElement> methods = environment.getElementUtils().getAllMembers(element).stream()
+                .filter(e -> e instanceof ExecutableElement)
+                .map(e -> (ExecutableElement) e)
+                .filter(e -> e.getReturnType() != null)
+                .filter(e -> environment.getTypeUtils().isSameType(element.asType(), e.getEnclosingElement().asType()))
+                .collect(Collectors.toList());
+
+        Optional<? extends TypeMirror> superTypeMirror = environment.getTypeUtils().directSupertypes(type).stream().findFirst();
+
+        if (superTypeMirror.isPresent() && !isJavaType(superTypeMirror.get(), environment)) {
+            methods.addAll(getVisibleGetters(superTypeMirror.get(), environment));
         }
-        return methods.stream().filter(JavaDocUtils::methodIsVisibleGetter).collect(Collectors.toList());
+
+        return methods.stream().filter(e -> methodIsVisibleGetter(e, environment)).collect(Collectors.toList());
     }
 
-    private static boolean methodIsVisibleGetter(MethodDoc method) {
-        return !hasAnnotation(method, ApiIgnore.class)
-                && !hasAnnotation(method, XML_TRANSIENT)
-                && !hasAnnotation(method, JSON_IGNORE)
-                && !hasAnnotation(method, JSON_IGNORE_LEGACY)
-                && method.name().startsWith("get")
-                && !method.name().equals("get") // ignore get() methods
-                && !method.isStatic()
-                && !method.isSynthetic()
-                && method.isPublic();
+    private static boolean methodIsVisibleGetter(ExecutableElement method, DocletEnvironment environment) {
+        return !hasAnnotation(method, ApiIgnore.class, environment)
+                && !hasAnnotation(method, XML_TRANSIENT, environment)
+                && !hasAnnotation(method, JSON_IGNORE, environment)
+                && !hasAnnotation(method, JSON_IGNORE_LEGACY, environment)
+                && method.getSimpleName().toString().startsWith("get")
+                && !method.getSimpleName().toString().equals("get") // ignore get() methods
+                && !method.getModifiers().contains(Modifier.STATIC)
+                && !method.getModifiers().contains(Modifier.TRANSIENT)
+                && method.getModifiers().contains(Modifier.PUBLIC);
     }
 
-    public static List<Parameter> getVisibleCtorParameters(ConstructorDoc chosenCtor) {
-        return Arrays.stream(chosenCtor.parameters()).filter(JavaDocUtils::parameterIsVisible).collect(Collectors.toList());
+    public static List<VariableElement> getVisibleCtorParameters(ExecutableElement chosenCtor) {
+        return chosenCtor.getParameters().stream().filter(JavaDocUtils::parameterIsVisible).collect(Collectors.toList());
     }
 
-    private static boolean parameterIsVisible(Parameter param) {
-        return !hasAnnotation(param, ApiIgnore.class);
+    private static boolean parameterIsVisible(VariableElement param) {
+        return !hasDirectAnnotation(param, ApiIgnore.class);
     }
 
-    public static String getNameFromGetter(MethodDoc getter) {
-        if (hasAnnotation(getter, JSON_PROPERTY)) {
-            return getAnnotationValue(getter, JSON_PROPERTY, "value");
-        } else if (hasAnnotation(getter, JSON_PROPERTY_LEGACY)) {
-            return getAnnotationValue(getter, JSON_PROPERTY_LEGACY, "value");
+    public static String getNameFromGetter(ExecutableElement getter, DocletEnvironment environment) {
+        if (hasAnnotation(getter, JSON_PROPERTY, environment)) {
+            return getAnnotationValue(getter, JSON_PROPERTY, "value", environment);
+        } else if (hasAnnotation(getter, JSON_PROPERTY_LEGACY, environment)) {
+            return getAnnotationValue(getter, JSON_PROPERTY_LEGACY, "value", environment);
         } else {
-            return getter.name().substring(3, 4).toLowerCase() + getter.name().substring(4);
+            String simpleName = getter.getSimpleName().toString();
+            return simpleName.substring(3, 4).toLowerCase() + simpleName.substring(4);
         }
     }
+
+    public static List<TypeElement> getTypeElements(DocletEnvironment environment) {
+        return environment.getIncludedElements().stream()
+                .filter(e -> e instanceof TypeElement)
+                .map(e -> (TypeElement) e)
+                .collect(Collectors.toList());
+    }
+
+    public static List<ExecutableElement> getExecutableElements(Element element) {
+        return element.getEnclosedElements().stream()
+                .filter(e -> e instanceof ExecutableElement)
+                .map(e -> (ExecutableElement) e)
+                .collect(Collectors.toList());
+    }
+
+    public static List<ExecutableElement> getConstructors(TypeMirror typeMirror, DocletEnvironment environment) {
+        return getConstructors(environment.getTypeUtils().asElement(typeMirror));
+    }
+
+    public static List<ExecutableElement> getConstructors(Element element) {
+        return getExecutableElements(element).stream()
+                .filter(e -> e.getKind() == ElementKind.CONSTRUCTOR)
+                .collect(Collectors.toList());
+    }
+
+    public static String getCommentText(Element element, DocletEnvironment environment, boolean stripInlineTags) {
+        if (!stripInlineTags) {
+            return Optional.ofNullable(environment.getElementUtils().getDocComment(element)).orElse("");
+
+        }
+
+        DocCommentTree docCommentTree = environment.getDocTrees().getDocCommentTree(element);
+
+        if (docCommentTree == null) {
+            return "";
+        }
+
+        return getCommentTextWithoutInlineTags(docCommentTree.getFullBody());
+    }
+
+    public static String getCommentTextWithoutInlineTags(List<? extends DocTree> description) {
+        return description.stream()
+                .filter(tag -> tag instanceof TextTree || tag instanceof StartElementTree || tag instanceof EndElementTree)
+                .map(Object::toString)
+                .collect(Collectors.joining());
+    }
+
+    public static boolean isEnum(TypeMirror typeMirror, DocletEnvironment environment) {
+        Element element = environment.getTypeUtils().asElement(typeMirror);
+        return element != null && element.getKind() == ElementKind.ENUM;
+    }
+
+    public static String getPackageName(TypeMirror typeMirror, DocletEnvironment environment) {
+        Element element = environment.getTypeUtils().asElement(typeMirror);
+        return getPackageName(element, environment);
+    }
+
+    public static String getPackageName(Element element, DocletEnvironment environment) {
+        return environment.getElementUtils().getPackageOf(element).getQualifiedName().toString();
+    }
+
+    public static String getQualifiedName(TypeMirror typeMirror, DocletEnvironment environment) {
+        Element element = environment.getTypeUtils().asElement(typeMirror);
+        return getPackageName(element, environment) + "." + element.getSimpleName().toString();
+    }
+
+    public static Element asElement(TypeMirror typeMirror, DocletEnvironment environment) {
+        return environment.getTypeUtils().asElement(typeMirror);
+    }
+
+    public static List<String> getEnumValuesAsList(TypeMirror enumType, DocletEnvironment environment) {
+        Element element = environment.getTypeUtils().asElement(enumType);
+        return getEnumValuesAsList((TypeElement) element, environment);
+    }
+
+    public static List<String> getEnumValuesAsList(TypeElement element, DocletEnvironment environment) {
+        List<String> list = new ArrayList<>();
+        List<? extends VariableElement> enumConstants = environment.getElementUtils().getAllMembers(element)
+                .stream().filter(m -> m.getKind() == ElementKind.ENUM_CONSTANT)
+                .map(m -> (VariableElement) m)
+                .collect(Collectors.toList());
+
+        for (VariableElement enumConstant : enumConstants) {
+            list.add(enumConstant.getSimpleName().toString());
+        }
+
+        return list;
+    }
+
+    public static List<? extends DocTree> getBlockTags(Element parameter, DocletEnvironment environment) {
+        DocCommentTree docCommentTree = environment.getDocTrees().getDocCommentTree(parameter);
+        return docCommentTree == null ? Collections.emptyList() : docCommentTree.getBlockTags();
+    }
+
+    public static List<? extends DocTree> getInlineTags(Element parameter, DocletEnvironment environment) {
+        DocCommentTree docCommentTree = environment.getDocTrees().getDocCommentTree(parameter);
+
+        return docCommentTree == null
+               ? Collections.emptyList()
+               : docCommentTree.getFullBody().stream().filter(d -> d.getKind() != DocTree.Kind.TEXT).collect(Collectors.toList());
+    }
+
+    public static Element getReferencedElement(Element e, DocTree dtree, DocletEnvironment environment) {
+        TreePath elementPath = environment.getDocTrees().getPath(e);
+        DocCommentTree docCommentTree = environment.getDocTrees().getDocCommentTree(e);
+
+        if (elementPath == null || docCommentTree == null) {
+            return null;
+        }
+
+        DocTreePath path = DocTreePath.getPath(elementPath, docCommentTree, dtree);
+        return environment.getDocTrees().getElement(path);
+    }
+
 }

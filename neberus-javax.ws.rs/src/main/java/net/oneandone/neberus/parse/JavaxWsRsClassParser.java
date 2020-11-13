@@ -1,8 +1,8 @@
 package net.oneandone.neberus.parse;
 
-import com.sun.javadoc.MethodDoc;
-
 import static net.oneandone.neberus.util.JavaDocUtils.*;
+
+import javax.lang.model.element.ExecutableElement;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -22,20 +22,20 @@ public class JavaxWsRsClassParser extends ClassParser {
     }
 
     @Override
-    protected String getHttpMethod(MethodDoc method) {
-        if (hasAnnotation(method, DELETE.class)) {
+    protected String getHttpMethod(ExecutableElement method) {
+        if (hasAnnotation(method, DELETE.class, methodParser.options.environment)) {
             return HttpMethod.DELETE;
-        } else if (hasAnnotation(method, GET.class)) {
+        } else if (hasAnnotation(method, GET.class, methodParser.options.environment)) {
             return HttpMethod.GET;
-        } else if (hasAnnotation(method, HEAD.class)) {
+        } else if (hasAnnotation(method, HEAD.class, methodParser.options.environment)) {
             return HttpMethod.HEAD;
-        } else if (hasAnnotation(method, OPTIONS.class)) {
+        } else if (hasAnnotation(method, OPTIONS.class, methodParser.options.environment)) {
             return HttpMethod.OPTIONS;
-        } else if (hasAnnotation(method, POST.class)) {
+        } else if (hasAnnotation(method, POST.class, methodParser.options.environment)) {
             return HttpMethod.POST;
-        } else if (hasAnnotation(method, PUT.class)) {
+        } else if (hasAnnotation(method, PUT.class, methodParser.options.environment)) {
             return HttpMethod.PUT;
-        } else if (hasAnnotation(method, PATCH.class)) {
+        } else if (hasAnnotation(method, PATCH.class, methodParser.options.environment)) {
             return HttpMethod.PATCH;
         }
         return null;

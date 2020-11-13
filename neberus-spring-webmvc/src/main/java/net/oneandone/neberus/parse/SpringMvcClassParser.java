@@ -1,13 +1,10 @@
 package net.oneandone.neberus.parse;
 
-import com.sun.javadoc.AnnotationValue;
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.FieldDoc;
-import com.sun.javadoc.MethodDoc;
 import static net.oneandone.neberus.parse.SpringMvcMethodParser.NAME;
 import static net.oneandone.neberus.util.JavaDocUtils.*;
+
+import java.util.List;
 import java.util.StringJoiner;
-import java.util.stream.Stream;
 
 import net.oneandone.neberus.util.MvcUtils;
 import org.springframework.http.HttpMethod;
@@ -17,6 +14,11 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 
 /**
  * Parses class related things.
@@ -28,24 +30,24 @@ public class SpringMvcClassParser extends ClassParser {
     }
 
     @Override
-    protected String getHttpMethod(MethodDoc method) {
-        if (hasAnnotation(method, DeleteMapping.class)) {
+    protected String getHttpMethod(ExecutableElement method) {
+        if (hasAnnotation(method, DeleteMapping.class, methodParser.options.environment)) {
             return HttpMethod.DELETE.name();
-        } else if (hasAnnotation(method, GetMapping.class)) {
+        } else if (hasAnnotation(method, GetMapping.class, methodParser.options.environment)) {
             return HttpMethod.GET.name();
-        } else if (hasAnnotation(method, PostMapping.class)) {
+        } else if (hasAnnotation(method, PostMapping.class, methodParser.options.environment)) {
             return HttpMethod.POST.name();
-        } else if (hasAnnotation(method, PutMapping.class)) {
+        } else if (hasAnnotation(method, PutMapping.class, methodParser.options.environment)) {
             return HttpMethod.PUT.name();
-        } else if (hasAnnotation(method, PatchMapping.class)) {
+        } else if (hasAnnotation(method, PatchMapping.class, methodParser.options.environment)) {
             return HttpMethod.PATCH.name();
-        } else if (hasAnnotation(method, RequestMapping.class)) {
-            AnnotationValue[] annotationValue = getAnnotationValue(method, RequestMapping.class, "method");
-            if (annotationValue == null || annotationValue.length == 0 || annotationValue[0] == null) {
+        } else if (hasAnnotation(method, RequestMapping.class, methodParser.options.environment)) {
+            List<AnnotationValue> annotationValue = getAnnotationValue(method, RequestMapping.class, "method", methodParser.options.environment);
+            if (annotationValue == null || annotationValue.size() == 0 || annotationValue.get(0) == null) {
                 return null;
             }
             StringJoiner sj = new StringJoiner(" | ");
-            Stream.of(annotationValue).forEach(v -> sj.add(((FieldDoc) v.value()).name()));
+            annotationValue.forEach(v -> sj.add(((VariableElement) v.getValue()).getSimpleName().toString()));
             return sj.toString();
         }
 
@@ -53,10 +55,10 @@ public class SpringMvcClassParser extends ClassParser {
     }
 
     @Override
-    protected void addLabel(ClassDoc classDoc, RestClassData data) {
+    protected void addLabel(TypeElement classDoc, RestClassData data) {
         super.addLabel(classDoc, data);
-        if (data.label.equals(classDoc.name())) {
-            String mvcName = MvcUtils.getMappingAnnotationValue(classDoc, NAME);
+        if (data.label.equals(classDoc.getSimpleName().toString())) {
+            String mvcName = MvcUtils.getMappingAnnotationValue(classDoc, NAME, methodParser.options.environment);
             if (mvcName != null) {
                 data.label = mvcName;
             }

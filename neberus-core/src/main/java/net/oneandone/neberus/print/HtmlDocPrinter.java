@@ -6,8 +6,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sun.javadoc.MethodDoc;
-import com.sun.javadoc.Type;
 import j2html.tags.ContainerTag;
 import j2html.tags.Tag;
 import net.oneandone.neberus.NeberusModule;
@@ -21,10 +19,13 @@ import net.oneandone.neberus.shortcode.ShortCodeExpander;
 import net.oneandone.neberus.util.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static j2html.TagCreator.*;
 import static net.oneandone.neberus.parse.RestMethodData.ParameterType.*;
@@ -382,11 +383,11 @@ public class HtmlDocPrinter extends DocPrinter {
 
         if (!restMethodData.methodData.deprecatedLinks.isEmpty()) {
 
-            for (MethodDoc link : restMethodData.methodData.deprecatedLinks) {
+            for (ExecutableElement link : restMethodData.methodData.deprecatedLinks) {
 
                 for (RestClassData restClass : allRestClasses) {
                     Optional<RestMethodData> linkedMethod = restClass.methods.stream()
-                            .filter(m -> m.methodData.methodDoc.compareTo(link) == 0).findFirst();
+                            .filter(m -> m.methodData.methodDoc.equals(link)).findFirst();
 
                     if (linkedMethod.isPresent()) {
                         String replacement;
@@ -447,15 +448,15 @@ public class HtmlDocPrinter extends DocPrinter {
 
         row.with(td(parameter.parameterType.name().toLowerCase()).withClass("valueHint noselect"));
 
-        Type usedType = parameter.displayClass != null ? parameter.displayClass : parameter.entityClass;
+        TypeMirror usedType = parameter.displayClass != null ? parameter.displayClass : parameter.entityClass;
 
         if (parameter.parameterType == BODY && usedType != null) {
             if (typeCantBeDocumented(usedType, options)) {
-                row.with(td().withText(getSimpleTypeName(usedType)));
+                row.with(td().withText(getSimpleTypeName(usedType, options.environment)));
             } else {
                 row.with(td().with(getPopover(prettyPrintJson(toTemplate(requestData.mediaType.get(0),
                         parameter, new HashMap<>(), methodData, true)),
-                        getSimpleTypeName(usedType))));
+                        getSimpleTypeName(usedType, options.environment))));
             }
         } else {
             row.with(td());
@@ -540,15 +541,15 @@ public class HtmlDocPrinter extends DocPrinter {
 
             row.with(td()); // empty cell for 'type'
 
-            Type usedType = p.displayClass != null ? p.displayClass : p.entityClass;
+            TypeMirror usedType = p.displayClass != null ? p.displayClass : p.entityClass;
 
             if (usedType != null) {
                 if (typeCantBeDocumented(usedType, options)) {
-                    row.with(td().withText(getSimpleTypeName(usedType)));
+                    row.with(td().withText(getSimpleTypeName(usedType, options.environment)));
                 } else {
                     row.with(td().with(getPopover(prettyPrintJson(toTemplate(requestData.mediaType.get(0),
                             p, new HashMap<>(), methodData, true)),
-                            getSimpleTypeName(usedType))));
+                            getSimpleTypeName(usedType, options.environment))));
                 }
             } else {
                 row.with(td());
@@ -768,11 +769,11 @@ public class HtmlDocPrinter extends DocPrinter {
             // entity
             if (p.entityClass != null) {
                 if (typeCantBeDocumented(p.entityClass, options)) {
-                    row.with(td().withText(getSimpleTypeName(p.entityClass)));
+                    row.with(td().withText(getSimpleTypeName(p.entityClass, options.environment)));
                 } else {
                     row.with(td().with(getPopover(prettyPrintJson(toTemplate(getContentType(response), p, new HashMap<>(),
                             methodData, true, p.name)),
-                            getSimpleTypeName(p.entityClass))));
+                            getSimpleTypeName(p.entityClass, options.environment))));
                 }
             } else {
                 row.with(td());
@@ -863,12 +864,12 @@ public class HtmlDocPrinter extends DocPrinter {
 
         if (response.entityClass != null) {
             if (typeCantBeDocumented(response.entityClass, options)) {
-                row.with(td().withText(getSimpleTypeName(response.entityClass)));
+                row.with(td().withText(getSimpleTypeName(response.entityClass, options.environment)));
             } else {
                 row.with(td().with(
                         getPopover(prettyPrintJson(toTemplate(getContentType(response), response, new HashMap<>(),
-                                methodData, true)), response.entityClass.asClassDoc()
-                                .simpleTypeName())
+                                methodData, true)), options.environment.getTypeUtils()
+                                .asElement(response.entityClass).getSimpleName().toString())
                 ));
             }
         } else if (response.problem != null) {
@@ -939,7 +940,7 @@ public class HtmlDocPrinter extends DocPrinter {
     }
 
     private List<Tag> getHeaders(List<RestMethodData.HeaderInfo> headerInfos,
-                                 Map<String, RestMethodData.HeaderInfo> globalHeaderInfos) {
+                                     Map<String, RestMethodData.HeaderInfo> globalHeaderInfos) {
 
         return headerInfos.stream().flatMap(header -> {
             List<Tag> tags = new ArrayList<>();
@@ -1030,9 +1031,9 @@ public class HtmlDocPrinter extends DocPrinter {
     private String toTemplate(String mediaType, RestMethodData.ParameterInfo parameter, Map<String, String> parameterOverrides,
                               RestMethodData.MethodData methodData, boolean skipEnhance, String parent) {
 
-        Type usedType = parameter.displayClass != null ? parameter.displayClass : parameter.entityClass;
+        TypeMirror usedType = parameter.displayClass != null ? parameter.displayClass : parameter.entityClass;
 
-        if (!usedType.isPrimitive() && usedType.asClassDoc().isEnum()) {
+        if (!usedType.getKind().isPrimitive() && isEnum(usedType, options.environment)) {
             return toEnumTemplate(usedType);
         }
 
@@ -1048,9 +1049,9 @@ public class HtmlDocPrinter extends DocPrinter {
     private String toTemplate(String mediaType, RestMethodData.ResponseData responseData, Map<String, String> parameterOverrides,
                               RestMethodData.MethodData methodData, boolean skipEnhance) {
 
-        Type usedType = responseData.entityClass;
+        TypeMirror usedType = responseData.entityClass;
 
-        if (!usedType.isPrimitive() && usedType.asClassDoc().isEnum()) {
+        if (!usedType.getKind().isPrimitive() && isEnum(usedType, options.environment)) {
             return toEnumTemplate(usedType);
         }
 
@@ -1061,9 +1062,9 @@ public class HtmlDocPrinter extends DocPrinter {
         }
     }
 
-    protected String toEnumTemplate(Type type) {
+    protected String toEnumTemplate(TypeMirror type) {
         StringBuilder sb = new StringBuilder();
-        Stream.of(type.asClassDoc().enumConstants()).sorted().forEach(ec -> sb.append(ec.name()).append("\n"));
+        getEnumValuesAsList(type, options.environment).stream().sorted().forEach(ec -> sb.append(ec).append("\n"));
         return sb.toString();
     }
 
@@ -1092,9 +1093,9 @@ public class HtmlDocPrinter extends DocPrinter {
         return arrayNode.toString();
     }
 
-    private String toJsonTemplate(Type type, Map<String, String> paramterOverrides, String parent,
+    private String toJsonTemplate(TypeMirror type, Map<String, String> parameterOverrides, String parent,
                                   RestMethodData.MethodData methodData, boolean skipEnhance) {
-        JsonNode jsonNode = toJsonNode(type, paramterOverrides, parent, methodData, skipEnhance);
+        JsonNode jsonNode = toJsonNode(type, parameterOverrides, parent, methodData, skipEnhance);
         try {
             String jsonString = mapper.writer(new MinimalPrettyPrinter()).writeValueAsString(jsonNode);
             jsonString = jsonString.replaceAll("\"(<[^\"]+>)([^\"^<]+)(<\\/span>)\":((?:\"[^\"]+\")|(?:\\[(?:[^\\]\\[]+|\\[(?:[^\\]\\[]+|\\[[^\\]\\[]*\\])*\\])*\\])|(?:\\{(?:[^\\}\\{]+|\\{(?:[^\\}\\{]+|\\{[^\\}\\{]*\\})*\\})*\\}))",
@@ -1105,31 +1106,31 @@ public class HtmlDocPrinter extends DocPrinter {
         }
     }
 
-    private JsonNode toJsonNode(Type type, Map<String, String> paramterOverrides, String parent,
+    private JsonNode toJsonNode(TypeMirror type, Map<String, String> paramterOverrides, String parent,
                                 RestMethodData.MethodData methodData, boolean skipEnhance) {
 
-        if (isArrayType(type)) {
+        if (isCollectionType(type, options.environment)) {
             return processArrayType(type, paramterOverrides, parent, methodData, skipEnhance);
-        } else if (isMapType(type)) {
+        } else if (isMapType(type, options.environment)) {
             return processMapType(type, paramterOverrides, parent, methodData, skipEnhance);
         } else {
             ObjectNode dataTable = mapper.createObjectNode();
 
-            Map<String, Type> dataFields = getDataFields(type);
+            Map<String, TypeMirror> dataFields = getDataFields(type, options.environment);
 
             dataFields.entrySet().stream()
                     .filter(e -> !paramterOverrides.containsKey(e.getKey()) || paramterOverrides.get(e.getKey()) != null)
                     .forEach(e -> {
-                        if (isArrayType(e.getValue())) {
+                        if (isCollectionType(e.getValue(), options.environment)) {
                             dataTable.set(printWithParameterReference(concat(parent, e.getKey()), BODY, methodData, skipEnhance, e.getKey()),
                                     processArrayType(e.getValue(), paramterOverrides, parent, methodData, skipEnhance));
-                        } else if (isMapType(e.getValue())) {
+                        } else if (isMapType(e.getValue(), options.environment)) {
                             dataTable.set(printWithParameterReference(concat(parent, e.getKey()), BODY, methodData, skipEnhance, e.getKey()),
                                     processMapType(e.getValue(), paramterOverrides, parent, methodData, skipEnhance));
                         } else if (containedFieldNamesAreNotAvailableOrPackageExcluded(e.getValue(), options) // stop at 'arg0' etc. this does not provide useful information
                                 || e.getValue().equals(type)) {  // break simple recursive loops
                             dataTable.put(printWithParameterReference(concat(parent, e.getKey()), BODY, methodData, skipEnhance, e.getKey()),
-                                    paramterOverrides.getOrDefault(concat(parent, e.getKey()), "{" + getTypeString(e.getValue()) + "}"));
+                                    paramterOverrides.getOrDefault(concat(parent, e.getKey()), "{" + getTypeString(e.getValue(), options.environment) + "}"));
                         } else {
                             dataTable.setAll(processType(e.getValue(), e.getKey(), paramterOverrides, concat(parent), methodData, skipEnhance));
                         }
@@ -1140,14 +1141,14 @@ public class HtmlDocPrinter extends DocPrinter {
         }
     }
 
-    private ObjectNode processType(Type type, String fieldName, Map<String, String> parameterOverrides, String parent,
+    private ObjectNode processType(TypeMirror type, String fieldName, Map<String, String> parameterOverrides, String parent,
                                    RestMethodData.MethodData methodData, boolean skipEnhance) {
 
         ObjectNode node = mapper.createObjectNode();
 
         if (isDocumentableSimpleType(type, fieldName)) {
             node.replace(fieldName, toJsonNode(type, parameterOverrides, concat(parent, fieldName), methodData, skipEnhance));
-        } else if (isMapType(type)) {
+        } else if (isMapType(type, options.environment)) {
             ObjectNode mapNode = processMapType(type, parameterOverrides, concat(parent, fieldName), methodData, skipEnhance);
 
             if (fieldName != null) {
@@ -1155,7 +1156,7 @@ public class HtmlDocPrinter extends DocPrinter {
             } else {
                 node.setAll(mapNode);
             }
-        } else if (isArrayType(type)) {
+        } else if (isCollectionType(type, options.environment)) {
             ArrayNode arrayNode = processArrayType(type, parameterOverrides, concat(parent, fieldName), methodData, skipEnhance);
 
             if (fieldName != null) {
@@ -1166,55 +1167,60 @@ public class HtmlDocPrinter extends DocPrinter {
 
         } else if (fieldName != null) {
             node.put(printWithParameterReference(concat(parent, fieldName), BODY, methodData, skipEnhance, fieldName),
-                    "{" + getTypeString(type) + "}");
+                    "{" + getTypeString(type, options.environment) + "}");
         }
 
         return node;
     }
 
-    private boolean isDocumentableSimpleType(Type type, String fieldName) {
+    private boolean isDocumentableSimpleType(TypeMirror type, String fieldName) {
         return fieldName != null
-                && type.asClassDoc() != null
-                && !type.isPrimitive()
-                && !type.qualifiedTypeName().startsWith("java.lang")
-                && !type.asClassDoc().isEnum()
-                && type.asClassDoc().fields(false).length != 0;
+                && asElement(type, options.environment) != null
+                && !type.getKind().isPrimitive()
+                && !getQualifiedName(type, options.environment).startsWith("java.lang")
+                && !isEnum(type, options.environment)
+                && getVisibleFields(type, options.environment).size() != 0;
     }
 
-    private ObjectNode processMapType(Type type, Map<String, String> paramterOverrides, String parent,
+    private ObjectNode processMapType(TypeMirror type, Map<String, String> paramterOverrides, String parent,
                                       RestMethodData.MethodData methodData, boolean skipEnhance) {
         ObjectNode mapNode = mapper.createObjectNode();
-        Type[] typeArguments = type.asParameterizedType().typeArguments();
+        List<? extends TypeMirror> typeArguments = ((DeclaredType) type).getTypeArguments();
 
-        if (isArrayType(typeArguments[1])) {
-            mapNode.set("{" + getTypeString(typeArguments[0]) + "}",
-                    processArrayType(typeArguments[1], paramterOverrides, parent, methodData, skipEnhance));
-        } else if (typeArguments[1] != null && typeArguments[1].asClassDoc() != null && !typeArguments[1].isPrimitive()
-                && !typeArguments[1].qualifiedTypeName().startsWith("java.lang") && !typeArguments[1].asClassDoc().isEnum()) {
-            mapNode.set("{" + getTypeString(typeArguments[0]) + "}",
-                    processType(typeArguments[1], null, paramterOverrides, parent, methodData, skipEnhance));
+        TypeMirror keyType = typeArguments.get(0);
+        TypeMirror valueType = typeArguments.get(1);
+
+        if (isCollectionType(valueType, options.environment)) {
+            mapNode.set("{" + getTypeString(keyType, options.environment) + "}",
+                    processArrayType(valueType, paramterOverrides, parent, methodData, skipEnhance));
+        } else if (valueType != null && asElement(valueType, options.environment) != null && !valueType.getKind().isPrimitive()
+                && !getQualifiedName(valueType, options.environment).startsWith("java.lang") && !isEnum(valueType, options.environment)) {
+            mapNode.set("{" + getTypeString(keyType, options.environment) + "}",
+                    processType(valueType, null, paramterOverrides, parent, methodData, skipEnhance));
         } else {
-            mapNode.put("{" + getTypeString(typeArguments[0]) + "}", "{" + getTypeString(typeArguments[1]) + "}");
+            mapNode.put("{" + getTypeString(keyType, options.environment) + "}", "{" + getTypeString(valueType, options.environment) + "}");
         }
 
         return mapNode;
     }
 
-    private ArrayNode processArrayType(Type type, Map<String, String> paramterOverrides, String parent,
+    private ArrayNode processArrayType(TypeMirror type, Map<String, String> paramterOverrides, String parent,
                                        RestMethodData.MethodData methodData, boolean skipEnhance) {
 
         ArrayNode arrayNode = mapper.createArrayNode();
-        Type[] typeArguments = type.asParameterizedType().typeArguments();
+        TypeMirror valueType = type instanceof ArrayType
+                               ? ((ArrayType) type).getComponentType()
+                               : ((DeclaredType) type).getTypeArguments().get(0);
 
-        if (isArrayType(typeArguments[0])) {
-            arrayNode.add(processArrayType(typeArguments[0], paramterOverrides, parent, methodData, skipEnhance));
-        } else if (isMapType(typeArguments[0])) {
-            arrayNode.add(processMapType(typeArguments[0], paramterOverrides, parent, methodData, skipEnhance));
-        } else if (typeArguments[0] != null && typeArguments[0].asClassDoc() != null && !typeArguments[0].isPrimitive()
-                && !typeArguments[0].qualifiedTypeName().startsWith("java.lang") && !typeArguments[0].asClassDoc().isEnum()) {
-            arrayNode.add(toJsonNode(typeArguments[0], paramterOverrides, parent, methodData, skipEnhance));
+        if (isCollectionType(valueType, options.environment)) {
+            arrayNode.add(processArrayType(valueType, paramterOverrides, parent, methodData, skipEnhance));
+        } else if (isMapType(valueType, options.environment)) {
+            arrayNode.add(processMapType(valueType, paramterOverrides, parent, methodData, skipEnhance));
+        } else if (valueType != null && asElement(valueType, options.environment) != null && !valueType.getKind().isPrimitive()
+                && !getQualifiedName(valueType, options.environment).startsWith("java.lang") && !isEnum(valueType, options.environment)) {
+            arrayNode.add(toJsonNode(valueType, paramterOverrides, parent, methodData, skipEnhance));
         } else {
-            arrayNode.add("{" + getTypeString(typeArguments[0]) + "}");
+            arrayNode.add("{" + getTypeString(valueType, options.environment) + "}");
         }
 
         return arrayNode;
@@ -1222,25 +1228,25 @@ public class HtmlDocPrinter extends DocPrinter {
 
     private String getParameterType(RestMethodData.ParameterInfo parameterInfo) {
         if (parameterInfo.displayClass == null) {
-            return getTypeString(parameterInfo.entityClass);
+            return getTypeString(parameterInfo.entityClass, options.environment);
         } else {
-            return getTypeString(parameterInfo.displayClass);
+            return getTypeString(parameterInfo.displayClass, options.environment);
         }
     }
 
     private String toFormUrlEncodedTemplate(RestMethodData.ParameterInfo parameter, Map<String, String> paramterOverrides,
                                             String parent, RestMethodData.MethodData methodData, boolean skipEnhance) {
 
-        Type usedType = parameter.displayClass != null ? parameter.displayClass : parameter.entityClass;
+        TypeMirror usedType = parameter.displayClass != null ? parameter.displayClass : parameter.entityClass;
 
-        if (isArrayType(usedType)) {
+        if (isCollectionType(usedType, options.environment)) {
             return ""; // TODO find representation
-        } else if (isMapType(usedType)) {
+        } else if (isMapType(usedType, options.environment)) {
             return ""; // TODO find representation
         } else {
             StringJoiner sj = new StringJoiner("&");
 
-            Map<String, Type> dataFields = getDataFields(parameter);
+            Map<String, TypeMirror> dataFields = getDataFields(parameter, options.environment);
 
             dataFields.entrySet().stream()
                     .filter(e -> !paramterOverrides.containsKey(concat(parent, e.getKey()))
@@ -1248,7 +1254,7 @@ public class HtmlDocPrinter extends DocPrinter {
                     .forEach(e -> {
                         sj.add(printWithParameterReference(concat(parent, e.getKey()), BODY, methodData, skipEnhance,
                                 e.getKey() + "=" + paramterOverrides.getOrDefault(concat(parent, e.getKey()),
-                                        "{" + getTypeString(e.getValue()) + "}")));
+                                        "{" + getTypeString(e.getValue(), options.environment) + "}")));
                     });
 
             return sj.toString();
@@ -1494,7 +1500,7 @@ public class HtmlDocPrinter extends DocPrinter {
         // set null for body params that should be omitted
         method.linkedMethod.requestData.parameters.stream()
                 .filter(p -> p.parameterType == BODY)
-                .flatMap(p -> getDataFields(p).entrySet().stream())
+                .flatMap(p -> getDataFields(p, options.environment).entrySet().stream())
                 .filter(f -> !usedParams.contains(f.getKey()))
                 .forEach(f -> parameterOverrides.put(f.getKey(), null));
 

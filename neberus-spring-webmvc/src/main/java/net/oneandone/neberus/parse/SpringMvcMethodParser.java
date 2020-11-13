@@ -1,6 +1,5 @@
 package net.oneandone.neberus.parse;
 
-import com.sun.javadoc.*;
 import net.oneandone.neberus.Options;
 import net.oneandone.neberus.ResponseType;
 import net.oneandone.neberus.util.MvcUtils;
@@ -8,6 +7,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
+
+import java.util.List;
 
 import static net.oneandone.neberus.util.JavaDocUtils.*;
 
@@ -25,96 +33,103 @@ public class SpringMvcMethodParser extends MethodParser {
     }
 
     @Override
-    protected boolean skipParameter(MethodDoc methodDoc, Parameter parameter, int index) {
+    protected boolean skipParameter(ExecutableElement methodDoc, VariableElement parameter, int index) {
         return super.skipParameter(methodDoc, parameter, index)
-                || !hasAnnotation(parameter, PathVariable.class)
-                && !hasAnnotation(parameter, RequestParam.class)
-                && !hasAnnotation(parameter, RequestBody.class)
-                && !hasAnnotation(parameter, RequestHeader.class);
+                || !hasAnnotation(methodDoc, parameter, PathVariable.class, index, options.environment)
+                && !hasAnnotation(methodDoc, parameter, RequestParam.class, index, options.environment)
+                && !hasAnnotation(methodDoc, parameter, RequestBody.class, index, options.environment)
+                && !hasAnnotation(methodDoc, parameter, RequestHeader.class, index, options.environment);
     }
 
     @Override
-    protected String getPathParam(MethodDoc method, Parameter parameter, int index) {
-        if (hasAnnotation(method, parameter, PathVariable.class, index)) {
-            String value = getAnnotationValue(method, parameter, PathVariable.class, VALUE, index);
-            return value != null ? value : parameter.name();
+    protected String getPathParam(ExecutableElement method, VariableElement parameter, int index) {
+        if (hasAnnotation(method, parameter, PathVariable.class, index, options.environment)) {
+            String value = getAnnotationValue(method, parameter, PathVariable.class, VALUE, index, options.environment);
+            return value != null ? value : parameter.getSimpleName().toString();
         }
         return null;
 
     }
 
     @Override
-    protected String getQueryParam(MethodDoc method, Parameter parameter, int index) {
-        if (hasAnnotation(method, parameter, RequestParam.class, index)) {
-            String value = getAnnotationValue(method, parameter, RequestParam.class, VALUE, index);
-            return value != null ? value : parameter.name();
+    protected String getQueryParam(ExecutableElement method, VariableElement parameter, int index) {
+        if (hasAnnotation(method, parameter, RequestParam.class, index, options.environment)) {
+            String value = getAnnotationValue(method, parameter, RequestParam.class, VALUE, index, options.environment);
+            return value != null ? value : parameter.getSimpleName().toString();
         }
         return null;
     }
 
     @Override
-    protected String getHeaderParam(MethodDoc method, Parameter parameter, int index) {
-        if (hasAnnotation(method, parameter, RequestHeader.class, index)) {
-            String value = getAnnotationValue(method, parameter, RequestHeader.class, VALUE, index);
-            return value != null ? value : parameter.name();
+    protected String getHeaderParam(ExecutableElement method, VariableElement parameter, int index) {
+        if (hasAnnotation(method, parameter, RequestHeader.class, index, options.environment)) {
+            String value = getAnnotationValue(method, parameter, RequestHeader.class, VALUE, index, options.environment);
+            return value != null ? value : parameter.getSimpleName().toString();
         }
         return null;
     }
 
     @Override
-    protected String getFormParam(MethodDoc method, Parameter parameter, int index) {
+    protected String getFormParam(ExecutableElement method, VariableElement parameter, int index) {
         return null;
     }
 
     @Override
-    protected String getRootPath(ClassDoc classDoc) {
-        if (MvcUtils.getMappingAnnotationValue(classDoc, PATH) != null) {
-            return (String) ((AnnotationValue[]) MvcUtils.getMappingAnnotationValue(classDoc, PATH))[0].value();
+    protected String getRootPath(TypeElement classDoc) {
+        if (MvcUtils.getMappingAnnotationValue(classDoc, PATH, options.environment) != null) {
+            return (String) ((List<AnnotationValue>) MvcUtils.getMappingAnnotationValue(classDoc, PATH, options.environment)).get(0).getValue();
         }
-        return (String) ((AnnotationValue[]) MvcUtils.getMappingAnnotationValue(classDoc, VALUE))[0].value();
-    }
 
-    @Override
-    protected String getPath(MethodDoc methodDoc) {
-        if (MvcUtils.getMappingAnnotationValue(methodDoc, PATH) != null) {
-            return (String) ((AnnotationValue[]) MvcUtils.getMappingAnnotationValue(methodDoc, PATH))[0].value();
+        List<AnnotationValue> onClassValue = MvcUtils.getMappingAnnotationValue(classDoc, VALUE, options.environment);
+
+        if (onClassValue != null) {
+            return (String) onClassValue.get(0).getValue();
         }
-        return (String) ((AnnotationValue[]) MvcUtils.getMappingAnnotationValue(methodDoc, VALUE))[0].value();
+
+        return "/";
     }
 
     @Override
-    protected AnnotationValue[] getConsumes(MethodDoc method) {
-        return MvcUtils.getMappingAnnotationValue(method, "consumes");
+    protected String getPath(ExecutableElement methodDoc) {
+        if (MvcUtils.getMappingAnnotationValue(methodDoc, PATH, options.environment) != null) {
+            return (String) ((List<AnnotationValue>) MvcUtils.getMappingAnnotationValue(methodDoc, PATH, options.environment)).get(0).getValue();
+        }
+        return (String) ((List<AnnotationValue>) MvcUtils.getMappingAnnotationValue(methodDoc, VALUE, options.environment)).get(0).getValue();
     }
 
     @Override
-    protected AnnotationValue[] getProduces(MethodDoc method) {
-        return MvcUtils.getMappingAnnotationValue(method, "produces");
+    protected List<AnnotationValue> getConsumes(ExecutableElement method) {
+        return MvcUtils.getMappingAnnotationValue(method, "consumes", options.environment);
+    }
+
+    @Override
+    protected List<AnnotationValue> getProduces(ExecutableElement method) {
+        return MvcUtils.getMappingAnnotationValue(method, "produces", options.environment);
     }
 
 
     @Override
-    protected void addSuccessResponse(MethodDoc method, AnnotationDesc response, RestMethodData data, AnnotationValue[] produces) {
+    protected void addSuccessResponse(ExecutableElement method, AnnotationMirror response, RestMethodData data, List<AnnotationValue> produces) {
 
         RestMethodData.ResponseData responseData = new RestMethodData.ResponseData(ResponseType.SUCCESS);
 
         addCommonResponseData(method, response, responseData);
 
-        Type typeFromResponse = extractValue(response, "entityClass");
+        TypeMirror typeFromResponse = extractValue(response, "entityClass");
         if (typeFromResponse != null) {
             responseData.entityClass = typeFromResponse;
         } else {
-            responseData.entityClass = typeCantBeDocumented(method.returnType(), options) ? null : method.returnType();
+            responseData.entityClass = typeCantBeDocumented(method.getReturnType(), options) ? null : method.getReturnType();
         }
 
         addResponseData(response, data, produces, responseData);
     }
 
     @Override
-    protected void addLabel(MethodDoc method, RestMethodData data) {
+    protected void addLabel(ExecutableElement method, RestMethodData data) {
         super.addLabel(method, data);
-        if (data.methodData.label.equals(method.name())) {
-            String mvcName = MvcUtils.getMappingAnnotationValue(method, NAME);
+        if (data.methodData.label.equals(method.getSimpleName().toString())) {
+            String mvcName = MvcUtils.getMappingAnnotationValue(method, NAME, options.environment);
             if (mvcName != null) {
                 data.methodData.label = mvcName;
             }
@@ -122,13 +137,13 @@ public class SpringMvcMethodParser extends MethodParser {
     }
 
     @Override
-    protected boolean isOptional(MethodDoc method, Parameter parameter, int index) {
+    protected boolean isOptional(ExecutableElement method, VariableElement parameter, int index) {
         Boolean required = null;
 
-        if (hasAnnotation(method, parameter, PathVariable.class, index)) {
-            required = getAnnotationValue(method, parameter, PathVariable.class, REQUIRED, index);
-        } else if (hasAnnotation(method, parameter, RequestParam.class, index)) {
-            required = getAnnotationValue(method, parameter, RequestParam.class, REQUIRED, index);
+        if (hasAnnotation(method, parameter, PathVariable.class, index, options.environment)) {
+            required = getAnnotationValue(method, parameter, PathVariable.class, REQUIRED, index, options.environment);
+        } else if (hasAnnotation(method, parameter, RequestParam.class, index, options.environment)) {
+            required = getAnnotationValue(method, parameter, RequestParam.class, REQUIRED, index, options.environment);
         }
 
         if (required != null) {

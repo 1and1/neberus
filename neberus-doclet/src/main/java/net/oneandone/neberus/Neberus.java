@@ -1,47 +1,61 @@
 package net.oneandone.neberus;
 
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.LanguageVersion;
-import com.sun.javadoc.RootDoc;
+import jdk.javadoc.doclet.Doclet;
+import jdk.javadoc.doclet.DocletEnvironment;
+import jdk.javadoc.doclet.Reporter;
 import net.oneandone.neberus.annotation.ApiDocumentation;
 import net.oneandone.neberus.annotation.ApiUsecase;
 import net.oneandone.neberus.annotation.ApiUsecases;
 import net.oneandone.neberus.parse.ClassParser;
+import net.oneandone.neberus.parse.JavaxWsRsClassParser;
+import net.oneandone.neberus.parse.JavaxWsRsMethodParser;
 import net.oneandone.neberus.parse.RestClassData;
 import net.oneandone.neberus.parse.RestUsecaseData;
+import net.oneandone.neberus.parse.SpringMvcClassParser;
+import net.oneandone.neberus.parse.SpringMvcMethodParser;
 import net.oneandone.neberus.parse.UsecaseParser;
 import net.oneandone.neberus.print.DocPrinter;
 import net.oneandone.neberus.print.HtmlDocPrinter;
 import net.oneandone.neberus.shortcode.ShortCodeExpander;
-import net.oneandone.neberus.parse.JavaxWsRsClassParser;
-import net.oneandone.neberus.parse.JavaxWsRsMethodParser;
-import net.oneandone.neberus.parse.SpringMvcClassParser;
-import net.oneandone.neberus.parse.SpringMvcMethodParser;
 import net.oneandone.neberus.util.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
 
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
 import javax.ws.rs.Path;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import static net.oneandone.neberus.util.JavaDocUtils.getExecutableElements;
+import static net.oneandone.neberus.util.JavaDocUtils.getPackageName;
+import static net.oneandone.neberus.util.JavaDocUtils.getTypeElements;
 import static net.oneandone.neberus.util.JavaDocUtils.hasAnnotation;
 
 //TODO example response
 //TODO accept header in curl
-public abstract class Neberus {
+public class Neberus implements Doclet {
 
-    private Neberus() {
-    }
+    private final Options options = new Options();
 
-    public static boolean start(RootDoc root) {
+    @Override
+    public boolean run(DocletEnvironment environment) {
         System.out.println("Neberus running");
-
-        Options options = Options.parse(root.options(), root);
+        options.environment = environment;
 
         ShortCodeExpander expander = new ShortCodeExpander();
         List<NeberusModule> modules = loadModules(expander, options);
@@ -49,33 +63,40 @@ public abstract class Neberus {
 
         ClassParser javaxWsRsParser = new JavaxWsRsClassParser(new JavaxWsRsMethodParser(options));
         ClassParser springMvcParser = new SpringMvcClassParser(new SpringMvcMethodParser(options));
-        UsecaseParser usecaseParser = new UsecaseParser();
+        UsecaseParser usecaseParser = new UsecaseParser(options);
 
-        ClassDoc[] classes = root.classes();
+        List<TypeElement> typeElements = getTypeElements(environment);
 
         List<RestClassData> restClasses = new ArrayList<>();
         List<RestUsecaseData> restUsecases = new ArrayList<>();
 
         String packageDoc = null;
 
-        List<ClassDoc> filteredClasses = Stream.of(classes)
-                .filter(classDoc -> options.scanPackages.stream()
-                        .anyMatch(pack -> classDoc.containingPackage().name().startsWith(pack)))
+        List<TypeElement> filteredClasses = typeElements.stream()
+                .filter(typeElement -> options.scanPackages.stream()
+                        .anyMatch(pack -> getPackageName(typeElement, environment).startsWith(pack)))
                 .collect(Collectors.toList());
 
-        for (ClassDoc classDoc : filteredClasses) {
-            if (!classDoc.isInterface() && hasAnnotation(classDoc, ApiDocumentation.class)) {
 
+        for (TypeElement typeElement : filteredClasses) {
+
+            if (!typeElement.getKind().isInterface() && hasAnnotation(typeElement, ApiDocumentation.class, environment)) {
                 if (StringUtils.isBlank(packageDoc)) {
-                    packageDoc = classDoc.containingPackage().commentText();
+                    try {
+                        PackageElement packageElement = environment.getElementUtils().getPackageOf(typeElement);
+                        FileObject fileForInput = environment.getJavaFileManager().getFileForInput(StandardLocation.SOURCE_PATH, packageElement.getQualifiedName().toString(), "package.html");
+                        packageDoc = environment.getDocTrees().getDocCommentTree(fileForInput).toString();
+                    } catch (IOException e) {
+                        System.err.println(e.toString());
+                    }
                 }
 
                 RestClassData restClassData;
 
-                if (usesJavaxWsRs(classDoc)) {
-                    restClassData = javaxWsRsParser.parse(classDoc);
+                if (usesJavaxWsRs(typeElement, options)) {
+                    restClassData = javaxWsRsParser.parse(typeElement);
                 } else {
-                    restClassData = springMvcParser.parse(classDoc);
+                    restClassData = springMvcParser.parse(typeElement);
                 }
 
                 restClassData.validate(options.ignoreErrors);
@@ -83,12 +104,13 @@ public abstract class Neberus {
 
             }
 
-            modules.forEach(module -> module.parse(classDoc));
+            modules.forEach(module -> module.parse(typeElement));
         }
 
-        for (ClassDoc classDoc : filteredClasses) {
-            if (hasAnnotation(classDoc, ApiUsecase.class) || hasAnnotation(classDoc, ApiUsecases.class)) {
-                RestUsecaseData restUsecaseData = usecaseParser.parse(classDoc, restClasses);
+        for (TypeElement typeElement : filteredClasses) {
+            if (hasAnnotation(typeElement, ApiUsecase.class, environment)
+                    || hasAnnotation(typeElement, ApiUsecases.class, environment)) {
+                RestUsecaseData restUsecaseData = usecaseParser.parse(typeElement, restClasses);
                 restUsecaseData.validate(options.ignoreErrors);
                 restUsecases.add(restUsecaseData);
             }
@@ -132,63 +154,91 @@ public abstract class Neberus {
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
-    private static boolean usesJavaxWsRs(ClassDoc classDoc) {
-        if (hasAnnotation(classDoc, Path.class)) {
+    private static boolean usesJavaxWsRs(TypeElement typeElement, Options options) {
+        if (hasAnnotation(typeElement, Path.class, options.environment)) {
             return true;
         }
 
-        return Stream.of(classDoc.methods()).anyMatch(method -> hasAnnotation(method, Path.class));
+        return getExecutableElements(typeElement).stream()
+                .anyMatch(method -> hasAnnotation(method, Path.class, options.environment));
     }
 
-    /**
-     * Check for doclet-added options. Returns the number of
-     * arguments you must specify on the command line for the
-     * given option. For example, "-d docs" would return 2.
-     * <p>
-     * This method is required if the doclet contains any options.
-     * If this method is missing, Javadoc will print an invalid flag
-     * error for every option.
-     *
-     * @param option option
-     *
-     * @return number of arguments on the command line for an option
-     * including the option name itself. Zero return means
-     * option not known. Negative value means error occurred.
-     */
-    public static int optionLength(String option) {
-        Map<String, Integer> options = new HashMap<>();
-        options.put("-d", 2);
-        options.put("-docBasePath", 2);
-        options.put("-apiVersion", 2);
-        options.put("-apiTitle", 2);
-        options.put("-apiBasePath", 2);
-        options.put("-apiHost", 2);
-        options.put("-excludeAnnotationClasses", 2);
-        options.put("-ignoreErrors", 1);
-        options.put("-scanPackages", 2);
-
-        //FIXME what to do with module options?
-
-        Integer value = options.get(option);
-        if (value != null) {
-            return value;
-        } else {
-            return 0;
-        }
+    @Override
+    public void init(Locale locale, Reporter reporter) {
+        // noop
     }
 
-    /**
-     * Return the version of the Java Programming Language supported
-     * by this doclet.
-     * <p>
-     * This method is required by any doclet supporting a language version
-     * newer than 1.1.
-     *
-     * @return the language version supported by this doclet.
-     *
-     * @since 1.5
-     */
-    public static LanguageVersion languageVersion() {
-        return LanguageVersion.JAVA_1_5;
+    @Override
+    public String getName() {
+        return getClass().getSimpleName();
     }
+
+    @Override
+    public Set<? extends Option> getSupportedOptions() {
+        return Set.of(
+                // An option that takes no arguments.
+                new DocletOption("-ignoreErrors", false, "ignore generation errors", null) {
+                    @Override
+                    public boolean process(String option, List<String> arguments) {
+                        options.ignoreErrors = true;
+                        return true;
+                    }
+                },
+                new DocletOption("-d", true, "outputDirectory", "<string>") {
+                    @Override
+                    public boolean process(String option, List<String> arguments) {
+                        options.outputDirectory = arguments.get(0) + "/";
+                        return true;
+                    }
+                },
+                new DocletOption("-docBasePath", true, "TODO", "<string>") {
+                    @Override
+                    public boolean process(String option, List<String> arguments) {
+                        options.docBasePath = arguments.get(0);
+                        return true;
+                    }
+                },
+                new DocletOption("-apiVersion", true, "TODO", "<string>") {
+                    @Override
+                    public boolean process(String option, List<String> arguments) {
+                        options.apiVersion = arguments.get(0);
+                        return true;
+                    }
+                },
+                new DocletOption("-apiTitle", true, "TODO", "<string>") {
+                    @Override
+                    public boolean process(String option, List<String> arguments) {
+                        options.apiTitle = arguments.get(0);
+                        return true;
+                    }
+                },
+                new DocletOption("-apiBasePath", true, "TODO", "<string>") {
+                    @Override
+                    public boolean process(String option, List<String> arguments) {
+                        options.apiBasePath = arguments.get(0);
+                        return true;
+                    }
+                },
+                new DocletOption("-apiHost", true, "TODO", "<string>") {
+                    @Override
+                    public boolean process(String option, List<String> arguments) {
+                        options.apiHost = arguments.get(0);
+                        return true;
+                    }
+                },
+                new DocletOption("-scanPackages", true, "TODO", "<string>") {
+                    @Override
+                    public boolean process(String option, List<String> arguments) {
+                        options.scanPackages = new HashSet<>(Arrays.asList(arguments.get(0).split(";")));
+                        return true;
+                    }
+                });
+
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.RELEASE_11;
+    }
+
 }

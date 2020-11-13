@@ -1,7 +1,8 @@
 package net.oneandone.neberus.parse;
 
-import com.sun.javadoc.ClassDoc;
 import net.oneandone.neberus.annotation.ApiDescription;
+
+import javax.lang.model.element.TypeElement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -13,7 +14,7 @@ import java.util.Map;
  */
 public class RestClassData {
 
-    public ClassDoc classDoc;
+    public TypeElement classDoc;
     public String label;
     public String className;
 

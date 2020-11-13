@@ -23,7 +23,7 @@ public class RestUsecaseData {
 
                 method.parameters.keySet().forEach(paramKey -> {
                     if (!containsParameter(method.linkedMethod.requestData.parameters, paramKey)) {
-                        System.err.println("Parameter defined in usecase <" + usecase.name + "> contains "
+                        System.err.println("VariableElement defined in usecase <" + usecase.name + "> contains "
                                 + "paramter <" + paramKey + "> that is not present in the linked method <" + method.name + ">");
                         if (!ignoreErrors) {
                             throw new IllegalStateException();

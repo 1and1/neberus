@@ -2,7 +2,13 @@ package net.oneandone.neberus.util;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -21,29 +27,14 @@ public abstract class FileUtils {
     }
 
     public static boolean copyFile(final File toCopy, final File destFile) {
-        FileInputStream fileInputStream = null;
-        FileOutputStream fileOutputStream = null;
-        try {
-            fileInputStream = new FileInputStream(toCopy);
-            fileOutputStream = new FileOutputStream(destFile);
+        try (FileInputStream fileInputStream = new FileInputStream(toCopy);
+             FileOutputStream fileOutputStream = new FileOutputStream(destFile)) {
+
             return FileUtils.copyStream(fileInputStream, fileOutputStream);
-        } catch (final FileNotFoundException e) {
+        } catch (final IOException e) {
             Logger.getLogger(FileUtils.class.getName()).log(Level.SEVERE, null, e);
-        } finally {
-            tryClose(fileInputStream);
-            tryClose(fileOutputStream);
         }
         return false;
-    }
-
-    private static void tryClose(Closeable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (IOException ex) {
-                Logger.getLogger(FileUtils.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
     }
 
     private static boolean copyFilesRecusively(final File toCopy,

@@ -1,5 +1,6 @@
 package net.oneandone.neberus.shortcode;
 
+import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
 
 import java.lang.reflect.InvocationTargetException;
@@ -47,6 +48,10 @@ public class ShortCodeExpander {
     }
 
     public String expand(String input) {
+        if (StringUtils.isBlank(input)) {
+            return input;
+        }
+
         Map<String, String> matches = new HashMap<>();
 
         Matcher matcher = shortCodePattern.matcher(input);

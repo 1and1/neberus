@@ -1,11 +1,11 @@
 package net.oneandone.neberus.parse;
 
-import com.sun.javadoc.MethodDoc;
-import com.sun.javadoc.Type;
 import net.oneandone.neberus.ResponseType;
 import net.oneandone.neberus.model.ApiStatus;
 import net.oneandone.neberus.model.ProblemType;
 
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +35,7 @@ public class RestMethodData {
      */
     public static class MethodData {
 
-        public MethodDoc methodDoc;
+        public ExecutableElement methodDoc;
 
         public String httpMethod;
 
@@ -46,7 +46,7 @@ public class RestMethodData {
         public boolean printCurl = false;
         public boolean deprecated = false;
         public String deprecatedDescription;
-        public List<MethodDoc> deprecatedLinks = new ArrayList<>();
+        public List<ExecutableElement> deprecatedLinks = new ArrayList<>();
 
         public MethodData(String httpMethod) {
             this.httpMethod = httpMethod;
@@ -76,9 +76,9 @@ public class RestMethodData {
 
         public String name = "";
         public ParameterType parameterType;
-        public Type entityClass;
-        public Type displayClass;
-        public Type containerClass;
+        public TypeMirror entityClass;
+        public TypeMirror displayClass;
+        public TypeMirror containerClass;
         public String description = "";
         public List<String> allowedValues = new ArrayList<>();
         public String allowedValueHint = "";
@@ -137,7 +137,7 @@ public class RestMethodData {
         public String description = "";
         public ProblemInfo problem;
         public List<ProblemInfo> warnings;
-        public Type entityClass;
+        public TypeMirror entityClass;
         public ResponseType responseType;
         public String contentType = "";
         public List<HeaderInfo> headers;

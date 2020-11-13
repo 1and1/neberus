@@ -1,13 +1,15 @@
 package net.oneandone.neberus.parse;
 
-import com.sun.javadoc.AnnotationValue;
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.MethodDoc;
-import com.sun.javadoc.Parameter;
 import net.oneandone.neberus.Options;
 
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+
+import java.util.List;
 
 import static net.oneandone.neberus.util.JavaDocUtils.getAnnotationValue;
 import static net.oneandone.neberus.util.JavaDocUtils.hasAnnotation;
@@ -22,49 +24,49 @@ public class JavaxWsRsMethodParser extends MethodParser {
     }
 
     @Override
-    protected boolean skipParameter(MethodDoc methodDoc, Parameter parameter, int index) {
+    protected boolean skipParameter(ExecutableElement methodDoc, VariableElement parameter, int index) {
         return super.skipParameter(methodDoc, parameter, index)
-                || hasAnnotation(methodDoc, parameter, Context.class, index);
+                || hasAnnotation(methodDoc, parameter, Context.class, index, options.environment);
     }
 
     @Override
-    protected String getPathParam(MethodDoc method, Parameter parameter, int index) {
-        return getAnnotationValue(method, parameter, PathParam.class, VALUE, index);
+    protected String getPathParam(ExecutableElement method, VariableElement parameter, int index) {
+        return getAnnotationValue(method, parameter, PathParam.class, VALUE, index, options.environment);
     }
 
     @Override
-    protected String getQueryParam(MethodDoc method, Parameter parameter, int index) {
-        return getAnnotationValue(method, parameter, QueryParam.class, VALUE, index);
+    protected String getQueryParam(ExecutableElement method, VariableElement parameter, int index) {
+        return getAnnotationValue(method, parameter, QueryParam.class, VALUE, index, options.environment);
     }
 
     @Override
-    protected String getHeaderParam(MethodDoc method, Parameter parameter, int index) {
-        return getAnnotationValue(method, parameter, HeaderParam.class, VALUE, index);
+    protected String getHeaderParam(ExecutableElement method, VariableElement parameter, int index) {
+        return getAnnotationValue(method, parameter, HeaderParam.class, VALUE, index, options.environment);
     }
 
     @Override
-    protected String getFormParam(MethodDoc method, Parameter parameter, int index) {
-        return getAnnotationValue(method, parameter, FormParam.class, VALUE, index);
+    protected String getFormParam(ExecutableElement method, VariableElement parameter, int index) {
+        return getAnnotationValue(method, parameter, FormParam.class, VALUE, index, options.environment);
     }
 
     @Override
-    protected String getRootPath(ClassDoc classDoc) {
-        return getAnnotationValue(classDoc, Path.class, VALUE);
+    protected String getRootPath(TypeElement classDoc) {
+        return getAnnotationValue(classDoc, Path.class, VALUE, options.environment);
     }
 
     @Override
-    protected String getPath(MethodDoc methodDoc) {
-        return getAnnotationValue(methodDoc, Path.class, VALUE);
+    protected String getPath(ExecutableElement methodDoc) {
+        return getAnnotationValue(methodDoc, Path.class, VALUE, options.environment);
     }
 
     @Override
-    protected AnnotationValue[] getConsumes(MethodDoc method) {
-        return getAnnotationValue(method, Consumes.class, VALUE);
+    protected List<AnnotationValue> getConsumes(ExecutableElement method) {
+        return getAnnotationValue(method, Consumes.class, VALUE, options.environment);
     }
 
     @Override
-    protected AnnotationValue[] getProduces(MethodDoc method) {
-        return getAnnotationValue(method, Produces.class, VALUE);
+    protected List<AnnotationValue> getProduces(ExecutableElement method) {
+        return getAnnotationValue(method, Produces.class, VALUE, options.environment);
     }
 
 }

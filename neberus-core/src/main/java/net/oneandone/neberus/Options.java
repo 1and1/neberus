@@ -1,6 +1,6 @@
 package net.oneandone.neberus;
 
-import com.sun.javadoc.RootDoc;
+import jdk.javadoc.doclet.DocletEnvironment;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -10,7 +10,7 @@ import java.util.function.Consumer;
  */
 public class Options {
 
-    public RootDoc rootDoc;
+    public DocletEnvironment environment;
     public String outputDirectory = "";
     public String docBasePath = "";
     public String apiHost = "";
@@ -21,11 +21,11 @@ public class Options {
     public boolean ignoreErrors = false;
     public Map<String, String> otherOptions = new HashMap<>();
 
-    public static Options parse(String[][] options, RootDoc rootDoc) {
+    public static Options parse(String[][] options, DocletEnvironment environment) {
 
         Options parsedOptions = new Options();
 
-        parsedOptions.rootDoc = rootDoc;
+        parsedOptions.environment = environment;
 
         Map<String, Consumer<String>> setters = new HashMap<>();
         setters.put("-d", v -> parsedOptions.outputDirectory = v + "/");
