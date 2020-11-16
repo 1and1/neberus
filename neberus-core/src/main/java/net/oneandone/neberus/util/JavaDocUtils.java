@@ -62,7 +62,7 @@ public abstract class JavaDocUtils {
     }
 
     public static Optional<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, Class annotationClass,
-                                                                          DocletEnvironment environment) {
+                                                                         DocletEnvironment environment) {
         return getAnnotationDesc(method, annotationClass.getCanonicalName(), environment);
     }
 
@@ -530,7 +530,7 @@ public abstract class JavaDocUtils {
 
     public static String getTypeString(TypeMirror type, DocletEnvironment environment) {
         if (type.getKind().isPrimitive()) {
-            return type.toString();
+            return getPrimitiveTypeString(type);
         }
 
         Element element = environment.getTypeUtils().asElement(type);
@@ -561,7 +561,7 @@ public abstract class JavaDocUtils {
 
     public static String getSimpleTypeName(TypeMirror type, DocletEnvironment environment) {
         if (type.getKind().isPrimitive()) {
-            return type.toString();
+            return getPrimitiveTypeString(type);
         }
 
         Element element = environment.getTypeUtils().asElement(type);
@@ -584,6 +584,31 @@ public abstract class JavaDocUtils {
                     + "]";
         } else {
             return simpleName;
+        }
+    }
+
+    private static String getPrimitiveTypeString(TypeMirror type) {
+        switch (type.getKind()) {
+            case BOOLEAN:
+                return "boolean";
+            case BYTE:
+                return "byte";
+            case SHORT:
+                return "short";
+            case INT:
+                return "int";
+            case LONG:
+                return "long";
+            case CHAR:
+                return "char";
+            case FLOAT:
+                return "float";
+            case DOUBLE:
+                return "double";
+            case VOID:
+                return "void";
+            default:
+                return "unknown";
         }
     }
 
