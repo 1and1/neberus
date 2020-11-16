@@ -3,7 +3,7 @@ module neberus.core {
     requires reflections;
     requires org.apache.commons.lang3;
     requires java.logging;
-    requires j2html;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.core;
+    requires io.swagger.v3.oas.models;
 }

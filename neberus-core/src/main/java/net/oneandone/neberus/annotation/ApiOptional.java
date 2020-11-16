@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
  * Declare a parameter as optional.
  */
 @Target({ ElementType.PARAMETER, ElementType.FIELD, ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 public @interface ApiOptional {
 }

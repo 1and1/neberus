@@ -8,3 +8,4 @@ atlassian-ide-plugin.xml
 .settings/
 log/
 target/
+/neberus-core/src/main/resources/generated/

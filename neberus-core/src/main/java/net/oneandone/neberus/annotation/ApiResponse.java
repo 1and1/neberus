@@ -1,6 +1,5 @@
 package net.oneandone.neberus.annotation;
 
-import net.oneandone.neberus.ResponseType;
 import net.oneandone.neberus.model.ApiStatus;
 
 import java.lang.annotation.ElementType;
@@ -10,38 +9,39 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Document a Response that does not fit into Success-, Warning-, or Problem-Response.
+ * Document a Response.
  */
 @Target({ ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 @Repeatable(ApiResponses.class)
 public @interface ApiResponse {
 
+    /**
+     * Status of the response.
+     *
+     * @return the status
+     */
     ApiStatus status();
 
     /**
-     * Set the class of the DTO used for the response entity. Currently only the first level in a hierarchy will be printed.
+     * Description of the response.
      *
-     * @return the entity class
+     * @return the description
      */
-    Class entityClass() default Void.class;
+    String description();
 
     /**
-     * If an entityClass is set and this value is unset, the first Content-Type defined in the @Produces annotation will
-     * be used.
+     * Entities used in this response.
      *
-     * @return the content type
+     * @return the entities
      */
-    String contentType() default "";
+    ApiEntity[] entities() default {};
 
-    String description() default "";
-
+    /**
+     * Headers used in this response.
+     *
+     * @return the headers
+     */
     ApiHeader[] headers() default {};
 
-    /**
-     * Define the type of the response.
-     *
-     * @return the response type
-     */
-    ResponseType responseType();
 }

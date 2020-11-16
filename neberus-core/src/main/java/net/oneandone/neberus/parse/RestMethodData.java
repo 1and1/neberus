@@ -1,17 +1,21 @@
 package net.oneandone.neberus.parse;
 
-import net.oneandone.neberus.ResponseType;
 import net.oneandone.neberus.model.ApiStatus;
-import net.oneandone.neberus.model.ProblemType;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static net.oneandone.neberus.parse.RestMethodData.ParameterType.BODY;
 
 public class RestMethodData {
+
+    private static final String[] NO_BODY_METHODS = { "GET", "DELETE" };
 
     public RestClassData containingClass;
 
@@ -52,6 +56,93 @@ public class RestMethodData {
             this.httpMethod = httpMethod;
         }
 
+        @Override
+        public String toString() {
+            return "MethodData{" +
+                    "methodDoc=" + methodDoc +
+                    ", httpMethod='" + httpMethod + '\'' +
+                    ", path='" + path + '\'' +
+                    ", label='" + label + '\'' +
+                    ", description='" + description + '\'' +
+                    ", curl='" + curl + '\'' +
+                    ", printCurl=" + printCurl +
+                    ", deprecated=" + deprecated +
+                    ", deprecatedDescription='" + deprecatedDescription + '\'' +
+                    ", deprecatedLinks=" + deprecatedLinks +
+                    '}';
+        }
+    }
+
+    public void validate(boolean ignoreErrors) {
+        boolean invalid = false;
+
+        String methodAndClass = " for method " + methodData.methodDoc.getEnclosingElement() + "." + methodData.methodDoc;
+
+        invalid |= !validateResponses(methodAndClass);
+        invalid |= !validateForCurl(methodAndClass);
+        invalid |= !validateBodyExistence(methodAndClass);
+
+        if (invalid && !ignoreErrors) {
+            throw new IllegalStateException();
+        }
+    }
+
+    private boolean validateResponses(String methodAndClass) {
+        boolean valid = true;
+
+        Map<ApiStatus, List<ResponseData>> groupedResponses = responseData.stream().collect(Collectors.groupingBy(r -> r.status));
+
+        for (Map.Entry<ApiStatus, List<ResponseData>> entry : groupedResponses.entrySet()) {
+            if (entry.getValue().size() > 1) {
+                valid = false;
+                System.err.println("Found multiple responses for the same status <" + entry.getKey() + "> but only one is allowed" + methodAndClass);
+            }
+        }
+
+        return valid;
+    }
+
+    private boolean validateBodyExistence(String methodAndClass) {
+        boolean valid = true;
+
+        if (Arrays.stream(NO_BODY_METHODS).anyMatch(e -> e.equals(methodData.httpMethod))) {
+            if (requestData.mediaType != null && !requestData.mediaType.isEmpty()) {
+                System.err.println("Consumes MediaType is not allowed in combination with HttpMethod "
+                        + methodData.httpMethod + methodAndClass);
+                valid = false;
+            }
+
+            if (requestData.parameters.stream().anyMatch(p -> p.parameterType == BODY)) {
+                System.err.println("Body parameter is not allowed in combination with HttpMethod "
+                        + methodData.httpMethod + methodAndClass);
+                valid = false;
+            }
+        }
+        return valid;
+    }
+
+    private boolean validateForCurl(String methodAndClass) {
+        boolean valid = true;
+
+        if (methodData.printCurl && methodData.curl == null
+                && Arrays.stream(NO_BODY_METHODS).noneMatch(e -> e.equals(methodData.httpMethod))
+                && requestData.parameters.stream().anyMatch(p -> p.parameterType == BODY)
+                && (requestData.mediaType == null || requestData.mediaType.isEmpty())) {
+            System.err.println("Consumes MediaType is required to generate curl" + methodAndClass);
+            valid = false;
+        }
+        return valid;
+    }
+
+    @Override
+    public String toString() {
+        return "RestMethodData{" +
+                "containingClass=" + containingClass.className +
+                ", methodData=" + methodData +
+                ", requestData=" + requestData +
+                ", responseValues=" + responseValues +
+                ", responseData=" + responseData +
+                '}';
     }
 
     /**
@@ -61,11 +152,21 @@ public class RestMethodData {
 
         public List<ParameterInfo> parameters;
         public List<String> mediaType;
+        public List<Entity> entities;
 
         public RequestData() {
             parameters = new ArrayList<>();
+            entities = new ArrayList<>();
         }
 
+        @Override
+        public String toString() {
+            return "RequestData{" +
+                    "parameters=" + parameters +
+                    ", mediaType=" + mediaType +
+                    ", entities=" + entities +
+                    '}';
+        }
     }
 
     public enum ParameterType {
@@ -78,12 +179,12 @@ public class RestMethodData {
         public ParameterType parameterType;
         public TypeMirror entityClass;
         public TypeMirror displayClass;
-        public TypeMirror containerClass;
         public String description = "";
-        public List<String> allowedValues = new ArrayList<>();
-        public String allowedValueHint = "";
+        public List<AllowedValue> allowedValues = new ArrayList<>();
         public List<ParameterInfo> nestedParameters = new ArrayList<>();
         public boolean optional;
+        public boolean deprecated;
+        public String deprecatedDescription = "";
         public Map<String, Map<String, String>> constraints = new HashMap<>();
 
         public ParameterInfo() {
@@ -97,10 +198,8 @@ public class RestMethodData {
             allowedValues.addAll(other.allowedValues);
             entityClass = other.entityClass == null ? entityClass : other.entityClass;
             displayClass = other.displayClass == null ? displayClass : other.displayClass;
-            containerClass = other.containerClass == null ? containerClass : other.containerClass;
             optional = other.optional || optional;
             constraints.putAll(other.constraints);
-            //TODO merge nestedParameters? those can't be specified in the annotation, so currently there is no need to...
         }
 
         @Override
@@ -110,7 +209,6 @@ public class RestMethodData {
                     + ", parameterType=" + parameterType
                     + ", entityClass=" + entityClass
                     + ", displayClass=" + displayClass
-                    + ", containerClass=" + containerClass
                     + ", description=" + description
                     + ", allowedValues=" + allowedValues
                     + ", nestedParameters=" + nestedParameters
@@ -126,44 +224,105 @@ public class RestMethodData {
      */
     public static class ResponseData {
 
-        public ResponseData(ResponseType responseType) {
-            this.responseType = responseType;
-            this.headers = new ArrayList<>();
-            this.warnings = new ArrayList<>();
-            this.nestedParameters = new ArrayList<>();
-        }
-
         public ApiStatus status;
         public String description = "";
-        public ProblemInfo problem;
-        public List<ProblemInfo> warnings;
-        public TypeMirror entityClass;
-        public ResponseType responseType;
-        public String contentType = "";
         public List<HeaderInfo> headers;
-        public List<ParameterInfo> nestedParameters;
+        public List<Entity> entities;
+
+        public ResponseData() {
+            this.headers = new ArrayList<>();
+            this.entities = new ArrayList<>();
+        }
 
         @Override
         public String toString() {
-            return "ResponseData{" + "status=" + status + ", description=" + description + ", problem=" + problem + ", warnings=" +
-                    warnings + ", entityClass=" + entityClass + ", responseType=" + responseType + ", contentType=" + contentType +
-                    ", headers=" + headers + ", nestedParameters=" + nestedParameters + '}';
+            return "ResponseData{"
+                    + "status=" + status + ", "
+                    + "description=" + description + ", "
+                    + "headers=" + headers
+                    + '}';
         }
 
     }
 
-    public static class ProblemInfo {
+    public static class Entity {
 
-        public String title = "...";
-        public String detail = "...";
-        public ProblemType type;
+        public List<Example> examples;
+        public String description = "";
+        public TypeMirror entityClass;
+        public String contentType = "";
+        public List<ParameterInfo> nestedParameters;
+
+        public Entity() {
+            this.nestedParameters = new ArrayList<>();
+            this.examples = new ArrayList<>();
+        }
+
+        @Override
+        public String toString() {
+            return "Entity{" +
+                    "examples=" + examples +
+                    ", description='" + description + '\'' +
+                    ", entityClass=" + entityClass +
+                    ", contentType='" + contentType + '\'' +
+                    ", nestedParameters=" + nestedParameters +
+                    '}';
+        }
+    }
+
+    public static class Example {
+        public String title;
+        public String description;
+        public String value;
+
+        @Override
+        public String toString() {
+            return "Example{" +
+                    "title='" + title + '\'' +
+                    ", description='" + description + '\'' +
+                    ", value='" + value + '\'' +
+                    '}';
+        }
     }
 
     public static class HeaderInfo {
 
         public String name;
         public String description;
+        public List<AllowedValue> allowedValues = new ArrayList<>();
+        public boolean optional;
+        public boolean deprecated;
+        public String deprecatedDescription = "";
 
+        @Override
+        public String toString() {
+            return "HeaderInfo{" +
+                    "name='" + name + '\'' +
+                    ", description='" + description + '\'' +
+                    ", allowedValues=" + allowedValues +
+                    ", optional=" + optional +
+                    ", deprecated=" + deprecated +
+                    ", deprecatedDescription=" + deprecatedDescription +
+                    '}';
+        }
+    }
+
+    public static class AllowedValue {
+        public String value;
+        public String valueHint;
+
+        public AllowedValue(String value, String valueHint) {
+            this.value = value;
+            this.valueHint = valueHint;
+        }
+
+        @Override
+        public String toString() {
+            return "AllowedValue{" +
+                    "value='" + value + '\'' +
+                    ", valueHint='" + valueHint + '\'' +
+                    '}';
+        }
     }
 
 }

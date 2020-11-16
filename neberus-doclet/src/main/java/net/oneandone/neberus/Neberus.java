@@ -10,12 +10,13 @@ import net.oneandone.neberus.parse.ClassParser;
 import net.oneandone.neberus.parse.JavaxWsRsClassParser;
 import net.oneandone.neberus.parse.JavaxWsRsMethodParser;
 import net.oneandone.neberus.parse.RestClassData;
+import net.oneandone.neberus.parse.RestMethodData;
 import net.oneandone.neberus.parse.RestUsecaseData;
 import net.oneandone.neberus.parse.SpringMvcClassParser;
 import net.oneandone.neberus.parse.SpringMvcMethodParser;
 import net.oneandone.neberus.parse.UsecaseParser;
 import net.oneandone.neberus.print.DocPrinter;
-import net.oneandone.neberus.print.HtmlDocPrinter;
+import net.oneandone.neberus.print.openapiv3.OpenApiV3JsonPrinter;
 import net.oneandone.neberus.shortcode.ShortCodeExpander;
 import net.oneandone.neberus.util.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,9 +35,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,8 +49,6 @@ import static net.oneandone.neberus.util.JavaDocUtils.getPackageName;
 import static net.oneandone.neberus.util.JavaDocUtils.getTypeElements;
 import static net.oneandone.neberus.util.JavaDocUtils.hasAnnotation;
 
-//TODO example response
-//TODO accept header in curl
 public class Neberus implements Doclet {
 
     private final Options options = new Options();
@@ -59,7 +60,7 @@ public class Neberus implements Doclet {
 
         ShortCodeExpander expander = new ShortCodeExpander();
         List<NeberusModule> modules = loadModules(expander, options);
-        DocPrinter docPrinter = new HtmlDocPrinter(modules, expander, options);
+        DocPrinter docPrinter = new OpenApiV3JsonPrinter(modules, expander, options);
 
         ClassParser javaxWsRsParser = new JavaxWsRsClassParser(new JavaxWsRsMethodParser(options));
         ClassParser springMvcParser = new SpringMvcClassParser(new SpringMvcMethodParser(options));
@@ -81,11 +82,16 @@ public class Neberus implements Doclet {
         for (TypeElement typeElement : filteredClasses) {
 
             if (!typeElement.getKind().isInterface() && hasAnnotation(typeElement, ApiDocumentation.class, environment)) {
+                System.out.println("Parsing " + typeElement);
                 if (StringUtils.isBlank(packageDoc)) {
                     try {
                         PackageElement packageElement = environment.getElementUtils().getPackageOf(typeElement);
-                        FileObject fileForInput = environment.getJavaFileManager().getFileForInput(StandardLocation.SOURCE_PATH, packageElement.getQualifiedName().toString(), "package.html");
-                        packageDoc = environment.getDocTrees().getDocCommentTree(fileForInput).toString();
+                        FileObject fileForInput = environment.getJavaFileManager().getFileForInput(StandardLocation.SOURCE_PATH,
+                                packageElement.getQualifiedName().toString(), "package.html");
+
+                        if (fileForInput != null) {
+                            packageDoc = environment.getDocTrees().getDocCommentTree(fileForInput).toString();
+                        }
                     } catch (IOException e) {
                         System.err.println(e.toString());
                     }
@@ -116,6 +122,8 @@ public class Neberus implements Doclet {
             }
         }
 
+        validateMultipleMethodsForSameHttpMethodAndPath(restClasses, options);
+
         restClasses.forEach(restClassData -> {
             docPrinter.printRestClassFile(restClassData, restClasses, restUsecases);
         });
@@ -124,11 +132,12 @@ public class Neberus implements Doclet {
 
         docPrinter.printIndexFile(restClasses, restUsecases, packageDoc);
 
-        URL bootstrapUrl = Neberus.class.getResource("/static");
+        URL bootstrapUrl = Neberus.class.getResource("/generated");
         File dest = new File(options.outputDirectory + options.docBasePath);
 
         System.out.println("Copying static resources");
         FileUtils.copyResourcesRecursively(bootstrapUrl, dest);
+        System.out.println("View generated docs: file://" + new File(dest, "index.html").getAbsolutePath());
         System.out.println("Neberus finished");
         return true;
     }
@@ -163,6 +172,29 @@ public class Neberus implements Doclet {
                 .anyMatch(method -> hasAnnotation(method, Path.class, options.environment));
     }
 
+    private static void validateMultipleMethodsForSameHttpMethodAndPath(List<RestClassData> restClasses, Options options) {
+        Map<String, List<RestMethodData.MethodData>> methodsByHttpMethodAndPath = new HashMap<>();
+
+        restClasses.stream().flatMap(rc -> rc.methods.stream()).forEach(method -> {
+            String methodAndPath = method.methodData.httpMethod + " - " + method.methodData.path;
+            methodsByHttpMethodAndPath.computeIfAbsent(methodAndPath, k -> new ArrayList<>()).add(method.methodData);
+        });
+
+        // validate
+        methodsByHttpMethodAndPath.entrySet().stream()
+                .filter(e -> e.getValue().size() > 1)
+                .forEach(e -> {
+                    System.err.println("Found multiple methods with the same HttpMethod and path <" + e.getKey() + ">. "
+                            + "The documentation for all of them must be placed onto one method and all others must be "
+                            + "excluded from the Apidoc with @ApiIgnore.");
+
+                    if (!options.ignoreErrors) {
+                        throw new IllegalArgumentException();
+                    }
+                });
+
+    }
+
     @Override
     public void init(Locale locale, Reporter reporter) {
         // noop
@@ -177,7 +209,7 @@ public class Neberus implements Doclet {
     public Set<? extends Option> getSupportedOptions() {
         return Set.of(
                 // An option that takes no arguments.
-                new DocletOption("-ignoreErrors", false, "ignore generation errors", null) {
+                new DocletOption("-ignoreErrors", false, "Ignore generation errors.", null) {
                     @Override
                     public boolean process(String option, List<String> arguments) {
                         options.ignoreErrors = true;
@@ -191,42 +223,47 @@ public class Neberus implements Doclet {
                         return true;
                     }
                 },
-                new DocletOption("-docBasePath", true, "TODO", "<string>") {
+                new DocletOption("--docBasePath", true,
+                        "Root path where the generated documentation is placed inside reportOutputDirectory.", "<path>") {
                     @Override
                     public boolean process(String option, List<String> arguments) {
                         options.docBasePath = arguments.get(0);
                         return true;
                     }
                 },
-                new DocletOption("-apiVersion", true, "TODO", "<string>") {
+                new DocletOption("--apiVersion", true, "Api version.", "<version>") {
                     @Override
                     public boolean process(String option, List<String> arguments) {
                         options.apiVersion = arguments.get(0);
                         return true;
                     }
                 },
-                new DocletOption("-apiTitle", true, "TODO", "<string>") {
+                new DocletOption("--apiTitle", true, "Api Title.", "<title>") {
                     @Override
                     public boolean process(String option, List<String> arguments) {
                         options.apiTitle = arguments.get(0);
                         return true;
                     }
                 },
-                new DocletOption("-apiBasePath", true, "TODO", "<string>") {
+                new DocletOption("--apiBasePath", true, "Root path of the Api on the server (e.g. '/rest').", "<path>") {
                     @Override
                     public boolean process(String option, List<String> arguments) {
                         options.apiBasePath = arguments.get(0);
                         return true;
                     }
                 },
-                new DocletOption("-apiHost", true, "TODO", "<string>") {
+                new DocletOption("--apiHosts", true, "List of hosts where the Api can be accessed, separated by semicolon (;). "
+                        + "Description for each host can be provided inside optional trailing brackets. "
+                        + "Example: \"https://testserver.com[the default testserver];https://otherserver.com[the other testserver]\"",
+                        "<host[description]>(;<host[description]>)*") {
                     @Override
                     public boolean process(String option, List<String> arguments) {
-                        options.apiHost = arguments.get(0);
+                        options.apiHosts = Arrays.asList(arguments.get(0).split(";"));
                         return true;
                     }
                 },
-                new DocletOption("-scanPackages", true, "TODO", "<string>") {
+                new DocletOption("--scanPackages", true, "List of packages that include classes relevant for the apidoc",
+                        "<package>(;<package>)*") {
                     @Override
                     public boolean process(String option, List<String> arguments) {
                         options.scanPackages = new HashSet<>(Arrays.asList(arguments.get(0).split(";")));

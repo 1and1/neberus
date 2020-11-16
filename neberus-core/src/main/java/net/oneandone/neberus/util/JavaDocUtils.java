@@ -26,6 +26,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,82 +45,90 @@ public abstract class JavaDocUtils {
     private static final String JSON_PROPERTY = "com.fasterxml.jackson.annotation.JsonProperty";
     private static final String JSON_PROPERTY_LEGACY = "org.codehaus.jackson.annotate.JsonProperty";
     public static final String XML_TRANSIENT = "javax.xml.bind.annotation.XmlTransient";
+    public static final String XML_ROOT_ELEMENT = "javax.xml.bind.annotation.XmlRootElement";
+    public static final String JACKSON_XML_ROOT_ELEMENT = "com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement";
 
     private JavaDocUtils() {
     }
 
-    public static Optional<? extends AnnotationMirror> getAnnotationDesc(TypeElement clazz, Class annotationClass,
-                                                                         DocletEnvironment environment) {
-        Optional<TypeElement> interfaceClass = getInterfaceClass(clazz, environment);
-        Optional<? extends AnnotationMirror> onInterface = Optional.empty();
+    public static List<? extends AnnotationMirror> getAnnotationDesc(TypeElement clazz, Class annotationClass,
+                                                                     DocletEnvironment environment) {
 
-        if (interfaceClass.isPresent()) {
-            onInterface = getAnnotationDesc(interfaceClass.get().getAnnotationMirrors(), annotationClass);
-        }
-
-        return onInterface.isPresent() ? onInterface : getAnnotationDesc(clazz.getAnnotationMirrors(), annotationClass);
-
+        List<? extends AnnotationMirror> annotationMirrors = collectAllAnnotationMirrors(clazz, environment);
+        return getAnnotationDesc(annotationMirrors, annotationClass);
     }
 
-    public static Optional<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, Class annotationClass,
-                                                                         DocletEnvironment environment) {
+    public static List<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, Class annotationClass,
+                                                                     DocletEnvironment environment) {
         return getAnnotationDesc(method, annotationClass.getCanonicalName(), environment);
     }
 
-    public static Optional<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, String annotationClass,
-                                                                         DocletEnvironment environment) {
+    public static List<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, String annotationClass,
+                                                                     DocletEnvironment environment) {
         Optional<ExecutableElement> interfaceMethod = getInterfaceMethod(method, environment);
-        Optional<? extends AnnotationMirror> onInterface = Optional.empty();
+        List<? extends AnnotationMirror> onInterface = Collections.emptyList();
 
         if (interfaceMethod.isPresent()) {
             onInterface = getDirectAnnotationDesc(interfaceMethod.get().getAnnotationMirrors(), annotationClass);
         }
 
-        return onInterface.isPresent() ? onInterface : getDirectAnnotationDesc(method.getAnnotationMirrors(), annotationClass);
+        return !onInterface.isEmpty() ? onInterface : getDirectAnnotationDesc(method.getAnnotationMirrors(), annotationClass);
     }
 
-    public static Optional<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, VariableElement param,
-                                                                         Class annotationClass, int index,
-                                                                         DocletEnvironment environment) {
+    public static List<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, VariableElement param,
+                                                                     Class annotationClass, int index,
+                                                                     DocletEnvironment environment) {
         return getAnnotationDesc(method, param, annotationClass.getCanonicalName(), index, environment);
     }
 
-    public static Optional<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, VariableElement param,
-                                                                         String annotationClass, int index,
-                                                                         DocletEnvironment environment) {
+    public static List<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, VariableElement param,
+                                                                     String annotationClass, int index,
+                                                                     DocletEnvironment environment) {
         Optional<VariableElement> interfaceParam = getInterfaceParameter(method, index, environment);
-        Optional<? extends AnnotationMirror> onInterface = Optional.empty();
+        List<? extends AnnotationMirror> onInterface = Collections.emptyList();
 
         if (interfaceParam.isPresent()) {
             onInterface = getDirectAnnotationDesc(interfaceParam.get().getAnnotationMirrors(), annotationClass);
         }
 
-        return onInterface.isPresent() ? onInterface : getDirectAnnotationDesc(param.getAnnotationMirrors(), annotationClass);
+        return !onInterface.isEmpty() ? onInterface : getDirectAnnotationDesc(param.getAnnotationMirrors(), annotationClass);
     }
 
-    private static Optional<? extends AnnotationMirror> getAnnotationDesc(Element field, String annotationClass) {
+    public static List<? extends AnnotationMirror> getAnnotationDesc(Element field, Class annotationClass) {
+        return getDirectAnnotationDesc(field.getAnnotationMirrors(), annotationClass.getCanonicalName());
+    }
+
+    private static List<? extends AnnotationMirror> getAnnotationDesc(Element field, String annotationClass) {
         return getDirectAnnotationDesc(field.getAnnotationMirrors(), annotationClass);
     }
 
-    private static Optional<? extends AnnotationMirror> getAnnotationDesc(VariableElement ctorParam, String annotationClass) {
+    private static List<? extends AnnotationMirror> getAnnotationDesc(VariableElement ctorParam, String annotationClass) {
         return getDirectAnnotationDesc(ctorParam.getAnnotationMirrors(), annotationClass);
     }
 
-    private static Optional<? extends AnnotationMirror> getAnnotationDesc(List<? extends AnnotationMirror> annotations,
-                                                                          Class annotationClass) {
+    private static List<? extends AnnotationMirror> getAnnotationDesc(List<? extends AnnotationMirror> annotations,
+                                                                      Class annotationClass) {
         return getDirectAnnotationDesc(annotations, annotationClass.getCanonicalName());
     }
 
-    private static Optional<? extends AnnotationMirror> getDirectAnnotationDesc(List<? extends AnnotationMirror> annotations,
-                                                                                String annotationClass) {
+    private static List<? extends AnnotationMirror> getDirectAnnotationDesc(List<? extends AnnotationMirror> annotations,
+                                                                            String annotationClass) {
         return annotations.stream()
                 .filter((AnnotationMirror a) -> ((TypeElement) a.getAnnotationType().asElement())
                         .getQualifiedName().toString().equals(annotationClass))
-                .findFirst();
+                .collect(Collectors.toList());
+    }
+
+    public static <T> T getAnnotationValue(List<? extends AnnotationMirror> annotationMirrors, String annotationClass, String key) {
+        Optional<? extends AnnotationMirror> findFirst = getDirectAnnotationDesc(annotationMirrors, annotationClass).stream().findFirst();
+        if (findFirst.isEmpty()) {
+            return null;
+        }
+        return extractValue(findFirst.get(), key);
     }
 
     public static <T> T getAnnotationValue(TypeElement clazz, Class annotationClass, String key, DocletEnvironment environment) {
-        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(clazz, annotationClass, environment);
+        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(clazz, annotationClass, environment).stream().findFirst();
         if (findFirst.isEmpty()) {
             return null;
         }
@@ -133,7 +142,7 @@ public abstract class JavaDocUtils {
 
     public static <T> T getAnnotationValue(ExecutableElement method, String annotationClass, String key,
                                            DocletEnvironment environment) {
-        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(method, annotationClass, environment);
+        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(method, annotationClass, environment).stream().findFirst();
         if (findFirst.isEmpty()) {
             return null;
         }
@@ -145,7 +154,7 @@ public abstract class JavaDocUtils {
     }
 
     public static <T> T getDirectAnnotationValue(Element field, String annotationClass, String key) {
-        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(field, annotationClass);
+        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(field, annotationClass).stream().findFirst();
         if (findFirst.isEmpty()) {
             return null;
         }
@@ -159,7 +168,7 @@ public abstract class JavaDocUtils {
 
     public static <T> T getAnnotationValue(ExecutableElement method, VariableElement param, String annotationClass,
                                            int index, String key, DocletEnvironment environment) {
-        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(method, param, annotationClass, index, environment);
+        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(method, param, annotationClass, index, environment).stream().findFirst();
         if (findFirst.isEmpty()) {
             return null;
         }
@@ -171,7 +180,7 @@ public abstract class JavaDocUtils {
     }
 
     public static <T> T getDirectAnnotationValue(VariableElement ctorParam, String annotationClass, String key) {
-        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(ctorParam, annotationClass);
+        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(ctorParam, annotationClass).stream().findFirst();
         if (findFirst.isEmpty()) {
             return null;
         }
@@ -181,7 +190,7 @@ public abstract class JavaDocUtils {
     public static <T> T getAnnotationValue(ExecutableElement method, VariableElement parameter,
                                            Class annotationClass, String key, int index, DocletEnvironment environment) {
         Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(method, parameter, annotationClass,
-                index, environment);
+                index, environment).stream().findFirst();
 
         if (findFirst.isEmpty()) {
             return null;
@@ -213,7 +222,7 @@ public abstract class JavaDocUtils {
         return clazz.getInterfaces().stream()
                 .filter(iface -> !iface.toString().startsWith("java.") && environment.getTypeUtils().asElement(iface) != null)
                 .map(iface -> (TypeElement) environment.getTypeUtils().asElement(iface))
-                .filter(element -> hasAnnotation(element.getAnnotationMirrors(), ApiDocumentation.class))
+                .filter(element -> hasAnnotation(element, ApiDocumentation.class, environment))
                 .findFirst();
     }
 
@@ -285,15 +294,28 @@ public abstract class JavaDocUtils {
     }
 
     public static boolean hasAnnotation(TypeElement clazz, Class annotationClass, DocletEnvironment environment) {
-        Optional<TypeElement> interfaceClass = getInterfaceClass(clazz, environment);
 
-        boolean definedOnInterface = false;
+        List<? extends AnnotationMirror> allAnnotationMirrors = collectAllAnnotationMirrors(clazz, environment);
 
-        if (interfaceClass.isPresent()) {
-            definedOnInterface = hasAnnotation(interfaceClass.get().getAnnotationMirrors(), annotationClass);
+        return hasAnnotation(allAnnotationMirrors, annotationClass);
+    }
+
+    private static List<? extends AnnotationMirror> collectAllAnnotationMirrors(TypeElement clazz, DocletEnvironment environment) {
+        List<AnnotationMirror> allAnnotationMirrors = new ArrayList<>();
+
+        if (clazz == null) {
+            return allAnnotationMirrors;
         }
 
-        return definedOnInterface || hasAnnotation(clazz.getAnnotationMirrors(), annotationClass);
+        allAnnotationMirrors.addAll(clazz.getAnnotationMirrors());
+
+        clazz.getInterfaces().forEach(iface -> allAnnotationMirrors
+                .addAll(collectAllAnnotationMirrors((TypeElement) environment.getTypeUtils().asElement(iface), environment)));
+
+        Optional.ofNullable(clazz.getSuperclass()).ifPresent(superClass -> allAnnotationMirrors
+                .addAll(collectAllAnnotationMirrors((TypeElement) environment.getTypeUtils().asElement(superClass), environment)));
+
+        return allAnnotationMirrors;
     }
 
     private static boolean hasAnnotation(List<? extends AnnotationMirror> annotations, Class annotationClass) {
@@ -397,6 +419,7 @@ public abstract class JavaDocUtils {
         return element == null
                 || options.scanPackages.stream()
                 .noneMatch(pack -> getPackageName(element, options.environment).startsWith(pack))
+                || getDataFields(fieldType, options.environment).isEmpty()
                 || getDataFields(fieldType, options.environment).keySet().stream()
                 .anyMatch((String k) -> k.matches("arg\\d"));
     }
@@ -520,12 +543,12 @@ public abstract class JavaDocUtils {
     public static boolean isCollectionType(TypeMirror type) {
         return type != null
                 && (type instanceof ArrayType
-                || type.toString().contains("java.util.List")
-                || type.toString().contains("java.util.Set"));
+                || type.toString().startsWith("java.util.List")
+                || type.toString().startsWith("java.util.Set"));
     }
 
     public static boolean isMapType(TypeMirror type) {
-        return type != null && type.toString().contains("java.util.Map");
+        return type != null && type.toString().startsWith("java.util.Map");
     }
 
     public static String getTypeString(TypeMirror type, DocletEnvironment environment) {
@@ -541,7 +564,7 @@ public abstract class JavaDocUtils {
 
         if (isEnum(type, environment)) {
             StringJoiner sj = new StringJoiner("|");
-            getEnumValuesAsList(type, environment).forEach(sj::add);
+            getEnumValuesAsList(type, environment).forEach(ev -> sj.add(ev.getSimpleName().toString()));
             return sj.toString();
         }
 
@@ -570,7 +593,7 @@ public abstract class JavaDocUtils {
             return "String";
         }
 
-        String simpleName = element.getSimpleName().toString();
+        String simpleName = getPublicName(element);
 
         if (isCollectionType(type)) {
             List<? extends TypeMirror> typeArguments = ((DeclaredType) type).getTypeArguments();
@@ -585,6 +608,25 @@ public abstract class JavaDocUtils {
         } else {
             return simpleName;
         }
+    }
+
+    public static String getPublicName(Element element) {
+
+        List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
+
+        String publicName = null;
+
+        if (hasAnnotation(annotationMirrors, XML_ROOT_ELEMENT)) {
+            publicName = getAnnotationValue(annotationMirrors, XML_ROOT_ELEMENT, "name");
+        } else if (hasAnnotation(annotationMirrors, JACKSON_XML_ROOT_ELEMENT)) {
+            publicName = getAnnotationValue(annotationMirrors, JACKSON_XML_ROOT_ELEMENT, "localName");
+        }
+
+        if (publicName == null) {
+            publicName = element.getSimpleName().toString();
+        }
+
+        return publicName;
     }
 
     private static String getPrimitiveTypeString(TypeMirror type) {
@@ -765,6 +807,10 @@ public abstract class JavaDocUtils {
     }
 
     public static String getQualifiedName(TypeMirror typeMirror, DocletEnvironment environment) {
+        if (typeMirror.getKind() == TypeKind.ARRAY) {
+            return getQualifiedName(((ArrayType) typeMirror).getComponentType(), environment) + "[]";
+        }
+
         Element element = environment.getTypeUtils().asElement(typeMirror);
         return getPackageName(element, environment) + "." + element.getSimpleName().toString();
     }
@@ -773,23 +819,16 @@ public abstract class JavaDocUtils {
         return environment.getTypeUtils().asElement(typeMirror);
     }
 
-    public static List<String> getEnumValuesAsList(TypeMirror enumType, DocletEnvironment environment) {
+    public static List<VariableElement> getEnumValuesAsList(TypeMirror enumType, DocletEnvironment environment) {
         Element element = environment.getTypeUtils().asElement(enumType);
         return getEnumValuesAsList((TypeElement) element, environment);
     }
 
-    public static List<String> getEnumValuesAsList(TypeElement element, DocletEnvironment environment) {
-        List<String> list = new ArrayList<>();
-        List<? extends VariableElement> enumConstants = environment.getElementUtils().getAllMembers(element)
+    public static List<VariableElement> getEnumValuesAsList(TypeElement element, DocletEnvironment environment) {
+        return environment.getElementUtils().getAllMembers(element)
                 .stream().filter(m -> m.getKind() == ElementKind.ENUM_CONSTANT)
                 .map(m -> (VariableElement) m)
                 .collect(Collectors.toList());
-
-        for (VariableElement enumConstant : enumConstants) {
-            list.add(enumConstant.getSimpleName().toString());
-        }
-
-        return list;
     }
 
     public static List<? extends DocTree> getBlockTags(Element parameter, DocletEnvironment environment) {

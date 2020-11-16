@@ -6,10 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Container annotation for {@link ApiResponse}s. Not required to be expicitely used with Java 8.
+ * Container annotation for {@link ApiResponse}s. Not required to be explicitly used with Java 8.
  */
 @Target({ ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 public @interface ApiResponses {
 
     ApiResponse[] value();

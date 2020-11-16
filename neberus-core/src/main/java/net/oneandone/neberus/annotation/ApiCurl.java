@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Tells Neberus to generate an example curl.
  */
 @Target({ ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 public @interface ApiCurl {
 
     /**

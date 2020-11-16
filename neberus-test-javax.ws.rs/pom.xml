@@ -28,7 +28,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>neberus-test-data</artifactId>
+            <artifactId>neberus-test-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -91,12 +91,12 @@
                             <reportOutputDirectory>${project.build.directory}</reportOutputDirectory>
                             <useStandardDocletOptions>false</useStandardDocletOptions>
                             <additionalOptions>
-                                -apiVersion ${project.version} 
-                                -apiTitle "${project.name}" 
-                                -docBasePath .
-                                -apiBasePath /rest 
-                                -apiHost https://testserver.com
-                                -scanPackages com.included;net.oneandone
+                                --apiVersion ${project.version}
+                                --apiTitle "${project.name}"
+                                --docBasePath .
+                                --apiBasePath /rest
+                                --apiHosts https://testserver.com
+                                --scanPackages com.included;net.oneandone
                             </additionalOptions>
                         </configuration>
                         <goals>
@@ -116,12 +116,12 @@
                             <reportOutputDirectory>${project.build.directory}/${project.build.finalName}</reportOutputDirectory>
                             <useStandardDocletOptions>false</useStandardDocletOptions>
                             <additionalOptions>
-                                -apiVersion ${project.version}
-                                -apiTitle "${project.name}"
-                                -docBasePath .
-                                -apiBasePath /rest
-                                -apiHost https://testserver.com
-                                -scanPackages com.included;net.oneandone
+                                --apiVersion ${project.version}
+                                --apiTitle "${project.name}"
+                                --docBasePath .
+                                --apiBasePath /rest
+                                --apiHosts https://testserver.com
+                                --scanPackages com.included;net.oneandone
                             </additionalOptions>
                         </configuration>
                         <goals>

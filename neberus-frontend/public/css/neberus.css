@@ -1,0 +1,537 @@
+body {
+    position: relative;
+}
+
+.serviceContainer {
+    float: right;
+    width: 77%;
+    margin-right: 1%;
+    margin-top: 10px;
+}
+
+.navigationContainer {
+    position: fixed;
+    left: 1%;
+    width: 20%;
+    top: 10px;
+    bottom: 50px;
+}
+
+/*.tocify {*/
+/*    width: 100%;*/
+/*    position: static;*/
+/*    margin-top: 10px;*/
+/*    margin-left: 0px;*/
+/*    border-radius: 0px;*/
+/*    border: 0px;*/
+/*}*/
+
+/*!* always show second level of toc *!*/
+/*.tocify-subheader[data-tag="2"] {*/
+/*    display: unset;*/
+/*}*/
+
+.popover {
+    max-width: 40%;
+}
+
+.headerLabel {
+    line-height: 200%;
+}
+
+.toggleParams {
+    cursor: pointer;
+}
+
+.methodDescription {
+    margin: 20px;
+    margin-left: 10px;
+}
+
+.btn {
+    padding: 4px 8px;
+    /*border-radius: 0px;*/
+    border: 0px solid transparent;
+}
+
+.btn-primary {
+    background: #0c487b;
+}
+
+.btn-primary:focus, .btn-primary:hover, .btn-primary:active {
+    background: #0e304e !important;
+}
+
+.card-heading {
+    font-weight: bold;
+    border-radius: 0px;
+}
+
+.card-primary .card-heading {
+    border-color: transparent;
+}
+
+.card-body {
+    padding: 0.5rem 1rem;
+}
+
+.methodHeading {
+    margin-top: 0px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    padding-right: 135px;
+}
+
+.reference {
+    border-radius: 6px;
+}
+
+.overviewLink > a:focus, .overviewLink > a:hover, .reference > a:focus, .reference > a:hover {
+    text-decoration: none;
+}
+
+.overviewLink > a, .reference > a {
+    position: relative;
+    display: block;
+    padding: 10px;
+}
+
+.card-primary > .card-heading {
+    padding-left: 20px;
+}
+
+.card-table > .card-body {
+    padding: 0px;
+    margin-bottom: -15px;
+}
+
+.parameters-with-examples.card-table > .card-body {
+    margin-bottom: 0px;
+}
+
+.parameters-with-examples .table.parameters {
+    margin-bottom: -15px;
+}
+
+.table > tbody > tr > td:first-child, .table > tbody > tr > th:first-child {
+    padding-left: 10px;
+    line-height: 1.7;
+}
+
+.table > tbody > tr > td {
+    padding: 5px;
+    vertical-align: middle;
+}
+
+.table-small-head thead th {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    padding-left: 5px;
+    opacity: 0.7;
+}
+
+.table-small-head thead th:first-of-type {
+    padding-left: 10px;
+}
+
+.card-heading + .card-primary {
+    margin-top: 0px;
+}
+
+.card-primary {
+    margin-top: 4px;
+    margin-bottom: 0px;
+    border-width: 1px;
+}
+
+.popover-body > pre {
+    margin: 0px;
+}
+
+.tooltip-inner {
+    max-width: 300px;
+}
+
+.deprecated {
+    position: relative;
+}
+
+.deprecated .container:after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.deprecated-description {
+    position: relative;
+    z-index: 1000;
+}
+
+.credits {
+    float: right;
+    width: 100vw;
+    text-align: right;
+    padding-bottom: 10px;
+    padding-right: 30px;
+    margin-top: -10px;
+}
+
+.path-toc {
+    font-family: monospace;
+    padding-bottom: 5px;
+}
+
+.path-toc-deprecated {
+    text-decoration: line-through;
+}
+
+.path-toc-list {
+    list-style: none;
+    margin-left: -40px;
+}
+
+.path-toc-method {
+    float: left;
+    white-space: pre;
+}
+
+.path-toc-path {
+    display: table-cell;
+}
+
+.choose-style {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+}
+
+.choose-style-item {
+    cursor: pointer;
+}
+
+.choose-style-item:hover {
+    text-decoration: underline;
+}
+
+.collapseToggle {
+    cursor: pointer;
+}
+
+.italic {
+    font-style: italic;
+}
+
+.container {
+    border: 0px solid #e3e3e3;
+    border-radius: 0px;
+    -webkit-box-shadow: inset 0 0px 0px rgba(0, 0, 0, .05);
+    box-shadow: inset 0 0px 0px rgba(0, 0, 0, .05);
+}
+
+/*.card {*/
+/*    margin-bottom: 10px;*/
+/*    border: 3px solid transparent;*/
+/*    border-radius: 0px;*/
+/*    overflow-y: hidden;*/
+/*}*/
+
+.card {
+    margin-bottom: 10px;
+    border: 2px solid rgb(70 70 70);
+    border-radius: 15px;
+    overflow-y: hidden;
+}
+
+/*.card-primary, .card-warning {*/
+/*    border-color: transparent;*/
+/*}*/
+
+.card > .table-responsive:last-child > .table:last-child, .card > .table:last-child {
+    border-radius: 0px;
+}
+
+/*code {*/
+/*    color: #5f0f23;*/
+/*    border-radius: 0px;*/
+/*}*/
+
+
+.toggleParams > td:first-of-type {
+    white-space: nowrap;
+}
+
+pre {
+    border-radius: 0px;
+    border: 0px;
+}
+
+.popover-body {
+    border: 2px solid rgb(70 70 70);
+    border-radius: 10px;
+}
+
+.popover {
+    border-radius: 10px;
+}
+
+.label, .tooltip {
+    border-radius: 0px;
+}
+
+.icon-toggle {
+    margin-left: 10px;
+}
+
+.transition, .transition * {
+    -webkit-transition: all .3s ease-in-out, visibility 0s;
+    -moz-transition: all .3s ease-in-out, visibility 0s;
+    -o-transition: all .3s ease-in-out, visibility 0s;
+    -ms-transition: all .3s ease-in-out, visibility 0s;
+    transition: all .3s ease-in-out, visibility 0s;
+}
+
+.tooltip, .tooltip *, .popover, .popover *, .fixedParameterRow, .fixedParameterRow * {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -o-transition: none !important;
+    -ms-transition: none !important;
+    transition: none !important;
+}
+
+[data-toggle="collapse"]:hover .icon-toggle {
+    transform: rotate(45deg);
+    transform-origin: left;
+}
+
+[data-toggle="collapse"]:not(.collapsed) .icon-toggle {
+    transform: rotate(90deg);
+    transform-origin: left;
+}
+
+[data-toggle="collapse"]:not(.collapsed):hover .icon-toggle {
+    transform: rotate(45deg);
+    transform-origin: left;
+}
+
+.code {
+    padding: 5px;
+    font-size: 90%;
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+    word-break: keep-all;
+    white-space: pre-wrap;
+    line-height: 1;
+    border-radius: 5px;
+}
+
+.word-wrap:after {
+    content: "\200b";
+}
+
+/* zero-width space */
+
+.input-group-addon {
+    min-width: 70px;
+}
+
+#filterReset {
+    cursor: pointer;
+    pointer-events: inherit;
+    margin-right: 5px;
+}
+
+.form-control-feedback {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    display: block;
+    width: 38px;
+    height: 38px;
+    line-height: 38px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.w-100 {
+    width: 100% !important;
+}
+
+.w-50 {
+    width: 50% !important;
+}
+
+.options {
+    overflow: hidden;
+}
+
+.valueHint {
+    opacity: 0.6;
+}
+
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+}
+
+.card-small {
+    margin-bottom: 2px;
+    margin-top: 2px;
+}
+
+.constraint {
+    opacity: 0.6;
+}
+
+.flash {
+    -moz-animation: flash 600ms ease-out;
+    -moz-animation-iteration-count: 1;
+    -webkit-animation: flash 600ms ease-out;
+    -webkit-animation-iteration-count: 1;
+    -ms-animation: flash 600ms ease-out;
+    -ms-animation-iteration-count: 1;
+}
+
+@-webkit-keyframes flash {
+    0% {
+        opacity: none;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: none;
+    }
+}
+
+@-moz-keyframes flash {
+    0% {
+        opacity: none;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: none;
+    }
+}
+
+@-ms-keyframes flash {
+    0% {
+        opacity: none;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: none;
+    }
+}
+
+.fixedParameterRow {
+    position: fixed !important;
+    bottom: 0px !important;
+}
+
+tr.collapse.show-override {
+    visibility: visible;
+    display: table-row;
+}
+
+/*.collapse {*/
+/*    visibility: collapse;*/
+/*}*/
+
+/*.in {*/
+/*    visibility: visible;*/
+/*}*/
+
+/*tr.collapse {*/
+/*    display: table-row !important;*/
+/*}*/
+
+/*.collapse {*/
+/*    display: block !important;*/
+/*}*/
+
+.collapse:not(.show) .collapse {
+
+}
+
+.collapsing {
+    -webkit-transition: none;
+    transition: none;
+    display: none;
+}
+
+.relatedUsecasesToggle {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+}
+
+.headingContainer {
+    position: relative;
+}
+
+.optionalIndicator {
+    font-size: 8px;
+    padding-right: 10px;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/*.show {*/
+/*    visibility: visible;*/
+/*}*/
+
+[data-toggle="collapse"] .fa:before {
+    content: "\f105";
+}
+
+[data-toggle="collapse"].collapsed .fa:before {
+    content: "\f107";
+}
+
+
+/*[data-level="1"] td:first-of-type {*/
+/*    padding-left: 25px;*/
+/*}*/
+
+/*[data-level="2"] td:first-of-type {*/
+/*    padding-left: 50px;*/
+/*}*/
+
+
+.deactivated td:not(:first-of-type) {
+    opacity: 50%;
+}
+
+[data-toggle="collapse"] {
+    cursor: pointer;
+}
+
+.curl-param-deprecated {
+    text-decoration: line-through;
+}
+
+.curl-param-deprecated:hover {
+    text-decoration: none;
+}
+
+.parameters tr > td:first-of-type {
+    white-space: nowrap;
+}

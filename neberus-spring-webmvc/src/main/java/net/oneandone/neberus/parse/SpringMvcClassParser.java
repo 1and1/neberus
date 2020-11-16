@@ -3,8 +3,9 @@ package net.oneandone.neberus.parse;
 import static net.oneandone.neberus.parse.SpringMvcMethodParser.NAME;
 import static net.oneandone.neberus.util.JavaDocUtils.*;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 import net.oneandone.neberus.util.MvcUtils;
 import org.springframework.http.HttpMethod;
@@ -30,28 +31,27 @@ public class SpringMvcClassParser extends ClassParser {
     }
 
     @Override
-    protected String getHttpMethod(ExecutableElement method) {
+    protected List<String> getHttpMethods(ExecutableElement method) {
         if (hasAnnotation(method, DeleteMapping.class, methodParser.options.environment)) {
-            return HttpMethod.DELETE.name();
+            return Collections.singletonList(HttpMethod.DELETE.name());
         } else if (hasAnnotation(method, GetMapping.class, methodParser.options.environment)) {
-            return HttpMethod.GET.name();
+            return Collections.singletonList(HttpMethod.GET.name());
         } else if (hasAnnotation(method, PostMapping.class, methodParser.options.environment)) {
-            return HttpMethod.POST.name();
+            return Collections.singletonList(HttpMethod.POST.name());
         } else if (hasAnnotation(method, PutMapping.class, methodParser.options.environment)) {
-            return HttpMethod.PUT.name();
+            return Collections.singletonList(HttpMethod.PUT.name());
         } else if (hasAnnotation(method, PatchMapping.class, methodParser.options.environment)) {
-            return HttpMethod.PATCH.name();
+            return Collections.singletonList(HttpMethod.PATCH.name());
         } else if (hasAnnotation(method, RequestMapping.class, methodParser.options.environment)) {
             List<AnnotationValue> annotationValue = getAnnotationValue(method, RequestMapping.class, "method", methodParser.options.environment);
-            if (annotationValue == null || annotationValue.size() == 0 || annotationValue.get(0) == null) {
-                return null;
+            if (annotationValue == null || annotationValue.isEmpty() || annotationValue.get(0) == null) {
+                return Collections.emptyList();
             }
-            StringJoiner sj = new StringJoiner(" | ");
-            annotationValue.forEach(v -> sj.add(((VariableElement) v.getValue()).getSimpleName().toString()));
-            return sj.toString();
+            return annotationValue.stream().map(v -> ((VariableElement) v.getValue()).getSimpleName().toString())
+                    .collect(Collectors.toList());
         }
 
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

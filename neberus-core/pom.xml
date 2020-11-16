@@ -24,13 +24,13 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>com.j2html</groupId>
-            <artifactId>j2html</artifactId>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-models</artifactId>
             <optional>true</optional>
         </dependency>
     </dependencies>

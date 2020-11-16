@@ -11,16 +11,22 @@ import java.lang.annotation.Target;
  * exist in the documented method.
  */
 @Target({})
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 public @interface ApiUsecaseMethod {
 
     /**
-     * The name of the method. If {@link #restClass() } is defined, this must match the value of a {@link ApiLabel } of one
-     * method in the linked class.
+     * Path of the method to call. Existing methods with matching path and httpMethod will be linked.
      *
-     * @return the name
+     * @return the path
      */
-    String name();
+    String path();
+
+    /**
+     * HttpMethod to use with the provided path.
+     *
+     * @return the httpMethod
+     */
+    String httpMethod();
 
     /**
      * Description of the usage of this method.
@@ -30,24 +36,24 @@ public @interface ApiUsecaseMethod {
     String description();
 
     /**
-     * The REST class containing the referenced method.
-     *
-     * @return the rest class
-     */
-    Class restClass() default Void.class;
-
-    /**
-     * Usage explanation of the parameters.
+     * Usage explanation of the parameters (header|query|path).
      *
      * @return the parameters
      */
     ApiUsecaseParam[] parameters() default {};
 
     /**
-     * Usage explanation of the response value.
+     * Custom example of the request body for the usecase.
      *
-     * @return the response values
+     * @return the request body
      */
-    ApiUsecaseResponseValue[] responseValue() default {};
+    ApiUsecaseRequestBody[] requestBody() default {};
+
+    /**
+     * Custom example of the response body for the usecase.
+     *
+     * @return the response body
+     */
+    ApiUsecaseResponseBody[] responseBody() default {};
 
 }

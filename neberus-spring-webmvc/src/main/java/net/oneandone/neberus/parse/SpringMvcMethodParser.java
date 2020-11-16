@@ -1,7 +1,6 @@
 package net.oneandone.neberus.parse;
 
 import net.oneandone.neberus.Options;
-import net.oneandone.neberus.ResponseType;
 import net.oneandone.neberus.util.MvcUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,10 +13,12 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-
 import java.util.List;
 
-import static net.oneandone.neberus.util.JavaDocUtils.*;
+import static net.oneandone.neberus.util.JavaDocUtils.extractValue;
+import static net.oneandone.neberus.util.JavaDocUtils.getAnnotationValue;
+import static net.oneandone.neberus.util.JavaDocUtils.hasAnnotation;
+import static net.oneandone.neberus.util.JavaDocUtils.typeCantBeDocumented;
 
 /**
  * Parses all stuff related to a single REST method.
@@ -35,6 +36,8 @@ public class SpringMvcMethodParser extends MethodParser {
     @Override
     protected boolean skipParameter(ExecutableElement methodDoc, VariableElement parameter, int index) {
         return super.skipParameter(methodDoc, parameter, index)
+                || parameter.asType().toString().equals("org.springframework.http.HttpHeaders")
+                || parameter.asType().toString().contains("org.springframework.util.MultiValueMap")
                 || !hasAnnotation(methodDoc, parameter, PathVariable.class, index, options.environment)
                 && !hasAnnotation(methodDoc, parameter, RequestParam.class, index, options.environment)
                 && !hasAnnotation(methodDoc, parameter, RequestBody.class, index, options.environment)
@@ -107,22 +110,14 @@ public class SpringMvcMethodParser extends MethodParser {
         return MvcUtils.getMappingAnnotationValue(method, "produces", options.environment);
     }
 
-
     @Override
-    protected void addSuccessResponse(ExecutableElement method, AnnotationMirror response, RestMethodData data, List<AnnotationValue> produces) {
-
-        RestMethodData.ResponseData responseData = new RestMethodData.ResponseData(ResponseType.SUCCESS);
-
-        addCommonResponseData(method, response, responseData);
-
+    protected TypeMirror getResponseEntityClass(ExecutableElement method, AnnotationMirror response) {
         TypeMirror typeFromResponse = extractValue(response, "entityClass");
         if (typeFromResponse != null) {
-            responseData.entityClass = typeFromResponse;
+            return typeFromResponse;
         } else {
-            responseData.entityClass = typeCantBeDocumented(method.getReturnType(), options) ? null : method.getReturnType();
+            return typeCantBeDocumented(method.getReturnType(), options) ? null : method.getReturnType();
         }
-
-        addResponseData(response, data, produces, responseData);
     }
 
     @Override

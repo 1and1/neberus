@@ -7,7 +7,6 @@ import net.oneandone.neberus.annotation.ApiUsecases;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +24,7 @@ public class UsecaseParser {
 
     private final Options options;
 
+
     public UsecaseParser(Options options) {
         this.options = options;
     }
@@ -35,17 +35,24 @@ public class UsecaseParser {
         restUsecaseData.description = getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
 
         getUsecaseAnnotations(typeElement)
-                .forEach(usecaseAnnotation -> addUsecase(restUsecaseData, usecaseAnnotation, restClasses));
+                .forEach(usecaseAnnotation -> addUsecase(restUsecaseData, usecaseAnnotation, restClasses, typeElement));
 
         return restUsecaseData;
     }
 
-    private void addUsecase(RestUsecaseData restUsecaseData, AnnotationMirror usecaseAnnotation, List<RestClassData> restClasses) {
+    private void addUsecase(RestUsecaseData restUsecaseData, AnnotationMirror usecaseAnnotation,
+                            List<RestClassData> restClasses, TypeElement typeElement) {
+
         String name = extractValue(usecaseAnnotation, "name");
         String description = extractValue(usecaseAnnotation, "description");
         List<AnnotationValue> usecaseMethods = extractValue(usecaseAnnotation, "methods");
 
-        RestUsecaseData.UsecaseData usecaseData = new RestUsecaseData.UsecaseData();
+        int idInt = (name == null ? 1 : name.hashCode())
+                + (description == null ? 1 : description.hashCode())
+                + typeElement.getQualifiedName().toString().hashCode();
+        String id = String.valueOf(idInt);
+
+        RestUsecaseData.UsecaseData usecaseData = new RestUsecaseData.UsecaseData(id);
         restUsecaseData.usecases.add(usecaseData);
 
         usecaseData.name = name;
@@ -58,28 +65,43 @@ public class UsecaseParser {
 
     private void addMethod(RestUsecaseData.UsecaseData usecaseData, AnnotationValue method, List<RestClassData> restClasses) {
         AnnotationMirror methodDesc = (AnnotationMirror) method.getValue();
-        String methodName = extractValue(methodDesc, "name");
+        String methodPath = extractValue(methodDesc, "path");
+        String methodHttpMethod = extractValue(methodDesc, "httpMethod");
         String methodDescription = extractValue(methodDesc, "description");
 
         RestUsecaseData.UsecaseMethodData usecaseMethodData = new RestUsecaseData.UsecaseMethodData();
         usecaseData.methods.add(usecaseMethodData);
 
-        usecaseMethodData.name = methodName;
+        usecaseMethodData.path = methodPath;
+        usecaseMethodData.httpMethod = methodHttpMethod;
         usecaseMethodData.description = methodDescription;
 
-        addLinkedMethod(methodDesc, restClasses, usecaseMethodData, methodName);
+        addLinkedMethod(restClasses, usecaseMethodData);
         addParameters(methodDesc, usecaseMethodData);
-        addResponseValue(methodDesc, usecaseMethodData);
+        addRequestBody(methodDesc, usecaseMethodData);
+        addResponseBody(methodDesc, usecaseMethodData);
     }
 
-    private void addResponseValue(AnnotationMirror methodDesc, RestUsecaseData.UsecaseMethodData usecaseMethodData) {
-        List<AnnotationValue> responseValue = extractValue(methodDesc, "responseValue");
-        if (responseValue != null) {
-            AnnotationMirror responseValueDesc = (AnnotationMirror) responseValue.get(0).getValue();
-            String responseValueName = extractValue(responseValueDesc, "name");
+    private void addResponseBody(AnnotationMirror methodDesc, RestUsecaseData.UsecaseMethodData usecaseMethodData) {
+        List<AnnotationValue> responseBody = extractValue(methodDesc, "responseBody");
+        if (responseBody != null) {
+            AnnotationMirror responseValueDesc = (AnnotationMirror) responseBody.get(0).getValue();
+            String responseValueContentType = extractValue(responseValueDesc, "contentType");
             String responseValueValue = extractValue(responseValueDesc, "value");
             String responseValueValueHint = extractValue(responseValueDesc, "valueHint");
-            usecaseMethodData.responseValue.put(responseValueName,
+            usecaseMethodData.responseBody.put(responseValueContentType,
+                    new RestUsecaseData.UsecaseValueInfo(responseValueValue, responseValueValueHint));
+        }
+    }
+
+    private void addRequestBody(AnnotationMirror methodDesc, RestUsecaseData.UsecaseMethodData usecaseMethodData) {
+        List<AnnotationValue> requestBody = extractValue(methodDesc, "requestBody");
+        if (requestBody != null) {
+            AnnotationMirror responseValueDesc = (AnnotationMirror) requestBody.get(0).getValue();
+            String responseValueContentType = extractValue(responseValueDesc, "contentType");
+            String responseValueValue = extractValue(responseValueDesc, "value");
+            String responseValueValueHint = extractValue(responseValueDesc, "valueHint");
+            usecaseMethodData.requestBody.put(responseValueContentType,
                     new RestUsecaseData.UsecaseValueInfo(responseValueValue, responseValueValueHint));
         }
     }
@@ -98,30 +120,13 @@ public class UsecaseParser {
         }
     }
 
-    private void addLinkedMethod(AnnotationMirror methodDesc, List<RestClassData> restClasses,
-                                 RestUsecaseData.UsecaseMethodData usecaseMethodData, String methodName) {
+    //TODO map/replace arbitrary parameter names (used in the povided path) to actually used names in the linked method
+    private void addLinkedMethod(List<RestClassData> restClasses, RestUsecaseData.UsecaseMethodData usecaseMethodData) {
         // find possibly linked method
-        DeclaredType linkedClass = extractValue(methodDesc, "restClass");
-
-
-        if (linkedClass != null) {
-            Optional<RestClassData> linkedRestClass =
-                    restClasses.stream()
-                            .filter(rc -> {
-                                Optional<TypeElement> interfaceClass = getInterfaceClass(rc.classDoc, options.environment);
-
-                                return options.environment.getTypeUtils().isSameType(linkedClass.asElement().asType(), rc.classDoc.asType())
-                                        || interfaceClass.isPresent()
-                                        && options.environment.getTypeUtils().isSameType(linkedClass.asElement().asType(),
-                                        interfaceClass.get().asType());
-                            })
-                            .findFirst();
-
-            if (linkedRestClass.isPresent()) {
-                usecaseMethodData.linkedMethod = linkedRestClass.get().methods.stream()
-                        .filter(m -> m.methodData.label.equals(methodName)).findFirst().orElse(null);
-            }
-        }
+        usecaseMethodData.linkedMethod = restClasses.stream().flatMap(rc -> rc.methods.stream())
+                .filter(m -> m.methodData.path.equals(usecaseMethodData.path)
+                        && m.methodData.httpMethod.equals(usecaseMethodData.httpMethod))
+                .findFirst().orElse(null);
     }
 
     private List<? extends AnnotationMirror> getUsecaseAnnotations(TypeElement classDoc) {

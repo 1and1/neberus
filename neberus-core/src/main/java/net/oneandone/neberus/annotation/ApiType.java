@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Define the type that should be displayed instead of the actual type. This can be used to hide internal wrapper DTOs.
  */
 @Target({ ElementType.PARAMETER })
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 public @interface ApiType {
 
     /**

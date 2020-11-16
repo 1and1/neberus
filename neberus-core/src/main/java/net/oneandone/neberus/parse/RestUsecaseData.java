@@ -1,6 +1,7 @@
 package net.oneandone.neberus.parse;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static net.oneandone.neberus.parse.RestMethodData.ParameterType.BODY;
 
@@ -10,6 +11,9 @@ public class RestUsecaseData {
 
     public List<UsecaseData> usecases;
 
+    private static final Set<String> ALLOWED_REST_METHODS = Arrays.stream(new String[]{ "GET", "PUT", "POST", "HEAD", "DELETE", "PATCH" })
+            .collect(Collectors.toSet());
+
     public RestUsecaseData() {
         this.usecases = new ArrayList<>();
     }
@@ -17,30 +21,51 @@ public class RestUsecaseData {
     public void validate(boolean ignoreErrors) {
         usecases.forEach(usecase -> {
             usecase.methods.forEach(method -> {
+
+                if (!ALLOWED_REST_METHODS.contains(method.httpMethod)) {
+                    System.err.println("Unsupported REST method in usecase: " + method.httpMethod);
+                    if (!ignoreErrors) {
+                        throw new IllegalStateException();
+                    }
+                }
+
                 if (method.linkedMethod == null) {
                     return;
                 }
 
                 method.parameters.keySet().forEach(paramKey -> {
                     if (!containsParameter(method.linkedMethod.requestData.parameters, paramKey)) {
-                        System.err.println("VariableElement defined in usecase <" + usecase.name + "> contains "
-                                + "paramter <" + paramKey + "> that is not present in the linked method <" + method.name + ">");
+                        System.err.println("Method defined in usecase <" + usecase.name + "> contains "
+                                + "parameter <" + paramKey + "> that is not present in the linked method <" + method.linkedMethod.methodData.label + ">");
                         if (!ignoreErrors) {
                             throw new IllegalStateException();
                         }
                     }
                 });
 
-                method.responseValue.keySet().forEach(responseValueKey -> {
-                    if (!containsParameter(method.linkedMethod.responseValues, responseValueKey)
-                            && !containsResponseValue(method.linkedMethod.responseData, responseValueKey)) {
-                        System.err.println("ResponseValue <" + responseValueKey + "> defined in usecase <" + usecase.name + "> "
-                                + "is not present in the linked method <" + method.name + ">");
+                method.requestBody.keySet().forEach(contentType -> {
+                    if (method.linkedMethod.requestData == null
+                            || method.linkedMethod.requestData.mediaType == null
+                            || !method.linkedMethod.requestData.mediaType.contains(contentType)) {
+                        System.err.println("Method defined in usecase <" + usecase.name + "> contains request body with "
+                                + "content-type <" + contentType + "> that is not present in the linked method <" + method.linkedMethod.methodData.label + ">");
                         if (!ignoreErrors) {
                             throw new IllegalStateException();
                         }
                     }
+                });
 
+                Set<String> linkedResponseContentTypes = method.linkedMethod.responseData.stream()
+                        .flatMap(r -> r.entities.stream().map(e -> e.contentType)).collect(Collectors.toSet());
+
+                method.responseBody.keySet().forEach(contentType -> {
+                    if (!linkedResponseContentTypes.contains(contentType)) {
+                        System.err.println("Method defined in usecase <" + usecase.name + "> contains response body with "
+                                + "content-type <" + contentType + "> that is not present in the linked method <" + method.linkedMethod.methodData.label + ">");
+                        if (!ignoreErrors) {
+                            throw new IllegalStateException();
+                        }
+                    }
                 });
 
             });
@@ -80,17 +105,20 @@ public class RestUsecaseData {
     }
 
     private boolean containsResponseValue(List<RestMethodData.ResponseData> responseData, String paramKey) {
-        return responseData.stream().anyMatch(p -> containsParameter(p.nestedParameters, paramKey));
+        return responseData.stream().flatMap(resp -> resp.entities.stream())
+                .anyMatch(entity -> containsParameter(entity.nestedParameters, paramKey));
     }
 
     public static class UsecaseData {
 
+        public String id;
         public String name;
         public String description;
 
         public List<UsecaseMethodData> methods;
 
-        public UsecaseData() {
+        public UsecaseData(String id) {
+            this.id = id;
             this.methods = new ArrayList<>();
         }
     }
@@ -98,14 +126,17 @@ public class RestUsecaseData {
     public static class UsecaseMethodData {
 
         public RestMethodData linkedMethod;
-        public String name;
+        public String path;
+        public String httpMethod;
         public String description;
         public Map<String, UsecaseValueInfo> parameters;
-        public Map<String, UsecaseValueInfo> responseValue;
+        public Map<String, UsecaseValueInfo> requestBody; // contentType -> valueInfo
+        public Map<String, UsecaseValueInfo> responseBody; // contentType -> valueInfo
 
         public UsecaseMethodData() {
             this.parameters = new LinkedHashMap<>();
-            this.responseValue = new LinkedHashMap<>();
+            this.requestBody = new LinkedHashMap<>();
+            this.responseBody = new LinkedHashMap<>();
         }
 
     }

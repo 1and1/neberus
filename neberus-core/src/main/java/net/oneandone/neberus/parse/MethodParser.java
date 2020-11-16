@@ -7,7 +7,7 @@ import com.sun.source.doctree.ParamTree;
 import com.sun.source.doctree.ReturnTree;
 import com.sun.source.doctree.SeeTree;
 import net.oneandone.neberus.Options;
-import net.oneandone.neberus.ResponseType;
+import net.oneandone.neberus.annotation.ApiAllowedValue;
 import net.oneandone.neberus.annotation.ApiAllowedValues;
 import net.oneandone.neberus.annotation.ApiCurl;
 import net.oneandone.neberus.annotation.ApiDescription;
@@ -16,20 +16,13 @@ import net.oneandone.neberus.annotation.ApiLabel;
 import net.oneandone.neberus.annotation.ApiOptional;
 import net.oneandone.neberus.annotation.ApiParameter;
 import net.oneandone.neberus.annotation.ApiParameters;
-import net.oneandone.neberus.annotation.ApiProblemResponse;
-import net.oneandone.neberus.annotation.ApiProblemResponses;
+import net.oneandone.neberus.annotation.ApiRequestEntities;
+import net.oneandone.neberus.annotation.ApiRequestEntity;
 import net.oneandone.neberus.annotation.ApiResponse;
-import net.oneandone.neberus.annotation.ApiResponseValue;
-import net.oneandone.neberus.annotation.ApiResponseValues;
 import net.oneandone.neberus.annotation.ApiResponses;
-import net.oneandone.neberus.annotation.ApiSuccessResponse;
-import net.oneandone.neberus.annotation.ApiSuccessResponses;
 import net.oneandone.neberus.annotation.ApiType;
-import net.oneandone.neberus.annotation.ApiWarningResponse;
-import net.oneandone.neberus.annotation.ApiWarningResponses;
 import net.oneandone.neberus.model.ApiStatus;
 import net.oneandone.neberus.model.FormParameters;
-import net.oneandone.neberus.model.ProblemType;
 import net.oneandone.neberus.util.JavaDocUtils;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -38,11 +31,10 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,7 +88,6 @@ public abstract class MethodParser {
     public static final String TYPE = "type";
     public static final String TITLE = "title";
     public static final String DESCRIPTION = "description";
-    private static final String[] NO_BODY_METHODS = { "GET", "DELETE" };
 
     public MethodParser(Options options) {
         this.options = options;
@@ -109,7 +100,7 @@ public abstract class MethodParser {
         addRequestData(method, data);
         addResponseData(method, data);
 
-        validate(data);
+        data.validate(options.ignoreErrors);
 
         return data;
     }
@@ -118,13 +109,14 @@ public abstract class MethodParser {
         addMediaType(method, data);
         addParameters(method, data);
         addCustomParameters(method, data);
+        sortByTypeAndOptionalAndDeprecatedState(data.requestData.parameters);
+        addCustomRequestEntities(method, data);
     }
 
     protected boolean skipParameter(ExecutableElement methodDoc, VariableElement parameter, int index) {
         return hasAnnotation(methodDoc, parameter, ApiIgnore.class, index, options.environment);
     }
 
-    //TODO label for parameters
     protected void addParameters(ExecutableElement method, RestMethodData data) {
         List<? extends VariableElement> parameters = method.getParameters();
 
@@ -136,7 +128,7 @@ public abstract class MethodParser {
             VariableElement parameter = parameters.get(i);
 
             if (skipParameter(method, parameter, i)) {
-                //we don't want to document @Context
+                //we don't want to document @Context aso.
                 continue;
             }
 
@@ -152,7 +144,6 @@ public abstract class MethodParser {
 
                     data.requestData.parameters.add(formParamContainer);
                 }
-                parameterInfo.containerClass = formParamContainer.entityClass;
                 formParamContainer.nestedParameters.add(parameterInfo);
 
             } else {
@@ -160,8 +151,48 @@ public abstract class MethodParser {
             }
         }
 
-        sortByOptionalState(data.requestData.parameters);
+        // convert entities
+        List<RestMethodData.ParameterInfo> bodyParams = data.requestData.parameters.stream().filter(p -> p.parameterType == BODY).collect(Collectors.toList());
 
+        bodyParams.forEach(p -> {
+            data.requestData.parameters.remove(p);
+
+            RestMethodData.Entity entity = new RestMethodData.Entity();
+            entity.entityClass = p.entityClass;
+            entity.description = p.description;
+            entity.nestedParameters = p.nestedParameters;
+            data.requestData.entities.add(entity);
+        });
+
+        sortByTypeAndOptionalAndDeprecatedState(data.requestData.parameters);
+
+    }
+
+    protected void addCustomRequestEntities(ExecutableElement method, RestMethodData data) {
+        //check for the (maybe implicit) container annotation...
+        List<AnnotationValue> entityDefinitions = getAnnotationValue(method, ApiRequestEntities.class, VALUE, options.environment);
+        if (entityDefinitions != null) {
+            //...and iterate over it's content
+            entityDefinitions.forEach(repsonse -> addCustomRequestEntity((AnnotationMirror) repsonse.getValue(), data));
+        } else {
+            //or look for a single annotation
+            List<? extends AnnotationMirror> singleEntityDefinition = getAnnotationDesc(method, ApiRequestEntity.class, options.environment);
+            singleEntityDefinition.forEach(annotationMirror -> addCustomRequestEntity(annotationMirror, data));
+        }
+    }
+
+    private void addCustomRequestEntity(AnnotationMirror entityDefinition, RestMethodData data) {
+        RestMethodData.Entity entity = new RestMethodData.Entity();
+        entity.contentType = extractValue(entityDefinition, "contentType");
+        entity.description = extractValue(entityDefinition, DESCRIPTION);
+        entity.entityClass = extractValue(entityDefinition, "entityClass");
+
+        List<AnnotationValue> examples = extractValue(entityDefinition, "examples");
+        entity.examples.addAll(getExamples(examples));
+
+        addNestedParameters(entity.entityClass, entity.nestedParameters, new ArrayList<>());
+
+        data.requestData.entities.add(entity);
     }
 
     protected abstract String getPathParam(ExecutableElement method, VariableElement parameter, int index);
@@ -191,22 +222,11 @@ public abstract class MethodParser {
         }
 
         //add the allowed values, if specified
-        List<AnnotationValue> allowedValues = getAnnotationValue(method, parameter, ApiAllowedValues.class, VALUE, index,
-                options.environment);
-
-        if (allowedValues != null && !allowedValues.isEmpty()) {
-            parameterInfo.allowedValues = allowedValues.stream()
-                    .map(av -> (String) av.getValue()).collect(Collectors.toList());
-        }
-
-        String allowedValueHint = getAnnotationValue(method, parameter, ApiAllowedValues.class, VALUE_HINT, index,
-                options.environment);
-
-        if (allowedValueHint != null) {
-            parameterInfo.allowedValueHint = allowedValueHint;
-        }
+        addAllowedValuesFromAnnotation(method, parameter, index, parameterInfo);
 
         parameterInfo.optional = isOptional(method, parameter, index);
+
+        parameterInfo.deprecated = hasAnnotation(method, parameter, Deprecated.class, index, options.environment);
 
         return parameterInfo;
     }
@@ -226,6 +246,8 @@ public abstract class MethodParser {
         parameterInfo.entityClass = parameter.asType();
         parameterInfo.displayClass = getAnnotationValue(method, parameter, ApiType.class, VALUE, index, options.environment);
         parameterInfo.constraints = getConstraints(getAnnotations(method, parameter, index, options.environment));
+        parameterInfo.optional = hasAnnotation(method, parameter, ApiOptional.class, index, options.environment);
+        parameterInfo.deprecated = hasAnnotation(method, parameter, Deprecated.class, index, options.environment);
 
         if (pathParam != null) {
             parameterInfo.name = pathParam;
@@ -243,7 +265,7 @@ public abstract class MethodParser {
             addNestedParameters(parameterInfo.displayClass != null ? parameterInfo.displayClass : parameterInfo.entityClass,
                     parameterInfo.nestedParameters, new ArrayList<>());
 
-            sortByOptionalState(parameterInfo.nestedParameters);
+            sortByTypeAndOptionalAndDeprecatedState(parameterInfo.nestedParameters);
         }
         return parameterInfo;
     }
@@ -256,9 +278,9 @@ public abstract class MethodParser {
 
         nestedInfoKey.name = "[key]";
         nestedInfoKey.parameterType = BODY;
+        nestedInfoKey.entityClass = typeArguments.get(0);
 
         if (!typeCantBeDocumented(typeArguments.get(0), options)) {
-            nestedInfoKey.entityClass = typeArguments.get(0);
             addNestedParameters(typeArguments.get(0), nestedInfoKey.nestedParameters, new ArrayList<>());
         }
 
@@ -266,25 +288,26 @@ public abstract class MethodParser {
         parentList.add(nestedInfoValue);
 
         nestedInfoValue.name = "[value]";
+        nestedInfoValue.entityClass = typeArguments.get(1);
 
         if (!typeCantBeDocumented(typeArguments.get(1), options)) {
-            nestedInfoValue.entityClass = typeArguments.get(1);
             addNestedParameters(typeArguments.get(1), nestedInfoValue.nestedParameters, new ArrayList<>());
         }
     }
 
     protected void addNestedArray(TypeMirror type, List<RestMethodData.ParameterInfo> parentList) {
-        List<? extends TypeMirror> typeArguments = ((DeclaredType) type).getTypeArguments();
+        TypeMirror typeArgument = type instanceof ArrayType
+                                  ? ((ArrayType) type).getComponentType()
+                                  : ((DeclaredType) type).getTypeArguments().get(0);
 
         RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
+        nestedInfo.entityClass = typeArgument;
         parentList.add(nestedInfo);
 
         nestedInfo.name = "[element]";
-        nestedInfo.parameterType = BODY;
 
-        if (!typeCantBeDocumented(typeArguments.get(0), options)) {
-            nestedInfo.entityClass = typeArguments.get(0);
-            addNestedParameters(typeArguments.get(0), nestedInfo.nestedParameters, new ArrayList<>());
+        if (!typeCantBeDocumented(typeArgument, options)) {
+            addNestedParameters(typeArgument, nestedInfo.nestedParameters, new ArrayList<>());
         }
 
     }
@@ -293,9 +316,6 @@ public abstract class MethodParser {
                                        List<TypeMirror> parentTypes) {
         try {
             //add nested parameters (ie. fields)
-            if (typeCantBeDocumented(type, options)) {
-                return;
-            }
 
             parentTypes.add(type);
 
@@ -304,6 +324,9 @@ public abstract class MethodParser {
             } else if (isMapType(type)) {
                 addNestedMap(type, parentList);
             } else {
+                if (typeCantBeDocumented(type, options)) {
+                    return;
+                }
 
                 List<VariableElement> fields = getVisibleFields(type, options.environment);
 
@@ -334,12 +357,28 @@ public abstract class MethodParser {
                 }
             }
         } finally {
-            sortByOptionalState(parentList);
+            sortByTypeAndOptionalAndDeprecatedState(parentList);
         }
     }
 
-    private void sortByOptionalState(List<RestMethodData.ParameterInfo> parentList) {
-        parentList.sort((a, b) -> a.optional && !b.optional ? 1 : a.optional && b.optional ? 0 : -1);
+    private void sortByTypeAndOptionalAndDeprecatedState(List<RestMethodData.ParameterInfo> parentList) {
+        parentList.sort((a, b) -> {
+            if (a.parameterType != null && b.parameterType != null) {
+                int compareType = a.parameterType.compareTo(b.parameterType);
+
+                if (compareType != 0) {
+                    return compareType;
+                }
+            }
+
+            int compareOpt = Boolean.compare(a.optional, b.optional);
+
+            if (compareOpt != 0) {
+                return compareOpt;
+            }
+
+            return Boolean.compare(a.deprecated, b.deprecated);
+        });
     }
 
     private ExecutableElement getCtorDoc(TypeMirror type) {
@@ -366,23 +405,10 @@ public abstract class MethodParser {
         nestedInfo.entityClass = param.asType();
         nestedInfo.constraints = getConstraints(param.getAnnotationMirrors());
         nestedInfo.optional = hasDirectAnnotation(param, ApiOptional.class);
+        nestedInfo.deprecated = hasDirectAnnotation(param, Deprecated.class);
 
         //add the allowed values, if specified
-        List<AnnotationValue> allowedValues = getDirectAnnotationValue(param, ApiAllowedValues.class, VALUE);
-        if (allowedValues != null && !allowedValues.isEmpty()) {
-            nestedInfo.allowedValues = allowedValues.stream()
-                    .map(av -> (String) av.getValue()).collect(Collectors.toList());
-        }
-
-        TypeMirror enumClass = getDirectAnnotationValue(param, ApiAllowedValues.class, "enumValues");
-        if (enumClass != null) {
-            nestedInfo.allowedValues = getEnumValuesAsList(enumClass, options.environment);
-        }
-
-        String allowedValueHint = getDirectAnnotationValue(param, ApiAllowedValues.class, VALUE_HINT);
-        if (allowedValueHint != null) {
-            nestedInfo.allowedValueHint = allowedValueHint;
-        }
+        addAllowedValuesFromAnnotation(param, nestedInfo);
 
         if (paramTag != null) {
             nestedInfo.description = getParamTreeComment(paramTag);
@@ -421,6 +447,16 @@ public abstract class MethodParser {
         nestedInfo.constraints = getConstraints(getter.getAnnotationMirrors());
         nestedInfo.optional = hasAnnotation(getter, ApiOptional.class, options.environment);
 
+        nestedInfo.deprecated = hasAnnotation(getter, Deprecated.class, options.environment);
+
+        getterBlockTags.stream()
+                .filter(tag -> tag instanceof DeprecatedTree).map(tag -> (DeprecatedTree) tag).findFirst()
+                .ifPresent(deprecatedTree -> {
+                    nestedInfo.deprecatedDescription = deprecatedTree.getBody().stream()
+                            .map(Object::toString)
+                            .collect(Collectors.joining());
+                });
+
         getAllowedValuesFromSeeTag(getter, getterBlockTags).ifPresent(av -> nestedInfo.allowedValues = av);
         getAllowedValuesFromLinkTag(getter, getterInlineTags).ifPresent(av -> nestedInfo.allowedValues = av);
         getConstraintsFromSeeTag(getter, getterBlockTags).ifPresent(av -> nestedInfo.constraints = av);
@@ -430,20 +466,11 @@ public abstract class MethodParser {
             addAllowedValuesFromAnnotation(getter, nestedInfo);
         }
 
-        addAllowedValueHint(getter, nestedInfo);
-
         parentList.add(nestedInfo);
 
         if (!type.equals(getter.getReturnType()) && !parentTypes.contains(getter.getReturnType())) {
             // break loops
             addNestedParameters(getter.getReturnType(), nestedInfo.nestedParameters, parentTypes); // recursive
-        }
-    }
-
-    private void addAllowedValueHint(Element memberDoc, RestMethodData.ParameterInfo nestedInfo) {
-        String allowedValueHint = getDirectAnnotationValue(memberDoc, ApiAllowedValues.class, VALUE_HINT);
-        if (allowedValueHint != null) {
-            nestedInfo.allowedValueHint = allowedValueHint;
         }
     }
 
@@ -458,6 +485,15 @@ public abstract class MethodParser {
         nestedInfo.entityClass = field.asType();
         nestedInfo.constraints = getConstraints(field.getAnnotationMirrors());
         nestedInfo.optional = hasDirectAnnotation(field, ApiOptional.class);
+        nestedInfo.deprecated = hasDirectAnnotation(field, Deprecated.class);
+
+        getBlockTags(field, options.environment).stream()
+                .filter(tag -> tag instanceof DeprecatedTree).map(tag -> (DeprecatedTree) tag).findFirst()
+                .ifPresent(deprecatedTree -> {
+                    nestedInfo.deprecatedDescription = deprecatedTree.getBody().stream()
+                            .map(Object::toString)
+                            .collect(Collectors.joining());
+                });
 
         List<? extends DocTree> fieldBlockTags = getBlockTags(field, options.environment);
         List<? extends DocTree> fieldInlineTags = getInlineTags(field, options.environment);
@@ -471,7 +507,6 @@ public abstract class MethodParser {
             addAllowedValuesFromAnnotation(field, nestedInfo);
         }
 
-        addAllowedValueHint(field, nestedInfo);
         parentList.add(nestedInfo);
 
         if (!type.equals(field.asType()) && !parentTypes.contains(field.asType())) {
@@ -481,53 +516,83 @@ public abstract class MethodParser {
     }
 
     private void addAllowedValuesFromAnnotation(Element memberDoc, RestMethodData.ParameterInfo nestedInfo) {
-        //add the allowed values, if specified
-        List<AnnotationValue> allowedValues = getDirectAnnotationValue(memberDoc, ApiAllowedValues.class, VALUE);
-        if (allowedValues != null && !allowedValues.isEmpty()) {
-            nestedInfo.allowedValues = allowedValues.stream()
-                    .map(av -> (String) av.getValue()).collect(Collectors.toList());
-        }
-
-        TypeMirror enumClass = getDirectAnnotationValue(memberDoc, ApiAllowedValues.class, "enumValues");
-        if (enumClass != null) {
-            nestedInfo.allowedValues = getEnumValuesAsList(enumClass, options.environment);
+        //check for the (maybe implicit) container annotation...
+        List<AnnotationValue> parameters = getDirectAnnotationValue(memberDoc, ApiAllowedValues.class, VALUE);
+        if (parameters != null) {
+            //...and iterate over it's content
+            parameters.forEach(repsonse -> addAllowedValuesFromAnnotation((AnnotationMirror) repsonse.getValue(), nestedInfo.allowedValues));
+        } else {
+            //or look for a single annotation
+            List<? extends AnnotationMirror> singleParameter = getAnnotationDesc(memberDoc, ApiAllowedValue.class);
+            singleParameter.forEach(annotationMirror -> addAllowedValuesFromAnnotation(annotationMirror, nestedInfo.allowedValues));
         }
     }
 
-    protected List<String> getAllowedValuesFromType(TypeMirror type) {
-        List<String> allowedValues = Collections.emptyList();
-
-        if (isEnum(type, options.environment)) {
-            allowedValues = getEnumValuesAsList(type, options.environment);
+    private void addAllowedValuesFromAnnotation(ExecutableElement memberDoc, VariableElement param, int index, RestMethodData.ParameterInfo nestedInfo) {
+        //check for the (maybe implicit) container annotation...
+        List<AnnotationValue> parameters = getDirectAnnotationValue(param, ApiAllowedValues.class, VALUE);
+        if (parameters != null) {
+            //...and iterate over it's content
+            parameters.forEach(repsonse -> addAllowedValuesFromAnnotation((AnnotationMirror) repsonse.getValue(), nestedInfo.allowedValues));
+        } else {
+            //or look for a single annotation
+            List<? extends AnnotationMirror> singleParameter = getAnnotationDesc(memberDoc, param, ApiAllowedValue.class, index, options.environment);
+            singleParameter.forEach(annotationMirror -> addAllowedValuesFromAnnotation(annotationMirror, nestedInfo.allowedValues));
         }
-
-        return allowedValues;
     }
 
-    protected Optional<List<String>> getAllowedValuesFromLinkTag(Element e, List<? extends DocTree> tags) {
+    private void addAllowedValuesFromAnnotation(AnnotationMirror annotationMirror, List<RestMethodData.AllowedValue> allowedValues) {
+        TypeMirror enumClass = extractValue(annotationMirror, "enumValues");
+
+        if (enumClass != null && !enumClass.toString().equals(Enum.class.getCanonicalName())) {
+            allowedValues.addAll(getAllowedValuesFromType(enumClass));
+        } else {
+            String value = extractValue(annotationMirror, VALUE);
+            String valueHint = extractValue(annotationMirror, VALUE_HINT);
+
+            RestMethodData.AllowedValue allowedValue = new RestMethodData.AllowedValue(value, valueHint);
+            allowedValues.add(allowedValue);
+        }
+    }
+
+    protected List<RestMethodData.AllowedValue> getAllowedValuesFromType(TypeMirror type) {
+        if (!isEnum(type, options.environment)) {
+            return new ArrayList<>();
+        }
+
+        return getEnumValuesAsList(type, options.environment)
+                .stream().map(enumValue -> {
+                    String valueHint = getCommentText(enumValue, options.environment, true);
+                    return new RestMethodData.AllowedValue(enumValue.getSimpleName().toString(), valueHint);
+                }).collect(Collectors.toList());
+    }
+
+    protected Optional<List<RestMethodData.AllowedValue>> getAllowedValuesFromLinkTag(Element e, List<? extends DocTree> tags) {
         return tags.stream().filter(tag -> LinkTree.class.isAssignableFrom(tag.getClass())).map(tag -> (LinkTree) tag)
                 .findFirst().map(linkTree -> {
                     Element referencedElement = getReferencedElement(e, linkTree.getReference(), options.environment);
 
                     if (referencedElement != null && TypeElement.class.isAssignableFrom(referencedElement.getClass())) {
-                        return getEnumValuesAsList((TypeElement) referencedElement, options.environment);
+                        return getAllowedValuesFromType(referencedElement.asType());
+//                        return getEnumValuesAsList((TypeElement) referencedElement, options.environment);
                     }
 
                     return null;
                 });
     }
 
-    protected Optional<List<String>> getAllowedValuesFromSeeTag(Element e, List<? extends DocTree> tags) {
+    protected Optional<List<RestMethodData.AllowedValue>> getAllowedValuesFromSeeTag(Element e, List<? extends DocTree> tags) {
         return tags.stream()
                 .filter(tag -> SeeTree.class.isAssignableFrom(tag.getClass())).map(tag -> (SeeTree) tag)
                 .findFirst().map(seeTree -> {
-                    List<String> values = new ArrayList<>();
+                    List<RestMethodData.AllowedValue> values = new ArrayList<>();
 
                     seeTree.getReference().forEach(referenced -> {
                         Element referencedElement = getReferencedElement(e, referenced, options.environment);
 
                         if (referencedElement != null && TypeElement.class.isAssignableFrom(referencedElement.getClass())) {
-                            values.addAll(getEnumValuesAsList((TypeElement) referencedElement, options.environment));
+                            values.addAll(getAllowedValuesFromType(referencedElement.asType()));
+//                            values.addAll(getEnumValuesAsList((TypeElement) referencedElement, options.environment));
                         }
                     });
 
@@ -574,12 +639,8 @@ public abstract class MethodParser {
             parameters.forEach(repsonse -> addCustomParameter((AnnotationMirror) repsonse.getValue(), data));
         } else {
             //or look for a single annotation
-            Optional<? extends AnnotationMirror> singleParameter = getAnnotationDesc(method, ApiParameter.class,
-                    options.environment);
-
-            if (singleParameter.isPresent()) {
-                addCustomParameter(singleParameter.get(), data);
-            }
+            List<? extends AnnotationMirror> singleParameter = getAnnotationDesc(method, ApiParameter.class, options.environment);
+            singleParameter.forEach(annotationMirror -> addCustomParameter(annotationMirror, data));
         }
     }
 
@@ -591,61 +652,10 @@ public abstract class MethodParser {
     }
 
     protected void addParameterInfo(List<RestMethodData.ParameterInfo> parameters, RestMethodData.ParameterInfo parameterInfo) {
-
-        parameters.stream().filter(p -> p.entityClass != null && p.entityClass.equals(parameterInfo.containerClass))
-                .forEach(p -> {
-                    Optional<RestMethodData.ParameterInfo> existingParam = p.nestedParameters.stream()
-                            .filter(np -> np.name.equals(parameterInfo.name)).findFirst();
-
-                    if (existingParam.isPresent()) {
-                        existingParam.get().merge(parameterInfo);
-                    } else {
-                        p.nestedParameters.add(parameterInfo);
-                    }
-                });
-    }
-
-    protected void addCustomResponseValues(ExecutableElement method, RestMethodData data) {
-        //check for the (maybe implicit) container annotation...
-        List<AnnotationValue> responseValues = getAnnotationValue(method, ApiResponseValues.class, VALUE, options.environment);
-        if (responseValues != null) {
-            //...and iterate over it's content
-            responseValues.forEach(repsonse -> {
-                addCustomResponseValue((AnnotationMirror) repsonse.getValue(), data);
-            });
-        } else {
-            //or look for a single annotation
-            Optional<? extends AnnotationMirror> singleResponseValue = getAnnotationDesc(method, ApiResponseValue.class,
-                    options.environment);
-
-            if (singleResponseValue.isPresent()) {
-                addCustomResponseValue(singleResponseValue.get(), data);
-            }
+        if (parameterInfo.entityClass == null) {
+            parameterInfo.entityClass = options.environment.getElementUtils().getTypeElement("java.lang.String").asType();
         }
-
-        sortByOptionalState(data.responseValues);
-    }
-
-    protected void addCustomResponseValue(AnnotationMirror parameterDesc, RestMethodData data) {
-        RestMethodData.ParameterInfo parameterInfo = parseCustomParameterInfo(parameterDesc);
-
-        //add param as nested to responseData
-        data.responseData.stream().filter(r -> r.entityClass != null && r.entityClass.equals(parameterInfo.containerClass))
-                .forEach(r -> {
-                    Optional<RestMethodData.ParameterInfo> existingParam = r.nestedParameters.stream()
-                            .filter(np -> np.name.equals(parameterInfo.name)).findFirst();
-
-                    if (existingParam.isPresent()) {
-                        existingParam.get().merge(parameterInfo);
-                    } else {
-                        r.nestedParameters.add(parameterInfo);
-                    }
-                });
-
-        // add unrelated response values
-        if (parameterInfo.containerClass == null) {
-            data.responseValues.add(parameterInfo);
-        }
+        parameters.add(parameterInfo);
     }
 
     protected RestMethodData.ParameterInfo parseCustomParameterInfo(AnnotationMirror parameterDesc) {
@@ -668,18 +678,22 @@ public abstract class MethodParser {
             parameterInfo.parameterType = UNSET;
         }
 
-
         List<AnnotationValue> allowedValues = extractValue(parameterDesc, "allowedValues");
         if (allowedValues != null) {
-            parameterInfo.allowedValues = allowedValues.stream()
-                    .map(av -> (String) av.getValue()).collect(Collectors.toList());
+            for (AnnotationValue allowedValue : allowedValues) {
+                AnnotationMirror allowedValueDesc = (AnnotationMirror) allowedValue.getValue();
+                addAllowedValuesFromAnnotation(allowedValueDesc, parameterInfo.allowedValues);
+            }
         }
 
-        parameterInfo.containerClass = extractValue(parameterDesc, "containerClass");
         parameterInfo.entityClass = extractValue(parameterDesc, "entityClass");
 
         Boolean optional = extractValue(parameterDesc, "optional");
         parameterInfo.optional = optional != null && optional;
+
+        Boolean deprecated = extractValue(parameterDesc, "deprecated");
+        parameterInfo.deprecated = deprecated != null && deprecated;
+        parameterInfo.deprecatedDescription = extractValue(parameterDesc, "deprecatedDescription");
 
         return parameterInfo;
     }
@@ -708,7 +722,7 @@ public abstract class MethodParser {
             });
 
             annotation.getElementValues().forEach((element, value) -> {
-                    params.put(element.getSimpleName().toString(), value.getValue().toString());
+                params.put(element.getSimpleName().toString(), value.getValue().toString());
             });
 
             constraints.put(key, params);
@@ -756,6 +770,11 @@ public abstract class MethodParser {
         String path = getPath(method);
         if (path != null) {
             String divider = data.methodData.path.endsWith("/") || path.startsWith("/") ? "" : "/";
+
+            if (data.methodData.path.endsWith("/") && path.startsWith("/")) {
+                path = path.replaceFirst("/", "");
+            }
+
             data.methodData.path += divider + path;
         }
     }
@@ -775,7 +794,7 @@ public abstract class MethodParser {
 
     protected void addCurl(ExecutableElement methodDoc, RestMethodData data) {
         //look for the ApiCurl annotation on the method
-        if (getAnnotationDesc(methodDoc, ApiCurl.class, options.environment).isPresent()) {
+        if (!getAnnotationDesc(methodDoc, ApiCurl.class, options.environment).isEmpty()) {
             data.methodData.printCurl = true; //flag the method to display a curl
             String curl = getAnnotationValue(methodDoc, ApiCurl.class, VALUE, options.environment);
             if (curl != null) {
@@ -800,8 +819,8 @@ public abstract class MethodParser {
 
     protected void addDeprecated(ExecutableElement method, RestMethodData data) {
         //look for an Deprecated annotation on the method...
-        Optional<? extends AnnotationMirror> deprecatedAnnotation = getAnnotationDesc(method, Deprecated.class, options.environment);
-        if (deprecatedAnnotation.isPresent()) {
+        List<? extends AnnotationMirror> deprecatedAnnotation = getAnnotationDesc(method, Deprecated.class, options.environment);
+        if (!deprecatedAnnotation.isEmpty()) {
             data.methodData.deprecated = true;
             //...and look for a description in the javadoc
             Optional<DeprecatedTree> deprecatedTag = getTags(method, options.environment).stream()
@@ -837,156 +856,40 @@ public abstract class MethodParser {
     }
 
     protected void addResponseData(ExecutableElement method, RestMethodData data) {
-        addResponsesFromAnnotations(method, data, ApiSuccessResponse.class, ApiSuccessResponses.class, ResponseType.SUCCESS);
-        addResponsesFromAnnotations(method, data, ApiWarningResponse.class, ApiWarningResponses.class, ResponseType.WARNING);
-        addResponsesFromAnnotations(method, data, ApiProblemResponse.class, ApiProblemResponses.class, ResponseType.PROBLEM);
-        addResponsesFromAnnotations(method, data, ApiResponse.class, ApiResponses.class, ResponseType.GENERIC);
-        addCustomResponseValues(method, data);
+        addResponsesFromAnnotations(method, data);
     }
 
-    protected void addResponsesFromAnnotations(ExecutableElement method, RestMethodData data, Class responseClass,
-                                               Class responseContainerClass, ResponseType responseType) {
+    protected void addResponsesFromAnnotations(ExecutableElement method, RestMethodData data) {
         // the first value from @Produces may be used as Content-Type, if no specific one is defined.
         List<AnnotationValue> produces = getProduces(method);
 
         //check for the (maybe implicit) container annotation...
-        List<AnnotationValue> reponses = getAnnotationValue(method, responseContainerClass, VALUE, options.environment);
-        if (reponses != null) {
+        List<AnnotationValue> responses = getAnnotationValue(method, ApiResponses.class, VALUE, options.environment);
+        if (responses != null) {
             //...and iterate over it's content
-            reponses.forEach(repsonse -> {
-                addResponse(method, (AnnotationMirror) repsonse.getValue(), data, produces, responseType);
+            responses.forEach(repsonse -> {
+                addResponse((AnnotationMirror) repsonse.getValue(), data, produces);
             });
         } else {
             //or look for a single annotation
-            Optional<? extends AnnotationMirror> singleResponse = getAnnotationDesc(method, responseClass, options.environment);
-            if (singleResponse.isPresent()) {
-                addResponse(method, singleResponse.get(), data, produces, responseType);
-            }
+            List<? extends AnnotationMirror> singleResponse = getAnnotationDesc(method, ApiResponse.class, options.environment);
+            singleResponse.forEach(annotationMirror -> addResponse(annotationMirror, data, produces));
         }
     }
 
-    protected void addResponse(ExecutableElement method, AnnotationMirror response, RestMethodData data, List<AnnotationValue> produces,
-                               ResponseType responseType) {
-        switch (responseType) {
-            case SUCCESS:
-                addSuccessResponse(method, response, data, produces);
-                break;
-            case WARNING:
-                addWarningResponse(method, response, data);
-                break;
-            case PROBLEM:
-                addProblemResponse(method, response, data);
-                break;
-            case GENERIC:
-                addGenericResponse(method, response, data, produces);
-                break;
-            default:
-                break;
-        }
-    }
+    protected void addResponse(AnnotationMirror response, RestMethodData data,
+                               List<AnnotationValue> produces) {
 
-    protected void addGenericResponse(ExecutableElement method, AnnotationMirror response, RestMethodData data,
-                                      List<AnnotationValue> produces) {
-
-        VariableElement responseType = extractValue(response, "responseType");
-        ResponseType type = ResponseType.valueOf(responseType.getSimpleName().toString());
-
-        RestMethodData.ResponseData responseData = new RestMethodData.ResponseData(type);
-
-        addCommonResponseData(method, response, responseData);
-
-        responseData.entityClass = extractValue(response, "entityClass");
-
-        addResponseData(response, data, produces, responseData);
-    }
-
-    protected void addResponseData(AnnotationMirror response, RestMethodData data, List<AnnotationValue> produces,
-                                   RestMethodData.ResponseData responseData) {
-        String contentTypeFromResponse = extractValue(response, "contentType");
-        if (contentTypeFromResponse != null) {
-            //store the Content-Type defined in the annotation
-            responseData.contentType = contentTypeFromResponse;
-        } else if (produces != null && !produces.isEmpty() && responseData.entityClass != null) {
-            //or take the first value from @Produces, if it is available and an entityClass is defined
-            responseData.contentType = (String) produces.get(0).getValue();
-        }
-
-        if (responseData.entityClass != null) {
-            addNestedParameters(responseData.entityClass, responseData.nestedParameters, new ArrayList<>());
-        }
-
+        RestMethodData.ResponseData responseData = new RestMethodData.ResponseData();
         data.responseData.add(responseData);
+        addCommonResponseData(response, produces, responseData);
     }
 
-    protected void addSuccessResponse(ExecutableElement method, AnnotationMirror response, RestMethodData data,
-                                      List<AnnotationValue> produces) {
-
-        RestMethodData.ResponseData responseData = new RestMethodData.ResponseData(ResponseType.SUCCESS);
-
-        addCommonResponseData(method, response, responseData);
-
-        responseData.entityClass = extractValue(response, "entityClass");
-
-        addResponseData(response, data, produces, responseData);
+    protected TypeMirror getResponseEntityClass(ExecutableElement method, AnnotationMirror response) {
+        return extractValue(response, "entityClass");
     }
 
-    protected void addProblemResponse(ExecutableElement method, AnnotationMirror response, RestMethodData data) {
-        RestMethodData.ResponseData responseData = new RestMethodData.ResponseData(ResponseType.PROBLEM);
-
-        addCommonResponseData(method, response, responseData);
-
-        VariableElement problemType = extractValue(response, TYPE);
-
-        if (problemType != null) {
-            responseData.problem = new RestMethodData.ProblemInfo();
-            responseData.problem.type = ProblemType.valueOf(problemType.getSimpleName().toString());
-
-            String title = extractValue(response, TITLE);
-            if (title != null) {
-                responseData.problem.title = title;
-            }
-            String detail = extractValue(response, DETAIL);
-            if (detail != null) {
-                responseData.problem.detail = detail;
-            }
-        }
-
-        data.responseData.add(responseData);
-    }
-
-    protected void addWarningResponse(ExecutableElement method, AnnotationMirror response, RestMethodData data) {
-        RestMethodData.ResponseData responseData = new RestMethodData.ResponseData(ResponseType.WARNING);
-
-        addCommonResponseData(method, response, responseData);
-
-        List<AnnotationValue> warnings = extractValue(response, "warnings");
-
-        if (warnings != null) {
-            for (AnnotationValue warning : warnings) {
-                AnnotationMirror warningDesc = (AnnotationMirror) warning.getValue();
-
-                RestMethodData.ProblemInfo warningInfo = new RestMethodData.ProblemInfo();
-                warningInfo.type = ProblemType.valueOf(((VariableElement) extractValue(warningDesc, TYPE))
-                        .getSimpleName().toString());
-
-                String title = extractValue(warningDesc, TITLE);
-                if (title != null) {
-                    warningInfo.title = title;
-                }
-
-                String detail = extractValue(warningDesc, DETAIL);
-                if (detail != null) {
-                    warningInfo.detail = detail;
-                }
-
-                responseData.warnings.add(warningInfo);
-            }
-        }
-
-        data.responseData.add(responseData);
-    }
-
-    protected void addCommonResponseData(ExecutableElement method, AnnotationMirror response,
+    protected void addCommonResponseData(AnnotationMirror response, List<AnnotationValue> produces,
                                          RestMethodData.ResponseData responseData) {
         VariableElement status = extractValue(response, "status");
         responseData.status = ApiStatus.valueOf(status.getSimpleName().toString());
@@ -1004,54 +907,71 @@ public abstract class MethodParser {
                 RestMethodData.HeaderInfo headerInfo = new RestMethodData.HeaderInfo();
                 headerInfo.name = extractValue(headerDesc, "name");
                 headerInfo.description = extractValue(headerDesc, DESCRIPTION);
+
+                Boolean optional = extractValue(headerDesc, "optional");
+                headerInfo.optional = optional != null && optional;
+
+                Boolean deprecated = extractValue(headerDesc, "deprecated");
+                headerInfo.deprecated = deprecated != null && deprecated;
+                headerInfo.deprecatedDescription = extractValue(headerDesc, "deprecatedDescription");
+
+                List<AnnotationValue> allowedValues = extractValue(headerDesc, "allowedValues");
+                if (allowedValues != null) {
+                    for (AnnotationValue allowedValue : allowedValues) {
+                        AnnotationMirror allowedValueDesc = (AnnotationMirror) allowedValue.getValue();
+                        addAllowedValuesFromAnnotation(allowedValueDesc, headerInfo.allowedValues);
+                    }
+                }
+
                 responseData.headers.add(headerInfo);
             }
         }
-    }
 
-    private void validate(RestMethodData restMethodData) {
-        boolean invalid = false;
+        List<AnnotationValue> entities = extractValue(response, "entities");
 
-        String methodAndClass = " for method " + restMethodData.methodData.methodDoc;
+        if (entities != null) {
+            for (AnnotationValue entity : entities) {
+                AnnotationMirror entityDesc = (AnnotationMirror) entity.getValue();
 
-        invalid |= !validateForCurl(restMethodData, methodAndClass);
-        invalid |= !validateBodyExistence(restMethodData, methodAndClass);
+                RestMethodData.Entity responseEntity = new RestMethodData.Entity();
+                responseData.entities.add(responseEntity);
 
-        if (invalid && !options.ignoreErrors) {
-            throw new IllegalStateException();
-        }
-    }
+                responseEntity.entityClass = extractValue(entityDesc, "entityClass");
+                responseEntity.description = extractValue(entityDesc, DESCRIPTION);
 
-    private boolean validateBodyExistence(RestMethodData restMethodData, String methodAndClass) {
-        boolean valid = true;
 
-        if (Arrays.stream(NO_BODY_METHODS).anyMatch(e -> e.equals(restMethodData.methodData.httpMethod))) {
-            if (restMethodData.requestData.mediaType != null && !restMethodData.requestData.mediaType.isEmpty()) {
-                System.err.println("Consumes MediaType is not allowed in combination with HttpMethod "
-                        + restMethodData.methodData.httpMethod + methodAndClass);
-                valid = false;
-            }
+                String contentTypeFromResponse = extractValue(entityDesc, "contentType");
+                if (contentTypeFromResponse != null) {
+                    //store the Content-Type defined in the annotation
+                    responseEntity.contentType = contentTypeFromResponse;
+                } else {
+                    //or take the first value from @Produces, if it is available and an entityClass is defined
+                    responseEntity.contentType = (String) produces.get(0).getValue();
+                }
 
-            if (restMethodData.requestData.parameters.stream().anyMatch(p -> p.parameterType == BODY)) {
-                System.err.println("Body parameter is not allowed in combination with HttpMethod "
-                        + restMethodData.methodData.httpMethod + methodAndClass);
-                valid = false;
+                addNestedParameters(responseEntity.entityClass, responseEntity.nestedParameters, new ArrayList<>());
+
+                List<AnnotationValue> examples = extractValue(entityDesc, "examples");
+                responseEntity.examples.addAll(getExamples(examples));
             }
         }
-        return valid;
+
     }
 
-    private boolean validateForCurl(RestMethodData restMethodData, String methodAndClass) {
-        boolean valid = true;
+    private List<RestMethodData.Example> getExamples(List<AnnotationValue> examples) {
+        List<RestMethodData.Example> exampleList = new ArrayList<>();
 
-        if (restMethodData.methodData.printCurl && restMethodData.methodData.curl == null
-                && Arrays.stream(NO_BODY_METHODS).noneMatch(e -> e.equals(restMethodData.methodData.httpMethod))
-                && restMethodData.requestData.parameters.stream().anyMatch(p -> p.parameterType == BODY)
-                && (restMethodData.requestData.mediaType == null || restMethodData.requestData.mediaType.isEmpty())) {
-            System.err.println("Consumes MediaType is required to generate curl" + methodAndClass);
-            valid = false;
+        if (examples != null) {
+            for (AnnotationValue example : examples) {
+                AnnotationMirror exampleDesc = (AnnotationMirror) example.getValue();
+                RestMethodData.Example exampleData = new RestMethodData.Example();
+                exampleData.title = extractValue(exampleDesc, TITLE);
+                exampleData.value = extractValue(exampleDesc, VALUE);
+                exampleData.description = extractValue(exampleDesc, DESCRIPTION);
+                exampleList.add(exampleData);
+            }
         }
-        return valid;
+        return exampleList;
     }
 
 }

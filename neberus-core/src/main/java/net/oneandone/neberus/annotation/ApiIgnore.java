@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
  * Exclude a request parameter, DTO field or a whole REST method from documentation.
  */
 @Target({ ElementType.PARAMETER, ElementType.FIELD, ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 public @interface ApiIgnore {
 }

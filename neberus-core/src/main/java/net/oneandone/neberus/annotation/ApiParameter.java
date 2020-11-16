@@ -1,7 +1,5 @@
 package net.oneandone.neberus.annotation;
 
-import net.oneandone.neberus.parse.RestMethodData;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
@@ -9,15 +7,25 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Defines a custom parameter for a REST method. Most likely used to document fields inside the body.
+ * Defines a custom parameter for a REST method.
  */
 @Target({ ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 @Repeatable(ApiParameters.class)
 public @interface ApiParameter {
 
+    /**
+     * The name of the parameter.
+     *
+     * @return the name
+     */
     String name();
 
+    /**
+     * Description of the parameter.
+     *
+     * @return the description
+     */
     String description() default "";
 
     /**
@@ -25,23 +33,15 @@ public @interface ApiParameter {
      *
      * @return the type
      */
-    RestMethodData.ParameterType type() default RestMethodData.ParameterType.UNSET;
+    Type type();
 
     /**
-     * Define allowed values that should be provided by the client. If missing, the possible value will be generated.
+     * Define allowed value that should be provided by the client. If missing, the possible value will be generated.
      * In case of an enum, all enum values will be shown, otherwise it will be something like {String}.
      *
-     * @return the allowed values
+     * @return the allowed value
      */
-    String[] allowedValues() default {};
-
-    /**
-     * If set, the parameter will be grouped under the corresponding request entity description. Defining a class that is not
-     * used for any request entity will cause this parameter to disappear.
-     *
-     * @return the container class
-     */
-    Class containerClass() default Void.class;
+    ApiAllowedValues[] allowedValues() default {};
 
     /**
      * Define the class of the parameter. May be used for templates and as containerClass for other parameters.
@@ -50,6 +50,29 @@ public @interface ApiParameter {
      */
     Class entityClass() default Void.class;
 
+    /**
+     * If true, the parameter will be marked as optional, else as mandatory.
+     *
+     * @return whether the parameter is optional
+     */
     boolean optional() default false;
+
+    /**
+     * If true, the parameter will be marked as deprecated.
+     *
+     * @return whether the parameter is deprecated
+     */
+    boolean deprecated() default false;
+
+    /**
+     * Additional description that will be shown if the parameter is deprecated.
+     *
+     * @return additional description for a deprecated parameter
+     */
+    String deprecatedDescription() default "";
+
+    enum Type {
+        PATH, QUERY, HEADER
+    }
 
 }

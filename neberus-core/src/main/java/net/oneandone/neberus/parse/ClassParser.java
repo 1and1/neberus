@@ -1,8 +1,10 @@
 package net.oneandone.neberus.parse;
 
+import net.oneandone.neberus.annotation.ApiCommonResponse;
+import net.oneandone.neberus.annotation.ApiCommonResponses;
 import net.oneandone.neberus.annotation.ApiDescription;
-import net.oneandone.neberus.annotation.ApiHeader;
-import net.oneandone.neberus.annotation.ApiHeaders;
+import net.oneandone.neberus.annotation.ApiHeaderDefinition;
+import net.oneandone.neberus.annotation.ApiHeaderDefinitions;
 import net.oneandone.neberus.annotation.ApiIgnore;
 import net.oneandone.neberus.annotation.ApiLabel;
 
@@ -10,10 +12,11 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static net.oneandone.neberus.parse.MethodParser.VALUE;
 import static net.oneandone.neberus.util.JavaDocUtils.extractValue;
 import static net.oneandone.neberus.util.JavaDocUtils.getAnnotationDesc;
 import static net.oneandone.neberus.util.JavaDocUtils.getAnnotationValue;
@@ -38,6 +41,7 @@ public abstract class ClassParser {
         // class related stuff
         addLabel(classDoc, restClassData);
         addHeaders(classDoc, restClassData);
+        addResponsesFromAnnotations(classDoc, restClassData);
         addDescription(classDoc, restClassData);
 
         restClassData.className = classDoc.getSimpleName().toString();
@@ -50,26 +54,28 @@ public abstract class ClassParser {
                 .collect(Collectors.toList());
 
         for (ExecutableElement method : methods) {
-            RestMethodData parsedMethodData = parseMethod(method);
-            if (parsedMethodData != null) {
-                parsedMethodData.containingClass = restClassData;
-                restClassData.methods.add(parsedMethodData);
+            List<RestMethodData> parsedMethodDataList = parseMethods(method);
+            if (parsedMethodDataList != null) {
+                parsedMethodDataList.forEach(parsedMethodData -> {
+                    parsedMethodData.containingClass = restClassData;
+                    restClassData.methods.add(parsedMethodData);
+                });
             }
         }
 
         return restClassData;
     }
 
-    protected abstract String getHttpMethod(ExecutableElement method);
+    protected abstract List<String> getHttpMethods(ExecutableElement method);
 
-    private RestMethodData parseMethod(ExecutableElement method) {
-        String httpMethod = getHttpMethod(method);
+    private List<RestMethodData> parseMethods(ExecutableElement method) {
+        List<String> httpMethods = getHttpMethods(method);
 
-        if (httpMethod == null || hasAnnotation(method, ApiIgnore.class, methodParser.options.environment)) {
-            return null;
+        if (httpMethods == null || hasAnnotation(method, ApiIgnore.class, methodParser.options.environment)) {
+            return Collections.emptyList();
         }
 
-        return methodParser.parseMethod(method, httpMethod);
+        return httpMethods.stream().map(httpMethod -> methodParser.parseMethod(method, httpMethod)).collect(Collectors.toList());
     }
 
     /**
@@ -88,30 +94,26 @@ public abstract class ClassParser {
     }
 
     /**
-     * Use the value defined in {@link ApiDescription} or use the javadoc comment of the class.
+     * Use the value defined in {@link ApiDescription} and use the javadoc comment of the class.
      *
      * @param classDoc      classDoc
      * @param restClassData restClassData
      */
     protected void addDescription(TypeElement classDoc, RestClassData restClassData) {
-        String description = getAnnotationValue(classDoc, ApiDescription.class, "value", methodParser.options.environment);
+        restClassData.shortDescription = getAnnotationValue(classDoc, ApiDescription.class, "value", methodParser.options.environment);
 
-        if (description != null) {
-            restClassData.description = description;
-        } else {
-            restClassData.description = getCommentTextFromInterfaceOrClass(classDoc, methodParser.options.environment, false);
-        }
+        restClassData.description = getCommentTextFromInterfaceOrClass(classDoc, methodParser.options.environment, false);
     }
 
     protected void addHeaders(TypeElement classDoc, RestClassData restClassData) {
-        List<AnnotationValue> headers = getAnnotationValue(classDoc, ApiHeaders.class, "value", methodParser.options.environment);
+        List<AnnotationValue> headers = getAnnotationValue(classDoc, ApiHeaderDefinitions.class, "value", methodParser.options.environment);
         if (headers != null) {
             //more than one annotation is defined, so we got the container
             headers.forEach(header -> addHeader((AnnotationMirror) header.getValue(), restClassData));
         } else {
             //check if a single annotation is defined
-            Optional<? extends AnnotationMirror> singleResponse = getAnnotationDesc(classDoc, ApiHeader.class, methodParser.options.environment);
-            singleResponse.ifPresent(annotationDesc -> addHeader(annotationDesc, restClassData));
+            List<? extends AnnotationMirror> singleResponse = getAnnotationDesc(classDoc, ApiHeaderDefinition.class, methodParser.options.environment);
+            singleResponse.forEach(annotationDesc -> addHeader(annotationDesc, restClassData));
         }
     }
 
@@ -125,6 +127,27 @@ public abstract class ClassParser {
         headerInfo.description = description;
 
         restClassData.headerDefinitions.put(name, headerInfo);
+    }
+
+    protected void addResponsesFromAnnotations(TypeElement classDoc, RestClassData restClassData) {
+        // the first value from @Produces may be used as Content-Type, if no specific one is defined.
+        List<AnnotationValue> produces = Collections.emptyList();
+        RestMethodData tmpRestMethodData = new RestMethodData("tmp");
+
+        //check for the (maybe implicit) container annotation...
+        List<AnnotationValue> responses = getAnnotationValue(classDoc, ApiCommonResponses.class, VALUE, methodParser.options.environment);
+        if (responses != null) {
+            //...and iterate over it's content
+            responses.forEach(repsonse -> {
+                methodParser.addResponse((AnnotationMirror) repsonse.getValue(), tmpRestMethodData, produces);
+            });
+        } else {
+            //or look for a single annotation
+            List<? extends AnnotationMirror> singleResponse = getAnnotationDesc(classDoc, ApiCommonResponse.class, methodParser.options.environment);
+            singleResponse.forEach(annotationDesc -> methodParser.addResponse(annotationDesc, tmpRestMethodData, produces));
+        }
+
+        restClassData.commonResponseData.addAll(tmpRestMethodData.responseData);
     }
 
 }

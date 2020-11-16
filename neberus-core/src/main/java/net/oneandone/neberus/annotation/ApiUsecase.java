@@ -1,6 +1,7 @@
 package net.oneandone.neberus.annotation;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -13,8 +14,9 @@ import java.lang.annotation.Target;
  * The javadoc of the defining class (must be placed above the annotations) will be used as introduction.
  */
 @Target({ ElementType.TYPE })
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 @Repeatable(ApiUsecases.class)
+@Inherited
 public @interface ApiUsecase {
 
     /**

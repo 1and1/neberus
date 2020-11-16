@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
  * Paramter used by a REST method in a usecase.
  */
 @Target({})
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 public @interface ApiUsecaseParam {
 
     /**

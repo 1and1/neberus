@@ -4,7 +4,7 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.oneandone.neberus/neberus-doclet/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.oneandone.neberus/neberus-doclet)
 
 JavaDoc Doclet that automatically generates REST Documentation from your code!
-Out of the box compatibility with javax.ws.rs and spring-webmvc (experimental).
+Out of the box compatibility with javax.ws.rs and spring-webmvc.
 
 - [Neberus REST Documentation](#neberus-rest-documentation)
 	- [Setup](#setup)
@@ -24,16 +24,17 @@ Out of the box compatibility with javax.ws.rs and spring-webmvc (experimental).
 
 ## Setup
 
-### Java 8 vs. Java 11
+### Java 8 vs. Java 11+
 
 Java 8 is only supported with version 1.x.
 
-All newer versions require Java 11. 
+All newer versions require Java 11+. 
 
 ### Maven
 
-- Add a dependency to `neberus-doclet` to get access to Neberus' annotations in your code.
+- Add a dependency to `neberus-doclet` to get access to Neberus annotations in your code.
 - Configure the maven-javadoc-plugin to use the Neberus doclet
+
 
 `pom.xml`
 
@@ -68,17 +69,17 @@ All newer versions require Java 11.
                         <reportOutputDirectory>
                         <!-- recommended path for traditional '*.war' services -->
                         ${project.build.directory}/${project.build.finalName}
-                        <!-- recommended path for spring boot '*.deb' services -->
+                        <!-- recommended path for spring boot services -->
                         ${project.build.directory}/classes/resources/
                         </reportOutputDirectory>
                         <useStandardDocletOptions>false</useStandardDocletOptions>
                         <additionalOptions><!-- ATTENTION: this has been renamed from 'additionalparam' with maven-javadoc-plugin version 3.0.0 -->
-                            -apiVersion ${project.version}
-                            -apiTitle "${project.name}"
-                            -docBasePath .
-                            -apiBasePath ${apiBasePath}
-                            -apiHost http://yourhost.com <!-- the leading 'http://' can be omitted, but it must be provided for 'https://' -->
-                            -scanPackages net.oneandone <!-- semicolon separated list of packages to be included -->
+                            --apiVersion ${project.version}
+                            --apiTitle "${project.name}" <!-- remember to put enclosing quotes when the name contains blanks -->
+                            --docBasePath .
+                            --apiBasePath ${apiBasePath}
+                            --apiHost http://yourhost.com <!-- the leading 'http://' can be omitted, but it must be provided for 'https://' -->
+                            --scanPackages net.oneandone <!-- semicolon separated list of packages to be included -->
                         </additionalOptions>
                     </configuration>
                     <goals>
@@ -93,6 +94,27 @@ All newer versions require Java 11.
 
 ```
 
+#### Doclet Options
+
+```text
+Provided by the Neberus doclet:
+    --apiBasePath <path>
+                  Root path of the Api on the server (e.g. '/rest').
+    --apiHosts <host[description]>(;<host[description]>)*
+                  List of hosts where the Api can be accessed, separated by semicolon (;). Description for each host can be provided inside optional trailing brackets. Example: "https://testserver.com[the default testserver];https://otherserver.com[the other testserver]"
+    --apiTitle <title>
+                  Api Title.
+    --apiVersion <version>
+                  Api version.
+    -d <string>   outputDirectory
+    --docBasePath <path>
+                  Root path where the generated documentation is placed inside reportOutputDirectory.
+    -ignoreErrors
+                  Ignore generation errors.
+    --scanPackages <package>(;<package>)*
+                  List of packages that include classes relevant for the apidoc
+```
+
 #### Using classes from dependencies
 
 If classes from dependencies are used as entities of parameters or response values of some methods, it is required to include those dependencies in the configuration of the maven-javadoc-plugin.
@@ -102,7 +124,7 @@ More information about how the inclusion works can be found [here](https://maven
 
 ## Viewing the Apidocs
 
-Neberus generates only static `html` files and adds some `css` and `js` files. This means that the docs can be served from many places and viewed in any browser.
+Neberus generates `html` files and adds some `json`, `css` and `js` files. This means that the docs can be served from many places and viewed in any browser.
 
 The apidocs can be deployed to an external server, accessed over the repository or included within the webapp.
 
@@ -114,7 +136,7 @@ Headings should start with `h2`, since Neberus generates a `h1` heading with the
 
 ## Method Documentation
 
-REST methods can be documented either directly on the method or (recommended) in a seperate interface that is implemented by the class containing the methods.
+REST methods can be documented either directly on the method or in a separate interface (recommended) that is implemented by the class containing the methods.
 
 Definitions in the REST-class will be used as fallback in case the interface does not provide sufficient Documentation.
 
@@ -124,29 +146,22 @@ Definitions in the REST-class will be used as fallback in case the interface doe
 
 | Name  | Description  |  Target |
 |---|---|---|
-| @ApiDocumentation | Enables neberus documentation for a class containing REST methods.  | Type |
+| @ApiDocumentation | Enables Neberus documentation for a class containing REST methods.  | Type |
 | @ApiCurl | Generate an example curl. | Method |
-| @ApiAllowedValues | Define the allowed values for a parameter. | Method, VariableElement, Field |
-| @ApiDescription | If provided, the value of this will be used as description of the method instead of the javadoc comment. | Method, Type |
-| @ApiHeader | Define a Header.<br>If defined within a @ApiResponse, it will represent a response header.<br>If defined on class level, this can be used to provied descriptions of headers that are reused many times. The header name will be used for reference. | Type |
-| @ApiHeaders | Container annotation for @ApiHeader. | Type |
+| @ApiAllowedValue | Define the allowed values for a parameter. | Method, Parameter, Field |
+| @ApiDescription | If provided, the value of this will be used as description of the method instead of the javadoc comment. If defined on a class, this will be used as short description of the resource on the service overview page. | Method, Type |
+| @ApiHeader | Define a response Header within a @ApiResponse. | - |
+| @ApiHeaderDefinition | Define a Header on class level, this can be used to provided descriptions of headers that are reused many times. The header name will be used for reference. | Type |
 | @ApiLabel | Defines the name of a REST class or method. | Method, Type |
 | @ApiParameter | Defines a custom parameter for a REST method. Most likely used to document fields inside the body. | Method |
-| @ApiParameters | Container annotation for @ApiParameter. | Method |
-| @ApiResponseValue | Defines a custom parameter for a REST method. Most likely used to document fields inside the body. | Method |
-| @ApiResponseValues | Container annotation for @ApiResponseValue. | Method |
-| @ApiSuccessResponse | Document a Success Response. | Method |
-| @ApiSuccessResponses | Container annotation for @ApiSuccessResponse. | Method |
-| @ApiWarningResponse | Document a Warning Response. The Content-Type will be set to "application/warnings+json". | Method |
-| @ApiWarningResponses | Container annotation for @ApiWarningResponse. | Method |
-| @ApiWarning | A single Warning used in @ApiWarningResponse. | - |
-| @ApiProblemResponse | Document a Problem Response. The Content-Type will be set to "application/problem+json". | Method |
-| @ApiProblemResponses | Container annotation for @ApiProblemResponse. | Method |
-| @ApiResponse | Document a Response that does not fit into Success-, Warning-, or Problem-Response. | Method |
-| @ApiResponses | Container annotation for @ApiResponse. | Method |
-| @ApiType | Define the type that should be displayed instead of the actual type. This can be used to hide internal wrapper DTOs. | VariableElement |
-| @ApiOptional | Declare a parameter as optional. | Method, VariableElement, Field |
-| @ApiIgnore | Exclude a request parameter, DTO field or a whole REST method from documentation. | Method, VariableElement, Field |
+| @ApiResponse | Document a Response. | Method |
+| @ApiCommonResponse | Document a common Response on class level, the response will be added to every method inside that class. An @ApiResponse defined on the method with the same status will be favoured. | Type |
+| @ApiEntity | Define a response entity. | - |
+| @ApiRequestEntity | Define a request entity for a specific content-type. | Method |
+| @ApiExample | Define a example for a specific value. | - |
+| @ApiType | Define the type that should be displayed instead of the actual type. This can be used to hide internal wrapper DTOs. | Parameter |
+| @ApiOptional | Declare a parameter as optional. | Method, Parameter, Field |
+| @ApiIgnore | Exclude a request parameter, DTO field or a whole REST method from documentation. | Method, Parameter, Field |
 
 ### Example Usage
 
@@ -155,53 +170,53 @@ Definitions in the REST-class will be used as fallback in case the interface doe
  * REST Class Documentation
  */
 @ApiDocumentation
-@Path("/rootPath")
-@ApiLabel("Super Awesome REST Service")
-@ApiHeader(name = "header1", description = "description1")
-@ApiHeader(name = "header2", description = "description2")
+@RequestMapping(path = "/rootPath", name = "Super Awesome REST Service")
+@ApiHeaderDefinition(name = "header1", description = "description1")
+@ApiHeaderDefinition(name = "header2", description = "description2")
+@ApiHeaderDefinition(name = "Predefined", description = "one description to rule them all")
+@ApiCommonResponse(status = ApiStatus.INTERNAL_SERVER_ERROR, description = "internal server error defined on class")
 public class RestService {
 
 	/**
 	 * ApiDescription of this awesomely awesome method defined as javadoc!
-	*
-	* @param dto the body
-	*/
-	@GET
-	@Path("/anotherGet/{pathParam}/anotherPathParam/{anotherPathParam}")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
+	 * 
+	 * @param pathParam description of the pathParam
+	 */
+	@RequestMapping(method = RequestMethod.GET,
+					path = "/anotherGet/{pathParam}/anotherPathParam/{anotherPathParam}/{wrappedPathParam}",
+					produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiLabel("This is an awesome method")
 	@ApiDescription("Description of this awesomely awesome method defined in annotation!")
-	@ApiSuccessResponse(status = ApiStatus.OK)
-	@ApiProblemResponse(status = ApiStatus.OK,
-		description = "this should be handled as error",
-		type = ProblemType.EXPECTATION_FAILED,
-		detail = "magic failed",
-		title = "magic title")
-	@ApiWarningResponse(status = ApiStatus.OK,
-		description = "and this as warning",
-		warnings = @ApiWarning(
-			type = ProblemType.AUTHENTICATION_ERROR,
-			title = "warning title"))
-	@ApiSuccessResponse(status = ApiStatus.BAD_GATEWAY,
-		description = "a bad thing happened",
-		entityClass = SomeDto.class,
-		contentType = "crazyCustomType",
-		headers = {
-			@ApiHeader(name = "123", description = "456"),
-			@ApiHeader(name = "header2")
-		})
+	@ApiResponse(status = ApiStatus.OK, description = "success",
+				 headers = {
+						 @ApiHeader(name = "header2", allowedValues = {
+								 @ApiAllowedValue(value = "this one value", valueHint = "only that one"),
+								 @ApiAllowedValue(value = "this other value", valueHint = "or only that one")
+						 }) },
+				 entities = {
+						 @ApiEntity(entityClass = SomeDto.class, examples = {
+								 @ApiExample(title = "example response", value = "{\"string1\":\"some value example\"}"),
+								 @ApiExample(title = "other example response", value = "{\"string1\":\"some other value example\"}")
+						 })
+				 })
+	@ApiResponse(status = ApiStatus.BAD_REQUEST, description = "success", headers = {
+			@ApiHeader(name = "header2", allowedValues = {
+					@ApiAllowedValue(value = "this second value", valueHint = "only that one"),
+					@ApiAllowedValue(value = "this second other value", valueHint = "or only that one")
+			})
+	})
+	@ApiParameter(name = "anotherQueryParam", type = ApiParameter.Type.QUERY, deprecated = true, deprecatedDescription = "use queryParam instead",
+				  optional = true)
 	@ApiCurl
-	public void justAnotherGetMethod(
-		@PathParam("pathParam") @ApiAllowedValues("only this one") String pathParam,
-		@PathParam("anotherPathParam") String anotherPathParam,
-		@QueryParam("queryParam") String queryParam,
-		SomeDto dto) {
+	public String justAnotherGetMethod(@PathVariable @ApiAllowedValue("default") String pathParam,
+									   @PathVariable("anotherPathParam") String anotherPathParam,
+									   @PathVariable("wrappedPathParam") @ApiType(String.class) WrappedString wrappedPathParam,
+									   @Deprecated @RequestParam("queryParam") String queryParam) {
 	}
 
 	public static class SomeDto {
 		/**
-		 * VariableElement can be placed here.
+		 * Parameter can be placed here.
 		 * {@link SomeEnum} <- this will place the enum values as 'allowed values'
 		 * @see SomeEnum <- this will do the same
 		 */
@@ -246,16 +261,17 @@ public class RestService implements RestDoc {
 	public void justAnotherGetMethod(
 		@PathParam("pathParam") String pathParam,
 		@PathParam("anotherPathParam") String anotherPathParam,
-		@QueryParam("queryParam") String queryParam,
-		SomeDto dto) {
+		@QueryParam("queryParam") String queryParam) {
 	}
 }
+```
 
-
+```java
 @ApiDocumentation
-@ApiLabel("Super Awesome REST Service")
-@ApiHeader(name = "header1", description = "description1")
-@ApiHeader(name = "header2", description = "description2")
+@ApiHeaderDefinition(name = "header1", description = "description1")
+@ApiHeaderDefinition(name = "header2", description = "description2")
+@ApiHeaderDefinition(name = "Predefined", description = "one description to rule them all")
+@ApiCommonResponse(status = ApiStatus.INTERNAL_SERVER_ERROR, description = "internal server error defined on class")
 public interface RestDoc {
 
 	/**
@@ -264,30 +280,32 @@ public interface RestDoc {
 	 * @param dto the body
 	 */
 	@ApiLabel("This is an awesome method")
-	@ApiSuccessResponse(status = ApiStatus.OK)
-	@ApiProblemResponse(status = ApiStatus.OK,
-		description = "this should be handled as error",
-		type = ProblemType.EXPECTATION_FAILED,
-		detail = "magic failed",
-		title = "magic title")
-	@ApiWarningResponse(status = ApiStatus.OK,
-		description = "and this as warning",
-		warnings = @ApiWarning(
-			type = ProblemType.AUTHENTICATION_ERROR,
-			title = "warning title"))
-	@ApiSuccessResponse(status = ApiStatus.BAD_GATEWAY,
-		description = "a bad thing happened",
-		entityClass = SomeDto.class,
-		contentType = "crazyCustomType",
-		headers = {
-			@ApiHeader(name = "123", description = "456"),
-			@ApiHeader(name = "header2")
-		})
+	@ApiDescription("Description of this awesomely awesome method defined in annotation!")
+	@ApiResponse(status = ApiStatus.OK, description = "success",
+				 headers = {
+						 @ApiHeader(name = "header2", allowedValues = {
+								 @ApiAllowedValue(value = "this one value", valueHint = "only that one"),
+								 @ApiAllowedValue(value = "this other value", valueHint = "or only that one")
+						 }) },
+				 entities = {
+						 @ApiEntity(entityClass = SomeDto.class, examples = {
+								 @ApiExample(title = "example response", value = "{\"string1\":\"some value example\"}"),
+								 @ApiExample(title = "other example response", value = "{\"string1\":\"some other value example\"}")
+						 })
+				 })
+	@ApiResponse(status = ApiStatus.BAD_REQUEST, description = "success", headers = {
+			@ApiHeader(name = "header2", allowedValues = {
+					@ApiAllowedValue(value = "this second value", valueHint = "only that one"),
+					@ApiAllowedValue(value = "this second other value", valueHint = "or only that one")
+			})
+	})
+	@ApiParameter(name = "anotherQueryParam", type = ApiParameter.Type.QUERY, deprecated = true, deprecatedDescription = "use queryParam instead",
+				  optional = true)
 	@ApiCurl
-	void justAnotherGetMethod(@ApiAllowedValues("this one") String pathParam,
-								String anotherPathParam,
-								String queryParam,
-								SomeDto dto);
+	void justAnotherGetMethod(@ApiAllowedValue("default") String pathParam,
+							  String anotherPathParam,
+							  @ApiType(String.class) WrappedString wrappedPathParam,
+							  @RequestParam("queryParam") String queryParam);
 
 }
 ```
@@ -299,26 +317,26 @@ The referenced method may be in the same class or in another documented class wi
 
 ```java
 /**
- * @deprecated use this one {@link #justYetAnotherGetMethod(java.lang.String, java.lang.String, net.oneandone.neberus.test.RestService.SomeDto)}
+ * @deprecated use this one {@link #justYetAnotherPostMethod(java.lang.String, java.lang.String, net.oneandone.neberus.test.RestService.SomeDto)}
  */
-@GET
-@Path("/anotherGet/{pathParam}/anotherPathParam/{anotherPathParam}")
-@ApiLabel("This is an awesome method")
+@POST
+@Path("/anotherPost/{pathParam}/anotherPathParam/{anotherPathParam}")
+@ApiLabel("This is a POST method")
 @Consumes(MediaType.APPLICATION_JSON)
 @Deprecated
-public void justAnotherGetMethod(@PathParam("pathParam") @ApiAllowedValues("toast") String pathParam,
-                                 @PathParam("anotherPathParam") String anotherPathParam,
-                                 @QueryParam("queryParam") String queryParam,
-                                 SomeDto dto) {
+public void justAnotherPostMethod(@PathParam("pathParam") @ApiAllowedValue("toast") String pathParam,
+                                  @PathParam("anotherPathParam") String anotherPathParam,
+                                  @QueryParam("queryParam") String queryParam,
+                                  SomeDto dto) {
 }
 
-@GET
-@Path("/anotherGet")
-@ApiLabel("This is another awesome method")
+@POST
+@Path("/anotherPOST")
+@ApiLabel("This is another POST method")
 @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-public void justYetAnotherGetMethod(@PathParam("pathParam") @ApiAllowedValues("only this one") String pathParam,
-                                    @QueryParam("queryParam") String queryParam,
-                                    SomeDto dto) {
+public void justYetAnotherPostMethod(@PathParam("pathParam") @ApiAllowedValue("only this one") String pathParam,
+                                     @QueryParam("queryParam") String queryParam,
+                                     SomeDto dto) {
 }
 ```
 
@@ -337,10 +355,10 @@ The generated documentation will be appended to the index page.
 | Name  | Description  |  Target |
 |---|---|---|
 | @ApiUsecase | Defines a specific usecase of the REST service. Usecases must be defined in seperate classes or interfaces apart from the normal apidoc.<br>The javadoc of the defining class (must be placed above the annotations) will be used as introduction. | Type |
-| @ApiUsecases | Container for multiple {@link ApiUsecase} annotations. | Type |
 | @ApiUsecaseMethod | A specific REST method used in an usecase.<br>If the method is documented within the same service, it can be referenced by providing the restClass and name (label) of the method. In this case a link will be created and all parameters and responseValues will be cross-checked so they actually exist in the referenced method. | - |
-| @ApiUsecaseParam | VariableElement used by a REST method in a usecase. If the method is linked to an actual REST method, the name must exist in the linked method. Use dot-syntax for nested parameters, eg. 'myDto.myField' | - |
-| @ApiUsecaseResponseValue | ResponseValue returned by a REST method in a usecase. | - |
+| @ApiUsecaseParam | Parameter used by a REST method in a usecase. If the method is linked to an actual REST method, the name must exist in the linked method. Use dot-syntax for nested parameters, eg. 'myDto.myField' | - |
+| @ApiUsecaseRequestBody | Request body for a REST method in a usecase. | - |
+| @ApiUsecaseResponseBody | Response body for a REST method in a usecase. | - |
 
 ### Example
 
@@ -349,42 +367,41 @@ The generated documentation will be appended to the index page.
  * This javadoc has to be located ABOVE the annotations.
  * This contains only usecases that are not trivial or require multiple calls.
  */
-@ApiUsecase(name = "do it", description = "just do it already",
-            methods = {
-                @ApiUsecaseMethod(
-                        name = "This is an awesome method",
-                        restClass = RestServiceWithInterfaceDoc.class,
-                        description = "Call this first",
-                        parameters = {
-                            @ApiUsecaseParam(name = "pathParam123", value = "myId", valueHint = "the hint"),
-                            @ApiUsecaseParam(name = "queryParam123", valueHint = "not my type hint")
-                        }),
-                @ApiUsecaseMethod(
-                        name = "This is another awesome method",
-                        restClass = RestServiceInterfaceDoc.class,
-                        description = "Then call this",
-                        responseValue = {
-                            @ApiUsecaseResponseValue(name = "custom responseValue2", value = "with some value")
-                        })
-            })
-@ApiUsecase(name = "do it", description = "just do it already",
-            methods = {
-                @ApiUsecaseMethod(
-                        name = "This is an awesome method",
-                        restClass = RestServiceWithInterfaceDoc.class,
-                        description = "Call this first",
-                        parameters = {
-                            @ApiUsecaseParam(name = "pathParam123", value = "myId"),
-                            @ApiUsecaseParam(name = "queryParam123", value = "not my type")
-                        }),
-                @ApiUsecaseMethod(
-                        name = "This is another awesome method",
-                        restClass = RestServiceInterfaceDoc.class,
-                        description = "Then call this",
-                        responseValue = {
-                            @ApiUsecaseResponseValue(name = "custom responseValue2", value = "with some value")
-                        })
-            })
+@ApiUsecase(name = "do it with hints", description = "just do it already",
+			methods = {
+					@ApiUsecaseMethod(
+							path = PATH_ROOT + PATH_POST,
+							httpMethod = "GET",
+							description = "Call this first",
+							requestBody = @ApiUsecaseRequestBody(contentType = "application/json",
+																 valueHint = "the expected request body",
+																 value = "{\"key\":\"value\"}")),
+					@ApiUsecaseMethod(
+							path = PATH_ROOT + PATH_GET,
+							httpMethod = "GET",
+							description = "Then call this",
+							responseBody = @ApiUsecaseResponseBody(contentType = "application/json",
+																   valueHint = "and some hint",
+																   value = "{\"stringField\":\"with some value\"}"))
+			})
+@ApiUsecase(name = "do it without hints", description = "just do it already",
+			methods = {
+					@ApiUsecaseMethod(
+							path = PATH_ROOT + PATH_GET_WITH_RESPONSES,
+							httpMethod = "GET",
+							description = "Call this first",
+							parameters = {
+									@ApiUsecaseParam(name = "stringPathParam", value = "myId"),
+									@ApiUsecaseParam(name = "queryParam123", value = "not my type")
+							}),
+					@ApiUsecaseMethod(
+							path = PATH_ROOT + PATH_GET,
+							httpMethod = "GET",
+							description = "Then call this",
+							responseBody = @ApiUsecaseResponseBody(contentType = "application/json",
+																   valueHint = "the expected request body",
+																   value = "{\"stringField\":\"with some value\"}"))
+			})
 public class UsecaseDoc {
 
 }
