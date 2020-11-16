@@ -299,9 +299,9 @@ public abstract class MethodParser {
 
             parentTypes.add(type);
 
-            if (isCollectionType(type, options.environment)) {
+            if (isCollectionType(type)) {
                 addNestedArray(type, parentList);
-            } else if (isMapType(type, options.environment)) {
+            } else if (isMapType(type)) {
                 addNestedMap(type, parentList);
             } else {
 
@@ -540,7 +540,7 @@ public abstract class MethodParser {
                 .findFirst().map(linkTree -> {
                     Element referencedElement = getReferencedElement(e, linkTree.getReference(), options.environment);
 
-                    if (referencedElement != null && TypeElement.class.isAssignableFrom(referencedElement.getClass())) {
+                    if (referencedElement != null) {
                         return getConstraints(referencedElement.getAnnotationMirrors());
                     }
 
@@ -557,7 +557,7 @@ public abstract class MethodParser {
                     seeTree.getReference().forEach(referenced -> {
                         Element referencedElement = getReferencedElement(e, referenced, options.environment);
 
-                        if (referencedElement != null && TypeElement.class.isAssignableFrom(referencedElement.getClass())) {
+                        if (referencedElement != null) {
                             values.putAll(getConstraints(referencedElement.getAnnotationMirrors()));
                         }
                     });
@@ -693,21 +693,22 @@ public abstract class MethodParser {
             HashMap<String, String> params = new HashMap<>();
 
             // add default values
-            annotation.getElementValues().forEach((element, value) -> {
-                if (value.getValue() != null) {
-                    params.put(element.getSimpleName().toString(), value.getValue().toString());
-                } else {
-
-                    if (element.getDefaultValue() == null) {
-                        return;
-                    }
-
-                    Object defaultValue = element.getDefaultValue().getValue();
-
-                    if (defaultValue instanceof Number) {
-                        params.put(element.getSimpleName().toString(), defaultValue.toString());
-                    }
+            annotation.getAnnotationType().asElement().getEnclosedElements()
+                    .stream().filter(e -> e instanceof ExecutableElement)
+                    .map(e -> (ExecutableElement) e).forEach(element -> {
+                if (element.getDefaultValue() == null) {
+                    return;
                 }
+
+                Object defaultValue = element.getDefaultValue().getValue();
+
+                if (defaultValue instanceof Number) {
+                    params.put(element.getSimpleName().toString(), defaultValue.toString());
+                }
+            });
+
+            annotation.getElementValues().forEach((element, value) -> {
+                    params.put(element.getSimpleName().toString(), value.getValue().toString());
             });
 
             constraints.put(key, params);

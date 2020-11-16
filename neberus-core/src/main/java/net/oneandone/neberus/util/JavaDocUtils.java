@@ -512,20 +512,20 @@ public abstract class JavaDocUtils {
         }
     }
 
-    public static boolean isArrayType(TypeMirror type, DocletEnvironment environment) {
+    public static boolean isArrayType(TypeMirror type) {
         return type != null
                 && (type instanceof ArrayType);
     }
 
-    public static boolean isCollectionType(TypeMirror type, DocletEnvironment environment) {
+    public static boolean isCollectionType(TypeMirror type) {
         return type != null
                 && (type instanceof ArrayType
-                || type.toString().startsWith("java.util.List")
-                || type.toString().startsWith("java.util.Set"));
+                || type.toString().contains("java.util.List")
+                || type.toString().contains("java.util.Set"));
     }
 
-    public static boolean isMapType(TypeMirror type, DocletEnvironment environment) {
-        return type != null && type.toString().startsWith("java.util.Map");
+    public static boolean isMapType(TypeMirror type) {
+        return type != null && type.toString().contains("java.util.Map");
     }
 
     public static String getTypeString(TypeMirror type, DocletEnvironment environment) {
@@ -547,7 +547,7 @@ public abstract class JavaDocUtils {
 
         String name = element.getSimpleName().toString();
 
-        if (isArrayType(type, environment)) {
+        if (isArrayType(type)) {
             name += "[]";
         }
 
@@ -572,10 +572,10 @@ public abstract class JavaDocUtils {
 
         String simpleName = element.getSimpleName().toString();
 
-        if (isCollectionType(type, environment)) {
+        if (isCollectionType(type)) {
             List<? extends TypeMirror> typeArguments = ((DeclaredType) type).getTypeArguments();
             return simpleName + "[" + getSimpleTypeName(typeArguments.get(0), environment) + "]";
-        } else if (isMapType(type, environment)) {
+        } else if (isMapType(type)) {
             List<? extends TypeMirror> typeArguments = ((DeclaredType) type).getTypeArguments();
             return simpleName + "["
                     + getSimpleTypeName(typeArguments.get(0), environment)
@@ -644,12 +644,6 @@ public abstract class JavaDocUtils {
                 .filter(e -> e.getModifiers().contains(Modifier.PUBLIC))
                 .collect(Collectors.toList());
 
-        Optional<? extends TypeMirror> superTypeMirror = environment.getTypeUtils().directSupertypes(type).stream().findFirst();
-
-        if (superTypeMirror.isPresent() && !isJavaType(superTypeMirror.get(), environment)) {
-            fields.addAll(getVisibleFields(superTypeMirror.get(), environment));
-        }
-
         return fields.stream().filter(JavaDocUtils::fieldIsVisible).collect(Collectors.toList());
     }
 
@@ -675,12 +669,6 @@ public abstract class JavaDocUtils {
                 .filter(e -> e.getReturnType() != null)
                 .filter(e -> environment.getTypeUtils().isSameType(element.asType(), e.getEnclosingElement().asType()))
                 .collect(Collectors.toList());
-
-        Optional<? extends TypeMirror> superTypeMirror = environment.getTypeUtils().directSupertypes(type).stream().findFirst();
-
-        if (superTypeMirror.isPresent() && !isJavaType(superTypeMirror.get(), environment)) {
-            methods.addAll(getVisibleGetters(superTypeMirror.get(), environment));
-        }
 
         return methods.stream().filter(e -> methodIsVisibleGetter(e, environment)).collect(Collectors.toList());
     }
