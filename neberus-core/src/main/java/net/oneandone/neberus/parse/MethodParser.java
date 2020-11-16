@@ -717,7 +717,11 @@ public abstract class MethodParser {
     }
 
     private boolean isValidationConstraint(AnnotationMirror annotation) {
-        return annotation.getAnnotationType().getAnnotationMirrors().stream()
+        if (annotation.getAnnotationType().asElement() == null) {
+            return false;
+        }
+
+        return annotation.getAnnotationType().asElement().getAnnotationMirrors().stream()
                 .anyMatch(a -> {
                     String packageName = options.environment.getElementUtils()
                             .getPackageOf(a.getAnnotationType().asElement()).getQualifiedName().toString();
