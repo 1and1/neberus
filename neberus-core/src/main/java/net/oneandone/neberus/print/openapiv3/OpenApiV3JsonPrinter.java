@@ -772,6 +772,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
                 case "NegativeOrZero":
                     schema.maximum(BigDecimal.ZERO);
                     break;
+                default:
             }
         });
     }
