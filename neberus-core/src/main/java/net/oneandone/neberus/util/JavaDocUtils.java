@@ -536,8 +536,7 @@ public abstract class JavaDocUtils {
     }
 
     public static boolean isArrayType(TypeMirror type) {
-        return type != null
-                && (type instanceof ArrayType);
+        return type instanceof ArrayType;
     }
 
     public static boolean isCollectionType(TypeMirror type) {

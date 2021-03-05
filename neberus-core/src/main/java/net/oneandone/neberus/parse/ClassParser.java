@@ -26,6 +26,7 @@ import static net.oneandone.neberus.util.JavaDocUtils.hasAnnotation;
 /**
  * Parses class related things.
  */
+@SuppressWarnings("PMD.TooManyStaticImports")
 public abstract class ClassParser {
 
     MethodParser methodParser;

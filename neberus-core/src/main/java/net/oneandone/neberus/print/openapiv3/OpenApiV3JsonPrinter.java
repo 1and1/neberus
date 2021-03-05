@@ -58,6 +58,7 @@ import static net.oneandone.neberus.util.JavaDocUtils.isEnum;
 import static net.oneandone.neberus.util.JavaDocUtils.isMapType;
 import static net.oneandone.neberus.util.JavaDocUtils.typeCantBeDocumented;
 
+@SuppressWarnings("PMD.TooManyStaticImports")
 public class OpenApiV3JsonPrinter extends DocPrinter {
 
     private final ObjectMapper mapper;
@@ -760,16 +761,16 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
                     getBigDecimal(constraint, "value").ifPresent(schema::maximum);
                     break;
                 case "Positive":
-                    schema.minimum(new BigDecimal(1));
+                    schema.minimum(BigDecimal.ONE);
                     break;
                 case "PositiveOrZero":
-                    schema.minimum(new BigDecimal(0));
+                    schema.minimum(BigDecimal.ZERO);
                     break;
                 case "Negative":
                     schema.maximum(new BigDecimal(-1));
                     break;
                 case "NegativeOrZero":
-                    schema.maximum(new BigDecimal(0));
+                    schema.maximum(BigDecimal.ZERO);
                     break;
             }
         });

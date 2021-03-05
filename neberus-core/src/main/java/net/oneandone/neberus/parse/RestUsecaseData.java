@@ -104,11 +104,6 @@ public class RestUsecaseData {
         return getParameter(param.get().nestedParameters, tail);
     }
 
-    private boolean containsResponseValue(List<RestMethodData.ResponseData> responseData, String paramKey) {
-        return responseData.stream().flatMap(resp -> resp.entities.stream())
-                .anyMatch(entity -> containsParameter(entity.nestedParameters, paramKey));
-    }
-
     public static class UsecaseData {
 
         public String id;

@@ -78,6 +78,7 @@ import static net.oneandone.neberus.util.JavaDocUtils.typeCantBeDocumented;
 /**
  * Parses all stuff related to a single REST method.
  */
+@SuppressWarnings("PMD.TooManyStaticImports")
 public abstract class MethodParser {
 
     protected final Options options;
