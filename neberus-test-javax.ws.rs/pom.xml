@@ -79,6 +79,12 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>attach-javadocs</id>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>generate-service-docs</id>
                         <phase>generate-resources</phase>
                         <configuration>
