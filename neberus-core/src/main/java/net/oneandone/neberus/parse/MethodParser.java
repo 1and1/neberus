@@ -53,6 +53,7 @@ import static net.oneandone.neberus.util.JavaDocUtils.getAnnotationValue;
 import static net.oneandone.neberus.util.JavaDocUtils.getAnnotations;
 import static net.oneandone.neberus.util.JavaDocUtils.getBlockTags;
 import static net.oneandone.neberus.util.JavaDocUtils.getCommentText;
+import static net.oneandone.neberus.util.JavaDocUtils.getCommentTextFromInterfaceOrClass;
 import static net.oneandone.neberus.util.JavaDocUtils.getCommentTextWithoutInlineTags;
 import static net.oneandone.neberus.util.JavaDocUtils.getConstructors;
 import static net.oneandone.neberus.util.JavaDocUtils.getDirectAnnotationValue;
@@ -187,6 +188,14 @@ public abstract class MethodParser {
         entity.contentType = extractValue(entityDefinition, "contentType");
         entity.description = extractValue(entityDefinition, DESCRIPTION);
         entity.entityClass = extractValue(entityDefinition, "entityClass");
+
+        if (entity.description == null) {
+            // get javadoc from entityClass, if not set in annotation
+            TypeElement element = (TypeElement) options.environment.getTypeUtils().asElement(entity.entityClass);
+            if (element != null) {
+                entity.description = getCommentTextFromInterfaceOrClass(element, options.environment, false);
+            }
+        }
 
         List<AnnotationValue> examples = extractValue(entityDefinition, "examples");
         entity.examples.addAll(getExamples(examples));
@@ -940,6 +949,13 @@ public abstract class MethodParser {
                 responseEntity.entityClass = extractValue(entityDesc, "entityClass");
                 responseEntity.description = extractValue(entityDesc, DESCRIPTION);
 
+                if (responseEntity.description == null) {
+                    // get javadoc from entityClass, if not set in annotation
+                    TypeElement element = (TypeElement) options.environment.getTypeUtils().asElement(responseEntity.entityClass);
+                    if (element != null) {
+                        responseEntity.description = getCommentTextFromInterfaceOrClass(element, options.environment, false);
+                    }
+                }
 
                 String contentTypeFromResponse = extractValue(entityDesc, "contentType");
                 if (contentTypeFromResponse != null) {

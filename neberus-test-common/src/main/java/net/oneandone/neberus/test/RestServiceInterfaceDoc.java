@@ -46,6 +46,8 @@ public interface RestServiceInterfaceDoc extends CommonRestServiceInterfaceDoc {
     @ApiDescription("Description of 'GET method with interface doc' defined in annotation!")
     @ApiCurl
     @ApiResponse(status = ApiStatus.OK, description = "Successful response",
+                 entities = @ApiEntity(entityClass = SuccessResponse.class, description = "Success response annotation doc"))
+    @ApiResponse(status = ApiStatus.CREATED, description = "Successful response",
                  entities = @ApiEntity(entityClass = SuccessResponse.class))
     Object getMethod();
 
