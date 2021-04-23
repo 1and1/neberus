@@ -137,7 +137,7 @@ public class Neberus implements Doclet {
 
         System.out.println("Copying static resources");
         FileUtils.copyResourcesRecursively(bootstrapUrl, dest);
-        System.out.println("View generated docs: file://" + new File(dest, "index.html").getAbsolutePath());
+        System.out.println("View generated docs: file://" + new File(dest, "index.html").getAbsolutePath().replace("/./", "/"));
         System.out.println("Neberus finished");
         return true;
     }
