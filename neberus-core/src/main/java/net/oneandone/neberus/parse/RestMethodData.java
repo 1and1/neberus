@@ -80,7 +80,8 @@ public class RestMethodData {
 
         invalid |= !validateResponses(methodAndClass);
         invalid |= !validateForCurl(methodAndClass);
-        invalid |= !validateBodyExistence(methodAndClass);
+        invalid |= !validateBodyExistenceForHttpMethod(methodAndClass);
+        invalid |= !validateContentTypeWhenBodyExists(methodAndClass);
 
         if (invalid && !ignoreErrors) {
             throw new IllegalStateException();
@@ -102,7 +103,7 @@ public class RestMethodData {
         return valid;
     }
 
-    private boolean validateBodyExistence(String methodAndClass) {
+    private boolean validateBodyExistenceForHttpMethod(String methodAndClass) {
         boolean valid = true;
 
         if (Arrays.stream(NO_BODY_METHODS).anyMatch(e -> e.equals(methodData.httpMethod))) {
@@ -112,12 +113,24 @@ public class RestMethodData {
                 valid = false;
             }
 
-            if (requestData.parameters.stream().anyMatch(p -> p.parameterType == BODY)) {
+            if (requestData.parameters.stream().anyMatch(p -> p.parameterType == BODY) || !requestData.entities.isEmpty()) {
                 System.err.println("Body parameter is not allowed in combination with HttpMethod "
                         + methodData.httpMethod + methodAndClass);
                 valid = false;
             }
         }
+        return valid;
+    }
+
+    private boolean validateContentTypeWhenBodyExists(String methodAndClass) {
+        boolean valid = true;
+
+        if ((requestData.parameters.stream().anyMatch(p -> p.parameterType == BODY) || !requestData.entities.isEmpty())
+                && (requestData.mediaType == null || requestData.mediaType.isEmpty())) {
+            System.err.println("'Consumes' mediatype is required for method with body parameter" + methodAndClass);
+            valid = false;
+        }
+
         return valid;
     }
 
