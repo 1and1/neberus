@@ -136,7 +136,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             return description;
         }
 
-        String htmlReplacedDescription = description.replaceAll("\n", "<br>");
+        String htmlReplacedDescription = description.replaceAll("[^<br>](\n\n)", "$0<br>");
 
         return expander.expand(htmlReplacedDescription);
     }

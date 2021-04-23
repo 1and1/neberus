@@ -43,6 +43,7 @@ public interface RestServiceInterfaceDoc extends CommonRestServiceInterfaceDoc {
     String PATH_DELETE = "/delete";
 
     @ApiLabel("GET method with interface doc")
+    @ApiDescription("Description of 'GET method with interface doc' defined in annotation!")
     @ApiCurl
     @ApiResponse(status = ApiStatus.OK, description = "Successful response",
                  entities = @ApiEntity(entityClass = SuccessResponse.class))
@@ -80,6 +81,13 @@ public interface RestServiceInterfaceDoc extends CommonRestServiceInterfaceDoc {
     /**
      * Description of 'GET method with interface doc' defined as javadoc!<br>
      * With a html newline and <strong>strong text</strong>.
+     * <br>
+     * This is a line
+     * that should not have newlines in apidoc, but a newline after.
+     *
+     * This line should only have one newline after, and not two...<br>
+     *
+     * ...until this line.
      *
      * @param stringPathParam  param doc
      * @param anotherPathParam param doc
