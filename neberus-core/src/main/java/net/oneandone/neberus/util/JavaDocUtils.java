@@ -588,13 +588,19 @@ public abstract class JavaDocUtils {
 
         Element element = environment.getTypeUtils().asElement(type);
 
+        if (type instanceof ArrayType) {
+            element = environment.getTypeUtils().asElement(((ArrayType) type).getComponentType());
+        }
+
         if (element == null) {
             return "String";
         }
 
         String simpleName = getPublicName(element);
 
-        if (isCollectionType(type)) {
+        if (type instanceof ArrayType) {
+            return simpleName + "[]";
+        } else if (isCollectionType(type)) {
             List<? extends TypeMirror> typeArguments = ((DeclaredType) type).getTypeArguments();
             return simpleName + "[" + getSimpleTypeName(typeArguments.get(0), environment) + "]";
         } else if (isMapType(type)) {

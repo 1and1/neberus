@@ -291,6 +291,8 @@ public abstract class MethodParser {
         nestedInfoKey.entityClass = typeArguments.get(0);
 
         if (!typeCantBeDocumented(typeArguments.get(0), options)) {
+            TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArguments.get(0));
+            nestedInfoKey.description = JavaDocUtils.getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
             addNestedParameters(typeArguments.get(0), nestedInfoKey.nestedParameters, new ArrayList<>());
         }
 
@@ -301,6 +303,8 @@ public abstract class MethodParser {
         nestedInfoValue.entityClass = typeArguments.get(1);
 
         if (!typeCantBeDocumented(typeArguments.get(1), options)) {
+            TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArguments.get(1));
+            nestedInfoValue.description = JavaDocUtils.getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
             addNestedParameters(typeArguments.get(1), nestedInfoValue.nestedParameters, new ArrayList<>());
         }
     }
@@ -317,6 +321,8 @@ public abstract class MethodParser {
         nestedInfo.name = "[element]";
 
         if (!typeCantBeDocumented(typeArgument, options)) {
+            TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArgument);
+            nestedInfo.description = JavaDocUtils.getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
             addNestedParameters(typeArgument, nestedInfo.nestedParameters, new ArrayList<>());
         }
 
