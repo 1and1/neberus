@@ -499,7 +499,7 @@
     }
 
     beforeUpdate(async () => {
-        baseReference = method.toUpperCase() + '-' + operation.summary.replaceAll(' ', '_') + '_curl_';
+        baseReference = method.toUpperCase() + '-' + operation.summary.replaceAll(/[^A-Za-z0-9]/g, '_') + '_curl_';
 
         if (operation.parameters) {
             let tmpHeaders = [];

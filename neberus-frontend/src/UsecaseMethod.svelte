@@ -34,7 +34,7 @@
 
             {#if method.linkedMethod}
                 <div class="usecase-path">
-                    <a href="?resource={method.linkedMethod.resource}&operation={method.httpMethod.toUpperCase()}-{method.linkedMethod.label.replaceAll(' ', '_')}">
+                    <a href="?resource={method.linkedMethod.resource}&operation={method.httpMethod.toUpperCase()}-{method.linkedMethod.label.replaceAll(/[^A-Za-z0-9]/g, '_')}">
                         [{method.linkedMethod.resource}: {method.linkedMethod.label}]
                     </a>
                 </div>

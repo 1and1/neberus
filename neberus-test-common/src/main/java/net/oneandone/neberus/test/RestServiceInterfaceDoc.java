@@ -94,8 +94,7 @@ public interface RestServiceInterfaceDoc extends CommonRestServiceInterfaceDoc {
      *
      * @return some restdoc
      */
-    @ApiLabel("GET method with interface doc and stuff")
-    @ApiDescription("Description of 'GET method with interface doc' defined in annotation!")
+    @ApiLabel("GET method with interface doc and stuff -.,#'+/()=}]{[!\"§$%&")
     @ApiResponse(status = ApiStatus.NO_CONTENT, description = "Nothing found")
     @ApiResponse(status = ApiStatus.OK, description = "Successful response\nwith a multi-line\ndescription",
                  entities = {

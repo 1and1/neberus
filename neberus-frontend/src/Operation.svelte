@@ -12,7 +12,7 @@
 
         operation.parameters.forEach(param => {
             if (param.in === 'path') {
-                let paramReference = method.toUpperCase() + '-' + operation.summary.replaceAll(' ', '_') + '_param_' + param.name.replaceAll('.', '_');
+                let paramReference = method.toUpperCase() + '-' + operation.summary.replaceAll(/[^A-Za-z0-9]/g, '_') + '_param_' + param.name.replaceAll('.', '_');
                 expanded = expanded.replaceAll(
                     '{' + param.name + '}',
                     '<span class="parameter-highlight" onmouseover="highlightParameter(this, event)" onmouseout="deHighlightParameter(this, event)"' +
@@ -46,7 +46,7 @@
             linkedMethods.forEach(linkedMethod => {
 
                 let replacement = '<a href="?resource=' + linkedMethod.resource
-                    + '&operation=' + linkedMethod.httpMethod.toUpperCase() + '-' + linkedMethod.label.replaceAll(' ', '_') + '">['
+                    + '&operation=' + linkedMethod.httpMethod.toUpperCase() + '-' + linkedMethod.label.replaceAll(/[^A-Za-z0-9]/g, '_') + '">['
                     + linkedMethod.resource + ':' + linkedMethod.label
                     + ']</a>';
 
@@ -66,7 +66,7 @@
 
 <div class="card card-primary operation {operation.deprecated?'deprecated':''}">
     <div class="headingContainer">
-        <h2 id="{method.toUpperCase()}-{operation.summary.replaceAll(' ', '_')}" class="methodHeading">
+        <h2 id="{method.toUpperCase()}-{operation.summary.replaceAll(/[^A-Za-z0-9]/g, '_')}" class="methodHeading">
             {method.toUpperCase()} - {operation.summary}
         </h2>
 
