@@ -23,7 +23,6 @@ import net.oneandone.neberus.annotation.ApiResponses;
 import net.oneandone.neberus.annotation.ApiType;
 import net.oneandone.neberus.model.ApiStatus;
 import net.oneandone.neberus.model.FormParameters;
-import net.oneandone.neberus.util.JavaDocUtils;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
@@ -292,7 +291,7 @@ public abstract class MethodParser {
 
         if (!typeCantBeDocumented(typeArguments.get(0), options)) {
             TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArguments.get(0));
-            nestedInfoKey.description = JavaDocUtils.getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
+            nestedInfoKey.description = getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
             addNestedParameters(typeArguments.get(0), nestedInfoKey.nestedParameters, new ArrayList<>());
         }
 
@@ -304,7 +303,7 @@ public abstract class MethodParser {
 
         if (!typeCantBeDocumented(typeArguments.get(1), options)) {
             TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArguments.get(1));
-            nestedInfoValue.description = JavaDocUtils.getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
+            nestedInfoValue.description = getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
             addNestedParameters(typeArguments.get(1), nestedInfoValue.nestedParameters, new ArrayList<>());
         }
     }
@@ -322,7 +321,7 @@ public abstract class MethodParser {
 
         if (!typeCantBeDocumented(typeArgument, options)) {
             TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArgument);
-            nestedInfo.description = JavaDocUtils.getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
+            nestedInfo.description = getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
             addNestedParameters(typeArgument, nestedInfo.nestedParameters, new ArrayList<>());
         }
 
@@ -455,7 +454,7 @@ public abstract class MethodParser {
         if (returnTag.isPresent()) {
             nestedInfo.description = getCommentTextWithoutInlineTags(((ReturnTree) returnTag.get()).getDescription());
         } else {
-            nestedInfo.description = JavaDocUtils.getCommentTextFromInterfaceOrClass(getter, options.environment, true);
+            nestedInfo.description = getCommentTextFromInterfaceOrClass(getter, options.environment, true);
         }
 
         nestedInfo.allowedValues = getAllowedValuesFromType(getter.getReturnType());
@@ -804,7 +803,7 @@ public abstract class MethodParser {
             data.methodData.description = description;
         } else {
             //or use the javadoc comment instead
-            data.methodData.description = JavaDocUtils.getCommentTextFromInterfaceOrClass(method, options.environment, true);
+            data.methodData.description = getCommentTextFromInterfaceOrClass(method, options.environment, true);
         }
     }
 

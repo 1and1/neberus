@@ -9,12 +9,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 
-## [3.0.0-RC1] - 2021-03-05
+## [3.0.0-RC2] - 2021-04-23
 
 ### Changed
 
 - rewrite parsers with new doclet Api
 - rewrite frontend with svelte & openApiV3
+
+## [3.0.0-RC1] - 2021-03-05
+
+### Changed
+
+- validate 'consumes' contentType is set for methods with body
+- add special name handling for array types
+- add class javadoc to nested collection & map elements
+- include class javadoc as fallback description for @ApiEntity entityClass
+
+### Fixed
+
+- remove excessive dot in logged paths
+- replace/escape all non-alphanumeric characters in operation references
+- fix excessive newline in descriptions
 
 ## [2.0.0] - 2019-09-25
 
