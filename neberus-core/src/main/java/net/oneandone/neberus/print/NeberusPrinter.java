@@ -22,7 +22,7 @@ public abstract class NeberusPrinter {
             if (file.mkdirs()) {
                 System.out.println("Created folders for apidocs at " + file.getPath());
             }
-            String absoluteFileName = file.getAbsolutePath() + "/" + fileName;
+            String absoluteFileName = (file.getAbsolutePath() + "/" + fileName).replace("/./", "/");
             System.out.println("Writing file '" + absoluteFileName + "'");
 
             try (PrintWriter printWriter = new PrintWriter(absoluteFileName, StandardCharsets.UTF_8.name())) {
