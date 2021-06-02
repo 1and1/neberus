@@ -46,28 +46,29 @@ public class SpringMvcMethodParser extends MethodParser {
 
     @Override
     protected String getPathParam(ExecutableElement method, VariableElement parameter, int index) {
-        if (hasAnnotation(method, parameter, PathVariable.class, index, options.environment)) {
-            String value = getAnnotationValue(method, parameter, PathVariable.class, VALUE, index, options.environment);
-            return value != null ? value : parameter.getSimpleName().toString();
-        }
-        return null;
-
+        return getParam(method, parameter, index, PathVariable.class);
     }
 
     @Override
     protected String getQueryParam(ExecutableElement method, VariableElement parameter, int index) {
-        if (hasAnnotation(method, parameter, RequestParam.class, index, options.environment)) {
-            String value = getAnnotationValue(method, parameter, RequestParam.class, VALUE, index, options.environment);
-            return value != null ? value : parameter.getSimpleName().toString();
-        }
-        return null;
+        return getParam(method, parameter, index, RequestParam.class);
     }
 
     @Override
     protected String getHeaderParam(ExecutableElement method, VariableElement parameter, int index) {
-        if (hasAnnotation(method, parameter, RequestHeader.class, index, options.environment)) {
-            String value = getAnnotationValue(method, parameter, RequestHeader.class, VALUE, index, options.environment);
-            return value != null ? value : parameter.getSimpleName().toString();
+        return getParam(method, parameter, index, RequestHeader.class);
+    }
+
+    private String getParam(ExecutableElement method, VariableElement parameter, int index, Class<?> paramAnnotationClass) {
+        if (hasAnnotation(method, parameter, paramAnnotationClass, index, options.environment)) {
+            String value = getAnnotationValue(method, parameter, paramAnnotationClass, VALUE, index, options.environment);
+
+            if (value != null) {
+                return value;
+            }
+
+            String name = getAnnotationValue(method, parameter, paramAnnotationClass, NAME, index, options.environment);
+            return name != null ? name : parameter.getSimpleName().toString();
         }
         return null;
     }
@@ -139,6 +140,8 @@ public class SpringMvcMethodParser extends MethodParser {
             required = getAnnotationValue(method, parameter, PathVariable.class, REQUIRED, index, options.environment);
         } else if (hasAnnotation(method, parameter, RequestParam.class, index, options.environment)) {
             required = getAnnotationValue(method, parameter, RequestParam.class, REQUIRED, index, options.environment);
+        } else if (hasAnnotation(method, parameter, RequestHeader.class, index, options.environment)) {
+            required = getAnnotationValue(method, parameter, RequestHeader.class, REQUIRED, index, options.environment);
         }
 
         if (required != null) {
