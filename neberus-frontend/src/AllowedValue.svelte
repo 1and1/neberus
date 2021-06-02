@@ -58,6 +58,10 @@
 
 <style>
 
+    .allowed-value {
+        word-wrap: anywhere;
+    }
+
     .allowed-value:after {
         content: ' | ';
     }
