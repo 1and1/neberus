@@ -160,6 +160,16 @@ public class RestService {
         return null;
     }
 
+    @GetMapping(name = "Get without explicit path",
+                produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponse(status = ApiStatus.OK, description = "success", entities = {
+            @ApiEntity(entityClass = SomeFieldDto.class)
+    })
+    @ApiCurl
+    public ResponseEntity<?> getRootMethod() {
+        return null;
+    }
+
     public static class WrappedString {
 
         public String value;

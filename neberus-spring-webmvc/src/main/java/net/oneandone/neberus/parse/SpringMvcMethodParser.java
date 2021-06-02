@@ -98,7 +98,11 @@ public class SpringMvcMethodParser extends MethodParser {
         if (MvcUtils.getMappingAnnotationValue(methodDoc, PATH, options.environment) != null) {
             return (String) ((List<AnnotationValue>) MvcUtils.getMappingAnnotationValue(methodDoc, PATH, options.environment)).get(0).getValue();
         }
-        return (String) ((List<AnnotationValue>) MvcUtils.getMappingAnnotationValue(methodDoc, VALUE, options.environment)).get(0).getValue();
+        if (MvcUtils.getMappingAnnotationValue(methodDoc, VALUE, options.environment) != null) {
+            return (String) ((List<AnnotationValue>) MvcUtils.getMappingAnnotationValue(methodDoc, VALUE, options.environment)).get(0).getValue();
+        }
+
+        return null;
     }
 
     @Override
