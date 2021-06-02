@@ -377,7 +377,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         Header header = new Header();
 
         header.description(expand(headerInfo.description));
-        header.required(!headerInfo.optional);
+        header.required(headerInfo.optional);
         header.deprecated(headerInfo.deprecated);
 
         if (headerInfo.deprecated) {
@@ -420,7 +420,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
                             .in(param.parameterType.name().toLowerCase())
                             .description(expand(param.description))
                             .deprecated(param.deprecated)
-                            .required(!param.optional)
+                            .required(param.isRequired())
                             .schema(toSchema(param, param.entityClass, new HashMap<>(), null, methodData, true, components));
 
                     if (param.deprecated) {
@@ -520,7 +520,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             schema.description(expand(param.description));
             schema.type(getSimpleTypeName(param.entityClass, options.environment));
             schema.addExtension("x-java-type", getSimpleTypeName(param.entityClass, options.environment));
-            schema.addExtension("x-java-type-required", !param.optional);
+            schema.addExtension("x-java-type-required", param.isRequired());
             addConstraints(schema, param);
             addAllowedValues(schema, param);
             schema.deprecated(param.deprecated);
@@ -565,7 +565,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         schema.addExtension("x-java-type", getSimpleTypeName(type, options.environment));
 
         if (param != null) {
-            schema.addExtension("x-java-type-required", !param.optional);
+            schema.addExtension("x-java-type-required", param.isRequired());
             schema.description(expand(param.description));
             schema.deprecated(param.deprecated);
             if (!StringUtils.isBlank(param.deprecatedDescription)) {
@@ -609,7 +609,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         mapSchema.addExtension("x-java-type", getSimpleTypeName(type, options.environment));
         mapSchema.addExtension("x-java-type-expandable", true);
         if (param != null) {
-            mapSchema.addExtension("x-java-type-required", !param.optional);
+            mapSchema.addExtension("x-java-type-required", param.isRequired());
             mapSchema.description(expand(param.description));
             mapSchema.deprecated(param.deprecated);
             if (!StringUtils.isBlank(param.deprecatedDescription)) {
@@ -654,7 +654,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         arraySchema.addExtension("x-java-type", getSimpleTypeName(type, options.environment));
 
         if (param != null) {
-            arraySchema.addExtension("x-java-type-required", !param.optional);
+            arraySchema.addExtension("x-java-type-required", param.isRequired());
             arraySchema.description(expand(param.description));
             arraySchema.deprecated(param.deprecated);
             if (!StringUtils.isBlank(param.deprecatedDescription)) {
@@ -699,7 +699,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         schema.addExtension("x-java-type-expandable", false);
         schema.type(getSimpleTypeName(type, options.environment));
         if (param != null) {
-            schema.addExtension("x-java-type-required", !param.optional);
+            schema.addExtension("x-java-type-required", param.isRequired());
             schema.description(expand(param.description));
             schema.deprecated(param.deprecated);
             if (!StringUtils.isBlank(param.deprecatedDescription)) {

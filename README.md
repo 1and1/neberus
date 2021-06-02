@@ -160,7 +160,8 @@ Definitions in the REST-class will be used as fallback in case the interface doe
 | @ApiRequestEntity | Define a request entity for a specific content-type. | Method |
 | @ApiExample | Define a example for a specific value. | - |
 | @ApiType | Define the type that should be displayed instead of the actual type. This can be used to hide internal wrapper DTOs. | Parameter |
-| @ApiOptional | Declare a parameter as optional. | Method, Parameter, Field |
+| @ApiOptional | Declare a parameter as optional. This will have precedence over framework declarations. | Method, Parameter, Field |
+| @ApiRequired | Declare a parameter as required. This will have precedence over framework declarations. | Method, Parameter, Field |
 | @ApiIgnore | Exclude a request parameter, DTO field or a whole REST method from documentation. | Method, Parameter, Field |
 
 ### Example Usage

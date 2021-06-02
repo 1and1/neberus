@@ -18,6 +18,7 @@ import net.oneandone.neberus.annotation.ApiParameter;
 import net.oneandone.neberus.annotation.ApiParameters;
 import net.oneandone.neberus.annotation.ApiRequestEntities;
 import net.oneandone.neberus.annotation.ApiRequestEntity;
+import net.oneandone.neberus.annotation.ApiRequired;
 import net.oneandone.neberus.annotation.ApiResponse;
 import net.oneandone.neberus.annotation.ApiResponses;
 import net.oneandone.neberus.annotation.ApiType;
@@ -233,15 +234,37 @@ public abstract class MethodParser {
         //add the allowed values, if specified
         addAllowedValuesFromAnnotation(method, parameter, index, parameterInfo);
 
-        parameterInfo.optional = isOptional(method, parameter, index);
-
-        parameterInfo.deprecated = hasAnnotation(method, parameter, Deprecated.class, index, options.environment);
-
         return parameterInfo;
     }
 
-    protected boolean isOptional(ExecutableElement method, VariableElement parameter, int index) {
-        return hasAnnotation(method, parameter, ApiOptional.class, index, options.environment);
+    protected Boolean isOptional(ExecutableElement method, VariableElement parameter, int index) {
+        if (hasAnnotation(method, parameter, ApiOptional.class, index, options.environment)) {
+            return true;
+        }
+        if (hasAnnotation(method, parameter, ApiRequired.class, index, options.environment)) {
+            return false;
+        }
+        return null;
+    }
+
+    private Boolean isOptional(ExecutableElement getter) {
+        if (hasAnnotation(getter, ApiOptional.class, options.environment)) {
+            return true;
+        }
+        if (hasAnnotation(getter, ApiRequired.class, options.environment)) {
+            return false;
+        }
+        return null;
+    }
+
+    private Boolean isOptional(VariableElement param) {
+        if (hasDirectAnnotation(param, ApiOptional.class)) {
+            return true;
+        }
+        if (hasDirectAnnotation(param, ApiRequired.class)) {
+            return false;
+        }
+        return null;
     }
 
     private RestMethodData.ParameterInfo getBasicParameterInfo(ExecutableElement method, VariableElement parameter, int index) {
@@ -255,7 +278,7 @@ public abstract class MethodParser {
         parameterInfo.entityClass = parameter.asType();
         parameterInfo.displayClass = getAnnotationValue(method, parameter, ApiType.class, VALUE, index, options.environment);
         parameterInfo.constraints = getConstraints(getAnnotations(method, parameter, index, options.environment));
-        parameterInfo.optional = hasAnnotation(method, parameter, ApiOptional.class, index, options.environment);
+        parameterInfo.optional = isOptional(method, parameter, index);
         parameterInfo.deprecated = hasAnnotation(method, parameter, Deprecated.class, index, options.environment);
 
         if (pathParam != null) {
@@ -386,7 +409,7 @@ public abstract class MethodParser {
                 }
             }
 
-            int compareOpt = Boolean.compare(a.optional, b.optional);
+            int compareOpt = Boolean.compare(a.optional != null && a.optional, b.optional != null && b.optional);
 
             if (compareOpt != 0) {
                 return compareOpt;
@@ -419,7 +442,7 @@ public abstract class MethodParser {
         nestedInfo.allowedValues = getAllowedValuesFromType(param.asType());
         nestedInfo.entityClass = param.asType();
         nestedInfo.constraints = getConstraints(param.getAnnotationMirrors());
-        nestedInfo.optional = hasDirectAnnotation(param, ApiOptional.class);
+        nestedInfo.optional = isOptional(param);
         nestedInfo.deprecated = hasDirectAnnotation(param, Deprecated.class);
 
         //add the allowed values, if specified
@@ -460,7 +483,7 @@ public abstract class MethodParser {
         nestedInfo.allowedValues = getAllowedValuesFromType(getter.getReturnType());
         nestedInfo.entityClass = getter.getReturnType();
         nestedInfo.constraints = getConstraints(getter.getAnnotationMirrors());
-        nestedInfo.optional = hasAnnotation(getter, ApiOptional.class, options.environment);
+        nestedInfo.optional = isOptional(getter);
 
         nestedInfo.deprecated = hasAnnotation(getter, Deprecated.class, options.environment);
 
@@ -499,7 +522,7 @@ public abstract class MethodParser {
         nestedInfo.allowedValues = getAllowedValuesFromType(field.asType());
         nestedInfo.entityClass = field.asType();
         nestedInfo.constraints = getConstraints(field.getAnnotationMirrors());
-        nestedInfo.optional = hasDirectAnnotation(field, ApiOptional.class);
+        nestedInfo.optional = isOptional(field);
         nestedInfo.deprecated = hasDirectAnnotation(field, Deprecated.class);
 
         getBlockTags(field, options.environment).stream()

@@ -137,7 +137,13 @@ public class SpringMvcMethodParser extends MethodParser {
     }
 
     @Override
-    protected boolean isOptional(ExecutableElement method, VariableElement parameter, int index) {
+    protected Boolean isOptional(ExecutableElement method, VariableElement parameter, int index) {
+        Boolean overrideValue = super.isOptional(method, parameter, index);
+
+        if (overrideValue != null) {
+            return overrideValue;
+        }
+
         Boolean required = null;
 
         if (hasAnnotation(method, parameter, PathVariable.class, index, options.environment)) {
@@ -151,7 +157,7 @@ public class SpringMvcMethodParser extends MethodParser {
         if (required != null) {
             return !required;
         } else {
-            return super.isOptional(method, parameter, index);
+            return false;
         }
     }
 

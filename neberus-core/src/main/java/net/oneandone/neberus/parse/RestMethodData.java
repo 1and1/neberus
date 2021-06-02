@@ -195,12 +195,16 @@ public class RestMethodData {
         public String description = "";
         public List<AllowedValue> allowedValues = new ArrayList<>();
         public List<ParameterInfo> nestedParameters = new ArrayList<>();
-        public boolean optional;
+        public Boolean optional;
         public boolean deprecated;
         public String deprecatedDescription = "";
         public Map<String, Map<String, String>> constraints = new HashMap<>();
 
         public ParameterInfo() {
+        }
+
+        public boolean isRequired() {
+            return optional == null || !optional;
         }
 
         public void merge(ParameterInfo other) {

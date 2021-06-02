@@ -14,6 +14,7 @@ import net.oneandone.neberus.annotation.ApiLabel;
 import net.oneandone.neberus.annotation.ApiOptional;
 import net.oneandone.neberus.annotation.ApiParameter;
 import net.oneandone.neberus.annotation.ApiRequestEntity;
+import net.oneandone.neberus.annotation.ApiRequired;
 import net.oneandone.neberus.annotation.ApiResponse;
 import net.oneandone.neberus.annotation.ApiType;
 import net.oneandone.neberus.model.ApiStatus;
@@ -113,6 +114,7 @@ public class RestService {
     })
     @ApiParameter(name = "headerParam", description = "custom description <a href='index.html'>here</a>", type = ApiParameter.Type.HEADER)
     public void justYetAnotherGetMethod(@RequestHeader(HttpHeaders.AUTHORIZATION) String header,
+                                        @ApiRequired @RequestHeader(value = "requiredOptionalHeader", required = false) String requiredOptionalHeader,
                                         @PathVariable("pathParam") @ApiAllowedValue("the expected default value") String pathParam,
                                         @RequestParam(value = "queryParam", required = false) String queryParam,
                                         @ApiIgnore @RequestParam(value = "queryParamIgnored") String queryParamIgnored,

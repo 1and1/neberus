@@ -6,9 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declare a parameter as optional. This will have precedence over framework declarations.
+ * Declare a parameter as required. This will have precedence over framework declarations.
  */
 @Target({ ElementType.PARAMETER, ElementType.FIELD, ElementType.METHOD })
 @Retention(RetentionPolicy.SOURCE)
-public @interface ApiOptional {
+public @interface ApiRequired {
 }
