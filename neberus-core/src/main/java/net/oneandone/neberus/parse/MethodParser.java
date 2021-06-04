@@ -189,6 +189,11 @@ public abstract class MethodParser {
         entity.description = extractValue(entityDefinition, DESCRIPTION);
         entity.entityClass = extractValue(entityDefinition, "entityClass");
 
+        if (entity.contentType == null) {
+            // if unset, take the first content-type from the method
+            entity.contentType = data.requestData.mediaType == null ? null : data.requestData.mediaType.get(0);
+        }
+
         if (entity.description == null) {
             // get javadoc from entityClass, if not set in annotation
             TypeElement element = (TypeElement) options.environment.getTypeUtils().asElement(entity.entityClass);
