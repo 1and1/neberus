@@ -15,6 +15,7 @@ import javax.lang.model.element.TypeElement;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.oneandone.neberus.parse.MethodParser.VALUE;
 import static net.oneandone.neberus.util.JavaDocUtils.extractValue;
@@ -136,17 +137,22 @@ public abstract class ClassParser {
         RestMethodData tmpRestMethodData = new RestMethodData("tmp");
 
         //check for the (maybe implicit) container annotation...
-        List<AnnotationValue> responses = getAnnotationValue(classDoc, ApiCommonResponses.class, VALUE, methodParser.options.environment);
+        List<? extends AnnotationMirror> responses = getAnnotationDesc(classDoc, ApiCommonResponses.class, methodParser.options.environment);
         if (responses != null) {
             //...and iterate over it's content
-            responses.forEach(repsonse -> {
-                methodParser.addResponse((AnnotationMirror) repsonse.getValue(), tmpRestMethodData, produces);
-            });
-        } else {
-            //or look for a single annotation
-            List<? extends AnnotationMirror> singleResponse = getAnnotationDesc(classDoc, ApiCommonResponse.class, methodParser.options.environment);
-            singleResponse.forEach(annotationDesc -> methodParser.addResponse(annotationDesc, tmpRestMethodData, produces));
+            responses.stream().flatMap(container -> {
+                List<AnnotationValue> vs = extractValue(container, VALUE);
+                if (vs == null) {
+                    return Stream.empty();
+                } else {
+                    return vs.stream();
+                }
+            }).forEach(repsonse -> methodParser.addResponse((AnnotationMirror) repsonse.getValue(), tmpRestMethodData, produces));
         }
+
+        //also look for single annotation(s)
+        List<? extends AnnotationMirror> singleResponse = getAnnotationDesc(classDoc, ApiCommonResponse.class, methodParser.options.environment);
+        singleResponse.forEach(annotationDesc -> methodParser.addResponse(annotationDesc, tmpRestMethodData, produces));
 
         restClassData.commonResponseData.addAll(tmpRestMethodData.responseData);
     }
