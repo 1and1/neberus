@@ -94,7 +94,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             String jsonString = mapper.writeValueAsString(openAPI);
             saveToFile(jsonString, options.outputDirectory + options.docBasePath, "openApi.json");
 
-            String escapedJsonString = jsonString.replaceAll("\\\\", "\\\\\\\\");
+            String escapedJsonString = jsonString.replaceAll("\\\\", "\\\\\\\\").replaceAll("`", "\\\\`");
             String jsonVar = "var openApiJsonString = `" + escapedJsonString + "`;";
             saveToFile(jsonVar, options.outputDirectory + options.docBasePath, "openApi.js");
         } catch (JsonProcessingException e) {
