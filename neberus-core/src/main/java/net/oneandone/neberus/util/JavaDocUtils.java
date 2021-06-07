@@ -874,7 +874,8 @@ public abstract class JavaDocUtils {
         }
 
         DocTreePath path = DocTreePath.getPath(elementPath, docCommentTree, dtree);
-        return environment.getDocTrees().getElement(path);
+
+        return path == null ? null : environment.getDocTrees().getElement(path);
     }
 
 }
