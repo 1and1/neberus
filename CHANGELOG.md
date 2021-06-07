@@ -8,15 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-
-## [3.0.0-RC2] - 2021-04-23
+## [3.0.0-RC3] - 2021-06-07
 
 ### Changed
 
-- rewrite parsers with new doclet Api
-- rewrite frontend with svelte & openApiV3
+- change word-wrap for .btn and .allowed-value
+- introduce @ApiRequired, give @ApiOptional and @ApiRequired precedence over framework annotations
+- process @link to other method for normal description as well
 
-## [3.0.0-RC1] - 2021-03-05
+### Fixed
+
+- parse 'name' from springweb parameter annotations, parse 'required' from @RequestHeader
+- allow omitted path for springweb mapping annotations
+- escape backticks in js-json output
+- collect @ApiCommonResponse(s) from all interfaces instead of just the first
+- use first content-type of method if unset in @ApiRequestEntity
+- fix possible NPE in JavaDocUtils.getReferencedElement
+
+
+## [3.0.0-RC2] - 2021-04-23
 
 ### Changed
 
@@ -30,6 +40,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - remove excessive dot in logged paths
 - replace/escape all non-alphanumeric characters in operation references
 - fix excessive newline in descriptions
+
+
+## [3.0.0-RC1] - 2021-03-05
+
+### Changed
+
+- rewrite parsers with new doclet Api
+- rewrite frontend with svelte & openApiV3
+
 
 ## [2.0.0] - 2019-09-25
 
