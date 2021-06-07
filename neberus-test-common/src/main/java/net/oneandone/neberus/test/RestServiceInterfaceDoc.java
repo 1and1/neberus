@@ -82,6 +82,7 @@ public interface RestServiceInterfaceDoc extends CommonRestServiceInterfaceDoc {
 
     /**
      * Description of 'GET method with interface doc' defined as javadoc!<br>
+     * With a link to {@link #putMethod(SomeFieldDto)}.
      * With a html newline and <strong>strong text</strong>.
      * <br>
      * This is a line

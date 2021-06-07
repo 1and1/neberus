@@ -355,6 +355,20 @@ public abstract class JavaDocUtils {
                : getCommentText(method, environment, stripInlineTags);
     }
 
+    public static DocCommentTree getDocCommentTreeFromInterfaceOrClass(ExecutableElement method, DocletEnvironment environment) {
+        Optional<ExecutableElement> interfaceMethod = getInterfaceMethod(method, environment);
+
+        DocCommentTree onInterface = null;
+
+        if (interfaceMethod.isPresent()) {
+            onInterface = environment.getDocTrees().getDocCommentTree(interfaceMethod.get());
+        }
+
+        return onInterface != null
+               ? onInterface
+               : environment.getDocTrees().getDocCommentTree(method);
+    }
+
     public static ParamTree getParamTag(ExecutableElement method, int index, Map<String, ParamTree> paramTags,
                                         DocletEnvironment environment) {
         Optional<ExecutableElement> interfaceMethod = getInterfaceMethod(method, environment);
@@ -851,7 +865,9 @@ public abstract class JavaDocUtils {
 
     public static Element getReferencedElement(Element e, DocTree dtree, DocletEnvironment environment) {
         TreePath elementPath = environment.getDocTrees().getPath(e);
-        DocCommentTree docCommentTree = environment.getDocTrees().getDocCommentTree(e);
+        DocCommentTree docCommentTree = e instanceof ExecutableElement
+                                        ? getDocCommentTreeFromInterfaceOrClass((ExecutableElement) e, environment)
+                                        : environment.getDocTrees().getDocCommentTree(e);
 
         if (elementPath == null || docCommentTree == null) {
             return null;

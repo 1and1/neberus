@@ -38,9 +38,29 @@
         return body;
     }
 
+    function getDescription(openApi, operation) {
+        let description = operation.description;
+        let linkedMethods = operation.extensions ? operation.extensions['x-linked-methods'] : undefined;
+
+        if (linkedMethods) {
+            linkedMethods.forEach(linkedMethod => {
+
+                let replacement = '<a href="?resource=' + linkedMethod.resource
+                    + '&operation=' + linkedMethod.httpMethod.toUpperCase() + '-' + linkedMethod.label.replaceAll(/[^A-Za-z0-9]/g, '_') + '">['
+                    + linkedMethod.resource + ':' + linkedMethod.label
+                    + ']</a>';
+
+                description = description.replace(/\{\@link[^}]+\}/, replacement);
+            });
+
+        }
+
+        return description;
+    }
+
     function getDeprecatedDescription(openApi, operation) {
         let description = operation.extensions['x-deprecated-description'];
-        let linkedMethods = operation.extensions['x-deprecated-linked-methods'];
+        let linkedMethods = operation.extensions['x-linked-methods'];
 
         if (linkedMethods) {
             linkedMethods.forEach(linkedMethod => {
@@ -95,7 +115,7 @@
     </div>
 
     {#if operation.description}
-        <div class="methodDescription">{@html operation.description}</div>
+        <div class="methodDescription">{@html getDescription(openApi, operation)}</div>
     {/if}
 
     <OperationRequest operation={operation} openApi={openApi} method={method} path={path}/>

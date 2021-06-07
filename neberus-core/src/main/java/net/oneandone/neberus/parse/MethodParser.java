@@ -1,11 +1,15 @@
 package net.oneandone.neberus.parse;
 
 import com.sun.source.doctree.DeprecatedTree;
+import com.sun.source.doctree.DocCommentTree;
 import com.sun.source.doctree.DocTree;
+import com.sun.source.doctree.EndElementTree;
 import com.sun.source.doctree.LinkTree;
 import com.sun.source.doctree.ParamTree;
 import com.sun.source.doctree.ReturnTree;
 import com.sun.source.doctree.SeeTree;
+import com.sun.source.doctree.StartElementTree;
+import com.sun.source.doctree.TextTree;
 import net.oneandone.neberus.Options;
 import net.oneandone.neberus.annotation.ApiAllowedValue;
 import net.oneandone.neberus.annotation.ApiAllowedValues;
@@ -57,6 +61,7 @@ import static net.oneandone.neberus.util.JavaDocUtils.getCommentTextFromInterfac
 import static net.oneandone.neberus.util.JavaDocUtils.getCommentTextWithoutInlineTags;
 import static net.oneandone.neberus.util.JavaDocUtils.getConstructors;
 import static net.oneandone.neberus.util.JavaDocUtils.getDirectAnnotationValue;
+import static net.oneandone.neberus.util.JavaDocUtils.getDocCommentTreeFromInterfaceOrClass;
 import static net.oneandone.neberus.util.JavaDocUtils.getEnumValuesAsList;
 import static net.oneandone.neberus.util.JavaDocUtils.getInlineTags;
 import static net.oneandone.neberus.util.JavaDocUtils.getNameFromGetter;
@@ -831,7 +836,24 @@ public abstract class MethodParser {
             data.methodData.description = description;
         } else {
             //or use the javadoc comment instead
-            data.methodData.description = getCommentTextFromInterfaceOrClass(method, options.environment, true);
+            DocCommentTree docCommentTree = getDocCommentTreeFromInterfaceOrClass(method,options.environment);
+
+            if (docCommentTree != null) {
+                data.methodData.description = docCommentTree.getFullBody().stream()
+                        .filter(tag -> tag instanceof TextTree || tag instanceof StartElementTree || tag instanceof EndElementTree || tag instanceof LinkTree)
+                        .map(Object::toString)
+                        .collect(Collectors.joining());
+
+                docCommentTree.getFullBody().stream().filter(LinkTree.class::isInstance).map(LinkTree.class::cast)
+                        .forEach(linkTree -> {
+                            Element referencedMember = getReferencedElement(method, linkTree.getReference(), options.environment);
+                            if (referencedMember instanceof ExecutableElement) {
+                                data.methodData.links.add((ExecutableElement) referencedMember);
+                            }
+                        });
+            } else {
+                data.methodData.description = getCommentTextFromInterfaceOrClass(method, options.environment, true);
+            }
         }
     }
 
@@ -878,7 +900,7 @@ public abstract class MethodParser {
                         .forEach(linkTree -> {
                             Element referencedMember = getReferencedElement(method, linkTree.getReference(), options.environment);
                             if (referencedMember instanceof ExecutableElement) {
-                                data.methodData.deprecatedLinks.add((ExecutableElement) referencedMember);
+                                data.methodData.links.add((ExecutableElement) referencedMember);
                             }
                         });
             }

@@ -266,19 +266,19 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
 
         if (method.methodData.deprecated) {
             operation.addExtension("x-deprecated-description", expand(method.methodData.deprecatedDescription));
+        }
 
-            if (!method.methodData.deprecatedLinks.isEmpty()) {
-                List<Map<String, String>> linkedMethods = new ArrayList<>();
+        if (!method.methodData.links.isEmpty()) {
+            List<Map<String, String>> linkedMethods = new ArrayList<>();
 
-                for (ExecutableElement link : method.methodData.deprecatedLinks) {
-                    for (RestClassData restClass : allRestClasses) {
-                        Optional<RestMethodData> linkedMethod = restClass.methods.stream().filter(m -> m.methodData.methodDoc.equals(link)).findFirst();
-                        linkedMethod.ifPresent(restMethodData -> linkedMethods.add(getLinkedMethodMap(restMethodData)));
-                    }
+            for (ExecutableElement link : method.methodData.links) {
+                for (RestClassData restClass : allRestClasses) {
+                    Optional<RestMethodData> linkedMethod = restClass.methods.stream().filter(m -> m.methodData.methodDoc.equals(link)).findFirst();
+                    linkedMethod.ifPresent(restMethodData -> linkedMethods.add(getLinkedMethodMap(restMethodData)));
                 }
-
-                operation.addExtension("x-deprecated-linked-methods", linkedMethods);
             }
+
+            operation.addExtension("x-linked-methods", linkedMethods);
         }
 
         if (method.methodData.printCurl) {

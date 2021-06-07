@@ -50,7 +50,7 @@ public class RestMethodData {
         public boolean printCurl = false;
         public boolean deprecated = false;
         public String deprecatedDescription;
-        public List<ExecutableElement> deprecatedLinks = new ArrayList<>();
+        public List<ExecutableElement> links = new ArrayList<>();
 
         public MethodData(String httpMethod) {
             this.httpMethod = httpMethod;
@@ -68,7 +68,7 @@ public class RestMethodData {
                     ", printCurl=" + printCurl +
                     ", deprecated=" + deprecated +
                     ", deprecatedDescription='" + deprecatedDescription + '\'' +
-                    ", deprecatedLinks=" + deprecatedLinks +
+                    ", links=" + links +
                     '}';
         }
     }
