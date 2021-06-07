@@ -101,15 +101,20 @@ public abstract class MethodParser {
     }
 
     public RestMethodData parseMethod(ExecutableElement method, String httpMethod) {
-        RestMethodData data = new RestMethodData(httpMethod);
+        try {
+            RestMethodData data = new RestMethodData(httpMethod);
 
-        addMethodData(method, data);
-        addRequestData(method, data);
-        addResponseData(method, data);
+            addMethodData(method, data);
+            addRequestData(method, data);
+            addResponseData(method, data);
 
-        data.validate(options.ignoreErrors);
+            data.validate(options.ignoreErrors);
 
-        return data;
+            return data;
+        } catch (Exception e) {
+            System.out.println("Error parsing method " + method);
+            throw e;
+        }
     }
 
     protected void addRequestData(ExecutableElement method, RestMethodData data) {
@@ -224,27 +229,32 @@ public abstract class MethodParser {
     protected abstract String getFormParam(ExecutableElement method, VariableElement parameter, int index);
 
     protected RestMethodData.ParameterInfo parseParameter(ExecutableElement method, VariableElement parameter,
-                                                          Map<String, ParamTree> paramTags, int index) {
-        RestMethodData.ParameterInfo parameterInfo = getBasicParameterInfo(method, parameter, index);
+            Map<String, ParamTree> paramTags, int index) {
+        try {
+            RestMethodData.ParameterInfo parameterInfo = getBasicParameterInfo(method, parameter, index);
 
-        ParamTree paramTag = getParamTag(method, index, paramTags, options.environment);
+            ParamTree paramTag = getParamTag(method, index, paramTags, options.environment);
 
-        if (paramTag != null) {
-            //add the description found in the @param tag
-            parameterInfo.description = getParamTreeComment(paramTag);
+            if (paramTag != null) {
+                //add the description found in the @param tag
+                parameterInfo.description = getParamTreeComment(paramTag);
 
-            List<? extends DocTree> paramBlockTags = getBlockTags(parameter, options.environment);
+                List<? extends DocTree> paramBlockTags = getBlockTags(parameter, options.environment);
 
-            getAllowedValuesFromSeeTag(method, paramBlockTags).ifPresent(av -> parameterInfo.allowedValues = av);
-            getAllowedValuesFromLinkTag(method, paramTag.getDescription()).ifPresent(av -> parameterInfo.allowedValues = av);
-            getConstraintsFromSeeTag(method, paramBlockTags).ifPresent(av -> parameterInfo.constraints = av);
-            getConstraintsFromLinkTag(method, paramTag.getDescription()).ifPresent(av -> parameterInfo.constraints = av);
+                getAllowedValuesFromSeeTag(method, paramBlockTags).ifPresent(av -> parameterInfo.allowedValues = av);
+                getAllowedValuesFromLinkTag(method, paramTag.getDescription()).ifPresent(av -> parameterInfo.allowedValues = av);
+                getConstraintsFromSeeTag(method, paramBlockTags).ifPresent(av -> parameterInfo.constraints = av);
+                getConstraintsFromLinkTag(method, paramTag.getDescription()).ifPresent(av -> parameterInfo.constraints = av);
+            }
+
+            //add the allowed values, if specified
+            addAllowedValuesFromAnnotation(method, parameter, index, parameterInfo);
+
+            return parameterInfo;
+        } catch (Exception e) {
+            System.out.println("Error parsing parameter " + parameter);
+            throw e;
         }
-
-        //add the allowed values, if specified
-        addAllowedValuesFromAnnotation(method, parameter, index, parameterInfo);
-
-        return parameterInfo;
     }
 
     protected Boolean isOptional(ExecutableElement method, VariableElement parameter, int index) {
@@ -361,7 +371,7 @@ public abstract class MethodParser {
     }
 
     protected void addNestedParameters(TypeMirror type, List<RestMethodData.ParameterInfo> parentList,
-                                       List<TypeMirror> parentTypes) {
+            List<TypeMirror> parentTypes) {
         try {
             //add nested parameters (ie. fields)
 
@@ -443,7 +453,7 @@ public abstract class MethodParser {
     }
 
     private void addNestedCtorParam(TypeMirror type, List<RestMethodData.ParameterInfo> parentList, List<TypeMirror> parentTypes,
-                                    Map<String, ParamTree> paramTags, VariableElement param) {
+            Map<String, ParamTree> paramTags, VariableElement param) {
         RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
 
         ParamTree paramTag = paramTags.get(param.getSimpleName().toString());
@@ -473,7 +483,7 @@ public abstract class MethodParser {
     }
 
     private void addNestedGetter(TypeMirror type, List<RestMethodData.ParameterInfo> parentList, List<TypeMirror> parentTypes,
-                                 ExecutableElement getter) {
+            ExecutableElement getter) {
 
         RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
         nestedInfo.name = getNameFromGetter(getter, options.environment);
@@ -523,7 +533,7 @@ public abstract class MethodParser {
     }
 
     private void addNestedField(TypeMirror type, List<RestMethodData.ParameterInfo> parentList, List<TypeMirror> parentTypes,
-                                VariableElement field) {
+            VariableElement field) {
         RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
 
         nestedInfo.parameterType = BODY;
@@ -622,7 +632,6 @@ public abstract class MethodParser {
 
                     if (referencedElement != null && TypeElement.class.isAssignableFrom(referencedElement.getClass())) {
                         return getAllowedValuesFromType(referencedElement.asType());
-//                        return getEnumValuesAsList((TypeElement) referencedElement, options.environment);
                     }
 
                     return null;
@@ -640,7 +649,6 @@ public abstract class MethodParser {
 
                         if (referencedElement != null && TypeElement.class.isAssignableFrom(referencedElement.getClass())) {
                             values.addAll(getAllowedValuesFromType(referencedElement.asType()));
-//                            values.addAll(getEnumValuesAsList((TypeElement) referencedElement, options.environment));
                         }
                     });
 
@@ -836,7 +844,7 @@ public abstract class MethodParser {
             data.methodData.description = description;
         } else {
             //or use the javadoc comment instead
-            DocCommentTree docCommentTree = getDocCommentTreeFromInterfaceOrClass(method,options.environment);
+            DocCommentTree docCommentTree = getDocCommentTreeFromInterfaceOrClass(method, options.environment);
 
             if (docCommentTree != null) {
                 data.methodData.description = docCommentTree.getFullBody().stream()
@@ -942,8 +950,7 @@ public abstract class MethodParser {
         }
     }
 
-    protected void addResponse(AnnotationMirror response, RestMethodData data,
-                               List<AnnotationValue> produces) {
+    protected void addResponse(AnnotationMirror response, RestMethodData data, List<AnnotationValue> produces) {
 
         RestMethodData.ResponseData responseData = new RestMethodData.ResponseData();
         data.responseData.add(responseData);
@@ -954,8 +961,7 @@ public abstract class MethodParser {
         return extractValue(response, "entityClass");
     }
 
-    protected void addCommonResponseData(AnnotationMirror response, List<AnnotationValue> produces,
-                                         RestMethodData.ResponseData responseData) {
+    protected void addCommonResponseData(AnnotationMirror response, List<AnnotationValue> produces, RestMethodData.ResponseData responseData) {
         VariableElement status = extractValue(response, "status");
         responseData.status = ApiStatus.valueOf(status.getSimpleName().toString());
 
