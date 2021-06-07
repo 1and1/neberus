@@ -195,7 +195,7 @@ public class RestMethodData {
         public String description = "";
         public List<AllowedValue> allowedValues = new ArrayList<>();
         public List<ParameterInfo> nestedParameters = new ArrayList<>();
-        public Boolean optional;
+        public RequiredStatus required = RequiredStatus.UNSET;
         public boolean deprecated;
         public String deprecatedDescription = "";
         public Map<String, Map<String, String>> constraints = new HashMap<>();
@@ -204,7 +204,7 @@ public class RestMethodData {
         }
 
         public boolean isRequired() {
-            return optional == null || !optional;
+            return required != RequiredStatus.OPTIONAL;
         }
 
         public void merge(ParameterInfo other) {
@@ -215,7 +215,7 @@ public class RestMethodData {
             allowedValues.addAll(other.allowedValues);
             entityClass = other.entityClass == null ? entityClass : other.entityClass;
             displayClass = other.displayClass == null ? displayClass : other.displayClass;
-            optional = other.optional || optional;
+            required = other.required.ordinal() > required.ordinal() ? other.required : required;
             constraints.putAll(other.constraints);
         }
 
@@ -229,7 +229,7 @@ public class RestMethodData {
                     + ", description=" + description
                     + ", allowedValues=" + allowedValues
                     + ", nestedParameters=" + nestedParameters
-                    + ", optional=" + optional
+                    + ", required=" + required
                     + ", constraints=" + constraints
                     + '}';
         }
@@ -307,9 +307,13 @@ public class RestMethodData {
         public String name;
         public String description;
         public List<AllowedValue> allowedValues = new ArrayList<>();
-        public boolean optional;
+        public RequiredStatus required = RequiredStatus.UNSET;
         public boolean deprecated;
         public String deprecatedDescription = "";
+
+        public boolean isRequired() {
+            return required != RequiredStatus.OPTIONAL;
+        }
 
         @Override
         public String toString() {
@@ -317,7 +321,7 @@ public class RestMethodData {
                     "name='" + name + '\'' +
                     ", description='" + description + '\'' +
                     ", allowedValues=" + allowedValues +
-                    ", optional=" + optional +
+                    ", required=" + required +
                     ", deprecated=" + deprecated +
                     ", deprecatedDescription=" + deprecatedDescription +
                     '}';

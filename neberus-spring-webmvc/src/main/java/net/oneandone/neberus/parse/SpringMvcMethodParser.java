@@ -137,10 +137,10 @@ public class SpringMvcMethodParser extends MethodParser {
     }
 
     @Override
-    protected Boolean isOptional(ExecutableElement method, VariableElement parameter, int index) {
-        Boolean overrideValue = super.isOptional(method, parameter, index);
+    protected RequiredStatus getRequiredStatus(ExecutableElement method, VariableElement parameter, int index) {
+        RequiredStatus overrideValue = super.getRequiredStatus(method, parameter, index);
 
-        if (overrideValue != null) {
+        if (overrideValue != RequiredStatus.UNSET) {
             return overrideValue;
         }
 
@@ -155,9 +155,9 @@ public class SpringMvcMethodParser extends MethodParser {
         }
 
         if (required != null) {
-            return !required;
+            return required ? RequiredStatus.REQUIRED : RequiredStatus.OPTIONAL;
         } else {
-            return false;
+            return RequiredStatus.UNSET;
         }
     }
 

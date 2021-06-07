@@ -257,34 +257,34 @@ public abstract class MethodParser {
         }
     }
 
-    protected Boolean isOptional(ExecutableElement method, VariableElement parameter, int index) {
-        if (hasAnnotation(method, parameter, ApiOptional.class, index, options.environment)) {
-            return true;
-        }
+    protected RequiredStatus getRequiredStatus(ExecutableElement method, VariableElement parameter, int index) {
         if (hasAnnotation(method, parameter, ApiRequired.class, index, options.environment)) {
-            return false;
+            return RequiredStatus.REQUIRED;
         }
-        return null;
+        if (hasAnnotation(method, parameter, ApiOptional.class, index, options.environment)) {
+            return RequiredStatus.OPTIONAL;
+        }
+        return RequiredStatus.UNSET;
     }
 
-    private Boolean isOptional(ExecutableElement getter) {
-        if (hasAnnotation(getter, ApiOptional.class, options.environment)) {
-            return true;
-        }
+    private RequiredStatus getRequiredStatus(ExecutableElement getter) {
         if (hasAnnotation(getter, ApiRequired.class, options.environment)) {
-            return false;
+            return RequiredStatus.REQUIRED;
         }
-        return null;
+        if (hasAnnotation(getter, ApiOptional.class, options.environment)) {
+            return RequiredStatus.OPTIONAL;
+        }
+        return RequiredStatus.UNSET;
     }
 
-    private Boolean isOptional(VariableElement param) {
-        if (hasDirectAnnotation(param, ApiOptional.class)) {
-            return true;
-        }
+    private RequiredStatus getRequiredStatus(VariableElement param) {
         if (hasDirectAnnotation(param, ApiRequired.class)) {
-            return false;
+            return RequiredStatus.REQUIRED;
         }
-        return null;
+        if (hasDirectAnnotation(param, ApiOptional.class)) {
+            return RequiredStatus.OPTIONAL;
+        }
+        return RequiredStatus.UNSET;
     }
 
     private RestMethodData.ParameterInfo getBasicParameterInfo(ExecutableElement method, VariableElement parameter, int index) {
@@ -298,7 +298,7 @@ public abstract class MethodParser {
         parameterInfo.entityClass = parameter.asType();
         parameterInfo.displayClass = getAnnotationValue(method, parameter, ApiType.class, VALUE, index, options.environment);
         parameterInfo.constraints = getConstraints(getAnnotations(method, parameter, index, options.environment));
-        parameterInfo.optional = isOptional(method, parameter, index);
+        parameterInfo.required = getRequiredStatus(method, parameter, index);
         parameterInfo.deprecated = hasAnnotation(method, parameter, Deprecated.class, index, options.environment);
 
         if (pathParam != null) {
@@ -429,7 +429,7 @@ public abstract class MethodParser {
                 }
             }
 
-            int compareOpt = Boolean.compare(a.optional != null && a.optional, b.optional != null && b.optional);
+            int compareOpt = Integer.compare(a.required.ordinal(), b.required.ordinal());
 
             if (compareOpt != 0) {
                 return compareOpt;
@@ -462,7 +462,7 @@ public abstract class MethodParser {
         nestedInfo.allowedValues = getAllowedValuesFromType(param.asType());
         nestedInfo.entityClass = param.asType();
         nestedInfo.constraints = getConstraints(param.getAnnotationMirrors());
-        nestedInfo.optional = isOptional(param);
+        nestedInfo.required = getRequiredStatus(param);
         nestedInfo.deprecated = hasDirectAnnotation(param, Deprecated.class);
 
         //add the allowed values, if specified
@@ -503,7 +503,7 @@ public abstract class MethodParser {
         nestedInfo.allowedValues = getAllowedValuesFromType(getter.getReturnType());
         nestedInfo.entityClass = getter.getReturnType();
         nestedInfo.constraints = getConstraints(getter.getAnnotationMirrors());
-        nestedInfo.optional = isOptional(getter);
+        nestedInfo.required = getRequiredStatus(getter);
 
         nestedInfo.deprecated = hasAnnotation(getter, Deprecated.class, options.environment);
 
@@ -542,7 +542,7 @@ public abstract class MethodParser {
         nestedInfo.allowedValues = getAllowedValuesFromType(field.asType());
         nestedInfo.entityClass = field.asType();
         nestedInfo.constraints = getConstraints(field.getAnnotationMirrors());
-        nestedInfo.optional = isOptional(field);
+        nestedInfo.required = getRequiredStatus(field);
         nestedInfo.deprecated = hasDirectAnnotation(field, Deprecated.class);
 
         getBlockTags(field, options.environment).stream()
@@ -745,7 +745,9 @@ public abstract class MethodParser {
         parameterInfo.entityClass = extractValue(parameterDesc, "entityClass");
 
         Boolean optional = extractValue(parameterDesc, "optional");
-        parameterInfo.optional = optional != null && optional;
+        if (optional != null) {
+            parameterInfo.required = optional ? RequiredStatus.OPTIONAL : RequiredStatus.REQUIRED;
+        }
 
         Boolean deprecated = extractValue(parameterDesc, "deprecated");
         parameterInfo.deprecated = deprecated != null && deprecated;
@@ -980,7 +982,9 @@ public abstract class MethodParser {
                 headerInfo.description = extractValue(headerDesc, DESCRIPTION);
 
                 Boolean optional = extractValue(headerDesc, "optional");
-                headerInfo.optional = optional != null && optional;
+                if (optional != null) {
+                    headerInfo.required = optional ? RequiredStatus.OPTIONAL : RequiredStatus.REQUIRED;
+                }
 
                 Boolean deprecated = extractValue(headerDesc, "deprecated");
                 headerInfo.deprecated = deprecated != null && deprecated;

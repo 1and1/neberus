@@ -113,7 +113,7 @@ public class RestService {
             @ApiEntity(entityClass = SomeFieldDto.class, contentType = MediaType.APPLICATION_JSON_VALUE)
     })
     @ApiParameter(name = "headerParam", description = "custom description <a href='index.html'>here</a>", type = ApiParameter.Type.HEADER)
-    public void justYetAnotherGetMethod(@RequestHeader(HttpHeaders.AUTHORIZATION) String header,
+    public void justYetAnotherGetMethod(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String header,
                                         @ApiRequired @RequestHeader(value = "requiredOptionalHeader", required = false) String requiredOptionalHeader,
                                         @PathVariable("pathParam") @ApiAllowedValue("the expected default value") String pathParam,
                                         @RequestParam(value = "queryParam", required = false) String queryParam,

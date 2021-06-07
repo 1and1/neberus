@@ -377,7 +377,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         Header header = new Header();
 
         header.description(expand(headerInfo.description));
-        header.required(headerInfo.optional);
+        header.required(headerInfo.isRequired());
         header.deprecated(headerInfo.deprecated);
 
         if (headerInfo.deprecated) {
