@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.0.0-RC4] - 2021-06-11
+
+### Changed
+
+- add support for markdown and asciidoc markup
+
+
 ## [3.0.0-RC3] - 2021-06-07
 
 ### Changed
