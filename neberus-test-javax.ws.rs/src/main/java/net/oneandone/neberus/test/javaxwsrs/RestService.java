@@ -98,6 +98,59 @@ public class RestService {
 
     }
 
+    /**
+     * Javadoc comment in asciidoc format.
+     *
+     * Level 1
+     * -------
+     * Text.
+     *
+     * Level 2
+     * ~~~~~~~
+     * Text.
+     *
+     * Level 3
+     * ^^^^^^^
+     * Text.
+     *
+     * Level 4
+     * +++++++
+     * Text.
+     *
+     * .Optional Title
+     *
+     * Usual
+     * paragraph.
+     *
+     * .Optional Title
+     * [source,perl]
+     * ----
+     * # *Source* block
+     * # Use: highlight code listings
+     * # (require `source-highlight` or `pygmentize`)
+     * use DBI;
+     * my $dbh = DBI->connect('...',$u,$p)
+     *     or die "connect: $dbh->errstr";
+     * ----
+     *
+     * normal, _italic_, *bold*, +mono+.
+     *
+     * ``double quoted'', `single quoted'.
+     *
+     * normal, ^super^, ~sub~.
+     *
+     * ....
+     * Kismet: Where is the *defensive operations manual*?
+     *
+     * Computer: Calculating ...
+     * Can not locate object.
+     * You are not authorized to know it exists.
+     *
+     * Kismet: Did the werewolves tell you to say that?
+     *
+     * Computer: Calculating ...
+     * ....
+     */
     @PATCH
     @Path("{pathParamWithoutSlash}")
     @Consumes(MediaType.APPLICATION_XML)

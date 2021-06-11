@@ -269,6 +269,14 @@ public class Neberus implements Doclet {
                         options.scanPackages = new HashSet<>(Arrays.asList(arguments.get(0).split(";")));
                         return true;
                     }
+                },
+                new DocletOption("--markup", true, "Global markup option. Valid for all descriptions and used javadoc.",
+                        "[HTML|MARKDOWN|ASCIIDOC]") {
+                    @Override
+                    public boolean process(String option, List<String> arguments) {
+                        options.markup = Options.Markup.valueOf(arguments.get(0));
+                        return true;
+                    }
                 });
 
     }

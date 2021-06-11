@@ -2,6 +2,10 @@ body {
     position: relative;
 }
 
+table p, .card-body > p, li p {
+    margin-bottom: 0;
+}
+
 .serviceContainer {
     float: right;
     width: 77%;

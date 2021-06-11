@@ -113,7 +113,17 @@ Provided by the Neberus doclet:
                   Ignore generation errors.
     --scanPackages <package>(;<package>)*
                   List of packages that include classes relevant for the apidoc
+    --markup [HTML|MARKDOWN|ASCIIDOC]
+    			  Global markup option. Valid for all descriptions and used javadoc.
 ```
+
+#### Markup Options
+
+Per default the normal javadoc style HTML tags are supported and will be converted.
+
+With the `--markup` option it is possible to use Markdown (see [CommonMark](https://commonmark.org/)) or AsciiDoc (see [AsciiDoctor](https://asciidoctor.org/)) instead.
+
+The chosen markup can also be used for the `package.html` file inside the `<body>` tag. 
 
 #### Using classes from dependencies
 

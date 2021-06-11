@@ -27,7 +27,9 @@ import net.oneandone.neberus.Options;
 import net.oneandone.neberus.parse.RestClassData;
 import net.oneandone.neberus.parse.RestMethodData;
 import net.oneandone.neberus.parse.RestUsecaseData;
+import net.oneandone.neberus.print.AsciiDocPrinter;
 import net.oneandone.neberus.print.DocPrinter;
+import net.oneandone.neberus.print.MarkdownPrinter;
 import net.oneandone.neberus.shortcode.ShortCodeExpander;
 import org.apache.commons.lang3.StringUtils;
 
@@ -62,6 +64,8 @@ import static net.oneandone.neberus.util.JavaDocUtils.typeCantBeDocumented;
 public class OpenApiV3JsonPrinter extends DocPrinter {
 
     private final ObjectMapper mapper;
+    private final MarkdownPrinter markdownPrinter = new MarkdownPrinter();
+    private final AsciiDocPrinter asciiDocPrinter = new AsciiDocPrinter();
 
     public OpenApiV3JsonPrinter(List<NeberusModule> modules, ShortCodeExpander expander, Options options) {
         super(modules, expander, options);
@@ -71,7 +75,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
 
     @Override
     public void printRestClassFile(RestClassData restClassData, List<RestClassData> allRestClasses,
-                                   List<RestUsecaseData> restUsecases) {
+            List<RestUsecaseData> restUsecases) {
         //noop
     }
 
@@ -136,7 +140,22 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             return description;
         }
 
-        String htmlReplacedDescription = description.replaceAll("[^<br>](\n\n)", "$0<br>");
+        String htmlDescription;
+
+        switch (options.markup) {
+            case MARKDOWN:
+                htmlDescription = markdownPrinter.print(description);
+                break;
+            case ASCIIDOC:
+                htmlDescription = asciiDocPrinter.print(description);
+                break;
+            case HTML:
+            default:
+                htmlDescription = description;
+                break;
+        }
+
+        String htmlReplacedDescription = htmlDescription.replaceAll("[^<br>](\n\n)", "$0<br>");
 
         return expander.expand(htmlReplacedDescription);
     }
@@ -238,7 +257,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     }
 
     private void addRestClass(RestClassData restClassData, List<RestUsecaseData> restUsecases, Paths paths, List<RestClassData> allRestClasses,
-                              Components components) {
+            Components components) {
         restClassData.methods.stream().collect(Collectors.groupingBy(e -> e.methodData.path))
                 .forEach((path, methods) -> {
                     PathItem pathItem = new PathItem();
@@ -252,7 +271,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     }
 
     private Operation getOperation(RestClassData restClassData, List<RestUsecaseData> restUsecases, RestMethodData method, List<RestClassData> allRestClasses,
-                                   Components components) {
+            Components components) {
         Operation operation = new Operation();
 
         operation.summary(method.methodData.label)
@@ -298,7 +317,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     }
 
     private ApiResponses getApiResponses(RestClassData restClassData, List<RestMethodData.ResponseData> responseData,
-                                         RestMethodData.MethodData methodData, Components components) {
+            RestMethodData.MethodData methodData, Components components) {
 
         ApiResponses apiResponses = new ApiResponses();
 
@@ -409,7 +428,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     }
 
     private List<Parameter> getParameterItems(RestClassData restClassData, List<RestMethodData.ParameterInfo> parameters,
-                                              RestMethodData.MethodData methodData, Components components) {
+            RestMethodData.MethodData methodData, Components components) {
         return parameters.stream()
                 // body params are store in requestBody
                 .filter(param -> param.parameterType != RestMethodData.ParameterType.BODY)
@@ -454,7 +473,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     }
 
     private RequestBody getRequestBody(RestMethodData.RequestData requestData, RestMethodData.MethodData methodData,
-                                       Components components) {
+            Components components) {
 
         Optional<RestMethodData.Entity> fallbackBodyParam = requestData.entities.stream()
                 .filter(param -> StringUtils.isBlank(param.contentType))
@@ -501,7 +520,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     }
 
     private Schema toSchema(RestMethodData.ParameterInfo param, TypeMirror type, Map<String, String> parameterUsecaseValues,
-                            String parent, RestMethodData.MethodData methodData, boolean skipEnhance, Components components) {
+            String parent, RestMethodData.MethodData methodData, boolean skipEnhance, Components components) {
 
         String qualifiedName = getQualifiedName(param.entityClass, options.environment);
 
@@ -558,7 +577,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     }
 
     private Schema processType(RestMethodData.ParameterInfo param, TypeMirror type, String fieldName, Map<String, String> parameterUsecaseValues, String parent,
-                               RestMethodData.MethodData methodData, boolean skipEnhance, Components components) {
+            RestMethodData.MethodData methodData, boolean skipEnhance, Components components) {
 
         Schema schema = new ObjectSchema();
         schema.type(getSimpleTypeName(type, options.environment));
@@ -604,7 +623,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     }
 
     private MapSchema processMapType(RestMethodData.ParameterInfo param, TypeMirror type, Map<String, String> parameterUsecaseValues, String parent,
-                                     RestMethodData.MethodData methodData, boolean skipEnhance, Components components) {
+            RestMethodData.MethodData methodData, boolean skipEnhance, Components components) {
         MapSchema mapSchema = new MapSchema();
         mapSchema.addExtension("x-java-type", getSimpleTypeName(type, options.environment));
         mapSchema.addExtension("x-java-type-expandable", true);
@@ -648,7 +667,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     }
 
     private ArraySchema processArrayType(RestMethodData.ParameterInfo param, TypeMirror type, Map<String, String> parameterUsecaseValues, String parent,
-                                         RestMethodData.MethodData methodData, boolean skipEnhance, Components components) {
+            RestMethodData.MethodData methodData, boolean skipEnhance, Components components) {
 
         ArraySchema arraySchema = new ArraySchema();
         arraySchema.addExtension("x-java-type", getSimpleTypeName(type, options.environment));

@@ -22,17 +22,31 @@ public class Options {
     public String apiTitle = "";
     public Set<String> scanPackages = new HashSet<>();
     public boolean ignoreErrors = false;
+    public Markup markup = Markup.HTML;
+
+    public enum Markup {
+        HTML, MARKDOWN, ASCIIDOC
+    }
 
     @Override
     public String toString() {
-        return "Options{" + "outputDirectory=" + outputDirectory + ", docBasePath=" + docBasePath + ", apiHosts=" + apiHosts
-                + ", apiBasePath=" + apiBasePath + ", apiVersion=" + apiVersion + ", apiTitle=" + apiTitle
-                + ", scanPackages=" + scanPackages + '}';
+        return "Options{" +
+                "environment=" + environment +
+                ", outputDirectory='" + outputDirectory + '\'' +
+                ", docBasePath='" + docBasePath + '\'' +
+                ", apiHosts=" + apiHosts +
+                ", apiBasePath='" + apiBasePath + '\'' +
+                ", apiVersion='" + apiVersion + '\'' +
+                ", apiTitle='" + apiTitle + '\'' +
+                ", scanPackages=" + scanPackages +
+                ", ignoreErrors=" + ignoreErrors +
+                ", markup=" + markup +
+                '}';
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(outputDirectory, docBasePath, apiHosts, apiBasePath, apiVersion, apiTitle, scanPackages, ignoreErrors);
+        return Objects.hash(outputDirectory, docBasePath, apiHosts, apiBasePath, apiVersion, apiTitle, scanPackages, ignoreErrors, markup);
     }
 
     @SuppressWarnings("CyclomaticComplexity")
@@ -57,7 +71,8 @@ public class Options {
                 && Objects.equals(this.apiVersion, other.apiVersion)
                 && Objects.equals(this.apiTitle, other.apiTitle)
                 && Objects.equals(this.scanPackages, other.scanPackages)
-                && Objects.equals(this.ignoreErrors, other.ignoreErrors);
+                && Objects.equals(this.ignoreErrors, other.ignoreErrors)
+                && Objects.equals(this.markup, other.markup);
     }
 
 }

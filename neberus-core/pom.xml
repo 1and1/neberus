@@ -33,6 +33,16 @@
             <artifactId>swagger-models</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctorj</artifactId>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
     
     

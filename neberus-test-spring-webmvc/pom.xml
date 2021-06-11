@@ -103,6 +103,7 @@
                                 --apiBasePath /rest
                                 --apiHosts "https://testserver.com[the default testserver];https://otherserver.com[the other testserver]"
                                 --scanPackages com.included;net.oneandone
+                                --markup MARKDOWN
 <!--                                -ignoreErrors-->
                             </additionalOptions>
                         </configuration>

@@ -6,4 +6,6 @@ module neberus.core {
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.core;
     requires io.swagger.v3.oas.models;
+    requires org.commonmark;
+    requires asciidoctorj.api;
 }
