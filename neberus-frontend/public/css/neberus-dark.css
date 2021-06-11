@@ -1,6 +1,3 @@
-/*.navigationContainer {*/
-/*    background: #2e3338;*/
-/*}*/
 
 .bg-secondary {
     background-color: #42484e !important;
@@ -56,10 +53,6 @@ code, pre {
     color: #fff;
 }
 
-/*.operation {*/
-/*    border-color: #555;*/
-/*}*/
-
 .path-toc-list > li > a {
     color: #c8c8c8;
 }
@@ -85,13 +78,6 @@ body {
     background-color: rgb(28, 30, 34);
     color: #C8C8C8;
 }
-
-
-/*.toggleParams:hover {*/
-/*    background-color: #333a54 !important;*/
-/*}*/
-
-
 
 .collapseToggle:hover {
     background-color: #5f666c !important;

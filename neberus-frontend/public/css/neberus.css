@@ -21,20 +21,6 @@ table p, .card-body > p, li p {
     bottom: 50px;
 }
 
-/*.tocify {*/
-/*    width: 100%;*/
-/*    position: static;*/
-/*    margin-top: 10px;*/
-/*    margin-left: 0px;*/
-/*    border-radius: 0px;*/
-/*    border: 0px;*/
-/*}*/
-
-/*!* always show second level of toc *!*/
-/*.tocify-subheader[data-tag="2"] {*/
-/*    display: unset;*/
-/*}*/
-
 .popover {
     max-width: 40%;
 }
@@ -238,13 +224,6 @@ table p, .card-body > p, li p {
     box-shadow: inset 0 0px 0px rgba(0, 0, 0, .05);
 }
 
-/*.card {*/
-/*    margin-bottom: 10px;*/
-/*    border: 3px solid transparent;*/
-/*    border-radius: 0px;*/
-/*    overflow-y: hidden;*/
-/*}*/
-
 .card {
     margin-bottom: 10px;
     border: 2px solid rgb(70 70 70);
@@ -252,19 +231,9 @@ table p, .card-body > p, li p {
     overflow-y: hidden;
 }
 
-/*.card-primary, .card-warning {*/
-/*    border-color: transparent;*/
-/*}*/
-
 .card > .table-responsive:last-child > .table:last-child, .card > .table:last-child {
     border-radius: 0px;
 }
-
-/*code {*/
-/*    color: #5f0f23;*/
-/*    border-radius: 0px;*/
-/*}*/
-
 
 .toggleParams > td:first-of-type {
     white-space: nowrap;
@@ -451,22 +420,6 @@ tr.collapse.show-override {
     display: table-row;
 }
 
-/*.collapse {*/
-/*    visibility: collapse;*/
-/*}*/
-
-/*.in {*/
-/*    visibility: visible;*/
-/*}*/
-
-/*tr.collapse {*/
-/*    display: table-row !important;*/
-/*}*/
-
-/*.collapse {*/
-/*    display: block !important;*/
-/*}*/
-
 .collapse:not(.show) .collapse {
 
 }
@@ -498,10 +451,6 @@ tr.collapse.show-override {
     display: none !important;
 }
 
-/*.show {*/
-/*    visibility: visible;*/
-/*}*/
-
 [data-toggle="collapse"] .fa:before {
     content: "\f105";
 }
@@ -509,16 +458,6 @@ tr.collapse.show-override {
 [data-toggle="collapse"].collapsed .fa:before {
     content: "\f107";
 }
-
-
-/*[data-level="1"] td:first-of-type {*/
-/*    padding-left: 25px;*/
-/*}*/
-
-/*[data-level="2"] td:first-of-type {*/
-/*    padding-left: 50px;*/
-/*}*/
-
 
 .deactivated td:not(:first-of-type) {
     opacity: 50%;
