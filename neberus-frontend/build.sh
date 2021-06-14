@@ -17,6 +17,7 @@ npm run build;
 
 # cleanup possibly existing files
 rm -rf ../neberus-core/src/main/resources/generated/
+mkdir -p ../neberus-core/src/main/resources/generated/
 
 # copy exported files to core module
-cp -r ./public/ ../neberus-core/src/main/resources/generated/
+cp -r ./public/* ../neberus-core/src/main/resources/generated/

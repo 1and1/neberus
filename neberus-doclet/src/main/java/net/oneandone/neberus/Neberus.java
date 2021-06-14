@@ -270,7 +270,8 @@ public class Neberus implements Doclet {
                         return true;
                     }
                 },
-                new DocletOption("--markup", true, "Global markup option. Valid for all descriptions and used javadoc.",
+                new DocletOption("--markup", true, "Global markup option. Valid for all descriptions and used javadoc. "
+                        + "Default: HTML.",
                         "[HTML|MARKDOWN|ASCIIDOC]") {
                     @Override
                     public boolean process(String option, List<String> arguments) {

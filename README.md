@@ -114,7 +114,7 @@ Provided by the Neberus doclet:
     --scanPackages <package>(;<package>)*
                   List of packages that include classes relevant for the apidoc
     --markup [HTML|MARKDOWN|ASCIIDOC]
-    			  Global markup option. Valid for all descriptions and used javadoc.
+    			  Global markup option. Valid for all descriptions and used javadoc. Default: HTML.
 ```
 
 #### Markup Options
