@@ -1,6 +1,5 @@
 <script>
     import {onMount} from "svelte";
-    import {} from "@fortawesome/fontawesome-free/js/all.js" // required
     import ResourceInfo from "./ResourceInfo.svelte";
     import ResourceSelector from "./ResourceSelector.svelte";
     import Operations from "./Operations.svelte";

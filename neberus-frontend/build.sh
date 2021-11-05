@@ -11,6 +11,11 @@ rm -rf ./public/plugin/bootstrap
 mkdir -p ./public/plugin/bootstrap
 cp -r ./node_modules/bootstrap/dist/* ./public/plugin/bootstrap
 
+# copy fontawesome
+rm -rf ./public/plugin/fontawesome
+mkdir -p ./public/plugin/fontawesome
+cp -r ./node_modules/@fortawesome/fontawesome-free/* ./public/plugin/fontawesome
+
 # export
 rm -rf ./public/build
 npm run build;
