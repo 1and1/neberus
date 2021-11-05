@@ -211,6 +211,9 @@ public class RestService {
 						 }),
 						 @ApiEntity(entityClass = SomeDtoList.class, contentType = "application/list+json", examples = {
 								 @ApiExample(title = "list example response", value = "[{\"string1\":\"some value example\"}]")
+						 }),
+						 @ApiEntity(entityClass = SomeDto[].class, contentType = "application/array+json", examples = {
+								 @ApiExample(title = "array example response", value = "[{\"string1\":\"some value example\"}]")
 						 })
 				 })
 	@ApiResponse(status = ApiStatus.BAD_REQUEST, description = "success", headers = {
@@ -254,7 +257,8 @@ public class RestService {
 	}
 
 	/**
-	 * A custom interface like this must be used when the entity should be a list of SomeDto.
+	 * A custom interface like this can be used when the entity should be a list of SomeDto.
+	 * Alternatively just use SomeDto[].class in @ApiEntity.
 	 */
 	public static interface SomeDtoList extends List<SomeDto> {}
 }

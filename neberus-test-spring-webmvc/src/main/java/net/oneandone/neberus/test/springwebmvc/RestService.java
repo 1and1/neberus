@@ -112,7 +112,8 @@ public class RestService {
     @ApiResponse(status = ApiStatus.OK, description = "success", entities = {
             @ApiEntity(entityClass = Problem.class, contentType = MediaType.APPLICATION_PROBLEM_JSON_VALUE),
             @ApiEntity(entityClass = SomeFieldDto.class, contentType = MediaType.APPLICATION_JSON_VALUE),
-            @ApiEntity(entityClass = SomeFieldDtoList.class, contentType = MediaType.APPLICATION_JSON_VALUE + "+list")
+            @ApiEntity(entityClass = SomeFieldDtoList.class, contentType = MediaType.APPLICATION_JSON_VALUE + "+list"),
+            @ApiEntity(entityClass = SomeFieldDto[].class, contentType = MediaType.APPLICATION_JSON_VALUE + "+array")
     })
     @ApiParameter(name = "headerParam", description = "custom description <a href='index.html'>here</a>", type = ApiParameter.Type.HEADER)
     public void justYetAnotherGetMethod(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String header,
