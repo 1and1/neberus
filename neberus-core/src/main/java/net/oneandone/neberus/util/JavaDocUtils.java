@@ -861,7 +861,12 @@ public abstract class JavaDocUtils {
         }
 
         Element element = environment.getTypeUtils().asElement(typeMirror);
-        return getPackageName(element, environment) + "." + element.getSimpleName().toString();
+        String name = getPackageName(element, environment) + ".";
+
+        if (element.getEnclosingElement().getKind().isClass()) {
+            name += element.getEnclosingElement().getSimpleName() + "$";
+        }
+        return name + element.getSimpleName().toString();
     }
 
     public static Element asElement(TypeMirror typeMirror, DocletEnvironment environment) {
