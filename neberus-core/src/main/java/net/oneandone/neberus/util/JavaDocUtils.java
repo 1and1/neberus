@@ -26,6 +26,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
@@ -558,6 +559,35 @@ public abstract class JavaDocUtils {
                 && (type instanceof ArrayType
                 || type.toString().startsWith("java.util.List")
                 || type.toString().startsWith("java.util.Set"));
+    }
+
+    public static TypeMirror getExtendedCollectionType(TypeMirror type, DocletEnvironment environment) {
+        Element element = environment.getTypeUtils().asElement(type);
+
+        if (!(element instanceof TypeElement)) {
+            return null;
+        }
+
+        TypeElement typeElement = (TypeElement) element;
+        List<? extends TypeMirror> interfaces = typeElement.getInterfaces();
+
+        for (TypeMirror anInterface : interfaces) {
+            if(isCollectionType(anInterface)) {
+                return anInterface;
+            }
+        }
+
+        TypeMirror superclass = typeElement.getSuperclass();
+
+        if (superclass instanceof NoType) {
+            return null;
+        }
+
+        if(isCollectionType(superclass)) {
+            return superclass;
+        }
+
+        return getExtendedCollectionType(superclass, environment);
     }
 
     public static boolean isMapType(TypeMirror type) {

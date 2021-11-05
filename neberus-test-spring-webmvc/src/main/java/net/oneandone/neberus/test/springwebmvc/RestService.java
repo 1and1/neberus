@@ -21,6 +21,7 @@ import net.oneandone.neberus.model.ApiStatus;
 import net.oneandone.neberus.test.request.SomeChildFieldDto;
 import net.oneandone.neberus.test.request.SomeCtorDto;
 import net.oneandone.neberus.test.request.SomeFieldDto;
+import net.oneandone.neberus.test.request.SomeFieldDtoList;
 import net.oneandone.neberus.test.request.SomeGetterDto;
 import net.oneandone.neberus.test.response.Problem;
 import org.springframework.http.HttpHeaders;
@@ -110,7 +111,8 @@ public class RestService {
     })
     @ApiResponse(status = ApiStatus.OK, description = "success", entities = {
             @ApiEntity(entityClass = Problem.class, contentType = MediaType.APPLICATION_PROBLEM_JSON_VALUE),
-            @ApiEntity(entityClass = SomeFieldDto.class, contentType = MediaType.APPLICATION_JSON_VALUE)
+            @ApiEntity(entityClass = SomeFieldDto.class, contentType = MediaType.APPLICATION_JSON_VALUE),
+            @ApiEntity(entityClass = SomeFieldDtoList.class, contentType = MediaType.APPLICATION_JSON_VALUE + "+list")
     })
     @ApiParameter(name = "headerParam", description = "custom description <a href='index.html'>here</a>", type = ApiParameter.Type.HEADER)
     public void justYetAnotherGetMethod(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String header,

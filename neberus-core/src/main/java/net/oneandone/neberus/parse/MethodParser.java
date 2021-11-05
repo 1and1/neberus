@@ -63,6 +63,7 @@ import static net.oneandone.neberus.util.JavaDocUtils.getConstructors;
 import static net.oneandone.neberus.util.JavaDocUtils.getDirectAnnotationValue;
 import static net.oneandone.neberus.util.JavaDocUtils.getDocCommentTreeFromInterfaceOrClass;
 import static net.oneandone.neberus.util.JavaDocUtils.getEnumValuesAsList;
+import static net.oneandone.neberus.util.JavaDocUtils.getExtendedCollectionType;
 import static net.oneandone.neberus.util.JavaDocUtils.getInlineTags;
 import static net.oneandone.neberus.util.JavaDocUtils.getNameFromGetter;
 import static net.oneandone.neberus.util.JavaDocUtils.getParamTag;
@@ -1020,6 +1021,13 @@ public abstract class MethodParser {
                     if (element != null) {
                         responseEntity.description = getCommentTextFromInterfaceOrClass(element, options.environment, false);
                     }
+                }
+
+                // lists of entities can't be declared directly in the annotation -> workaround with custom interface that extends List<?>
+                TypeMirror extendedCollectionType = getExtendedCollectionType(responseEntity.entityClass, options.environment);
+                if (extendedCollectionType != null) {
+                    // do this after fetching potential javadoc from the custom interface
+                    responseEntity.entityClass = extendedCollectionType;
                 }
 
                 String contentTypeFromResponse = extractValue(entityDesc, "contentType");
