@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.0.1] - 2021-11-05
+
+### Changed
+
+- use fontawesome via webfonts
+- add another way to use list entities via custom interface
+
+### Fixed
+
+- add enclosing class name to references to avoid conflicts
+
+
 ## [3.0.0] - 2021-06-14
 
 ### Changed
