@@ -60,7 +60,7 @@
 
             methods.filter(method => openApi.paths[path][method].tags.includes("resource:" + activeResource))
                 .forEach(method => {
-                    if (!newActivePaths.includes(path)) {
+                    if (!Object.keys(newActivePaths).includes(path)) {
                         newActivePaths[path] = {};
                     }
 
