@@ -1,7 +1,5 @@
 <script>
 
-    import {afterUpdate} from 'svelte';
-
     export let paths;
     export let resource;
     export let openApi;
@@ -12,46 +10,32 @@
         selectOperationAndScrollTo(selected);
     }
 
-    function initFilterBox() {
-        let jQueryfilter = jQuery('#filter');
-        let jQueryfilterReset = jQuery('#filterReset');
+    let filter = function (filter) {
+        filter = filter.replace(/\W/g, '\\$&');
 
-        let filter = function () {
-            jQueryfilter.removeClass('error');
+        try {
+            let regex = new RegExp(filter, 'i');
 
-            let filter = jQueryfilter.val();
+            jQuery('.list-group-item')
+                .each(function (index, item) {
+                    let value = jQuery(item).text();
 
-            filter = filter.replace(/\W/g, '\\$&');
-
-            try {
-                let regex = new RegExp(filter, 'i');
-
-                jQuery('.list-group-item')
-                    .each(function (index, item) {
-                        let value = jQuery(item).text();
-
-                        jQuery(item).toggleClass('hidden', !regex.test(value));
-                    });
-            } catch (e) {
-                jQueryfilter.addClass('error');
-            }
-        };
-
-        jQueryfilter.on('keyup', filter);
-
-        jQueryfilterReset.click(function () {
-            jQueryfilter.val("");
-            jQueryfilter.keyup();
-        });
-
-        jQueryfilter.focus();
-    }
-
-    afterUpdate(async () => {
-        if (paths) {
-            initFilterBox();
+                    jQuery(item).toggleClass('hidden', !regex.test(value));
+                });
+        } catch (e) {
+            console.log(e);
         }
-    });
+    };
+
+    export let handleSubmit = function (event) {
+        const {value} = this;
+        filter(value);
+    };
+
+    export let handleReset = function (event) {
+        jQuery('#filter').val('');
+        filter('');
+    };
 
 </script>
 
@@ -61,8 +45,8 @@
     <form class="form-inline w-100" autocomplete="off">
         <div class="form-group filterBox w-100">
             <div class="input-group filterBox w-100">
-                <input class="filterBox w-100" id="filter" placeholder="Search" type="text">
-                <i id="filterReset" class="fas fa-times form-control-feedback"></i>
+                <input class="filterBox w-100" id="filter" placeholder="Search..." on:keyup|preventDefault={handleSubmit} type="text">
+                <span on:click|preventDefault={handleReset}><i id="filterReset" class="fas fa-times form-control-feedback"></i></span>
             </div>
         </div>
     </form>

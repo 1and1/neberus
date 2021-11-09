@@ -93,7 +93,7 @@ public interface RestServiceInterfaceDoc extends CommonRestServiceInterfaceDoc {
      * ...until this line.
      *
      * @param stringPathParam  param doc
-     * @param anotherPathParam param doc
+     * @param anotherPathParam param `doc`
      *
      * @return some restdoc
      */

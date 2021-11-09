@@ -49,6 +49,12 @@ code, pre {
     color: whitesmoke;
 }
 
+.parameters code {
+    background: #333;
+    color: whitesmoke;
+    padding: 2px 4px;
+}
+
 .generic {
     color: #fff;
 }
