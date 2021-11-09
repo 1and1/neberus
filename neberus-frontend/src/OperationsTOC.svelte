@@ -94,4 +94,9 @@
         padding-left: 25px;
     }
 
+    #nav-operations {
+        max-height: 90%;
+        overflow: auto;
+    }
+
 </style>
