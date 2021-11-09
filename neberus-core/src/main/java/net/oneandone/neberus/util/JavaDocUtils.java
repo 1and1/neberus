@@ -12,6 +12,7 @@ import jdk.javadoc.doclet.DocletEnvironment;
 import net.oneandone.neberus.Options;
 import net.oneandone.neberus.annotation.ApiDocumentation;
 import net.oneandone.neberus.annotation.ApiIgnore;
+import net.oneandone.neberus.annotation.ApiLabel;
 import net.oneandone.neberus.model.FormParameters;
 import net.oneandone.neberus.parse.RestMethodData;
 
@@ -665,7 +666,9 @@ public abstract class JavaDocUtils {
 
         String publicName = null;
 
-        if (hasAnnotation(annotationMirrors, XML_ROOT_ELEMENT)) {
+        if (hasAnnotation(annotationMirrors, ApiLabel.class)) {
+            publicName = getAnnotationValue(annotationMirrors, ApiLabel.class.getCanonicalName(), "value");
+        } else if (hasAnnotation(annotationMirrors, XML_ROOT_ELEMENT)) {
             publicName = getAnnotationValue(annotationMirrors, XML_ROOT_ELEMENT, "name");
         } else if (hasAnnotation(annotationMirrors, JACKSON_XML_ROOT_ELEMENT)) {
             publicName = getAnnotationValue(annotationMirrors, JACKSON_XML_ROOT_ELEMENT, "localName");

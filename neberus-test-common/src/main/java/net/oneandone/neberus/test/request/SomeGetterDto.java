@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.included.IncludedDto;
 import com.notincluded.NotIncludedDto;
 import net.oneandone.neberus.annotation.ApiAllowedValue;
+import net.oneandone.neberus.annotation.ApiLabel;
 import net.oneandone.neberus.annotation.ApiOptional;
 
 import javax.validation.constraints.Max;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@ApiLabel("SomeGetterDtoLabel")
 public class SomeGetterDto {
 
     private String stringField;

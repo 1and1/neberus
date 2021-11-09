@@ -5,7 +5,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Paramter used by a REST method in a usecase.
+ * Parameter used by a REST method in a usecase.
  */
 @Target({})
 @Retention(RetentionPolicy.SOURCE)
@@ -13,7 +13,7 @@ public @interface ApiUsecaseParam {
 
     /**
      * Name of the parameter. If the method is linked to an actual REST method, the name must exist in the linked method.
-     * Use dot-syntax for nested parameters, eg. 'myDto.myField'.
+     * Use dot-syntax for nested parameters, e.g. 'myDto.myField'.
      *
      * @return the name
      */

@@ -379,7 +379,7 @@ The generated documentation will be appended to the index page.
 |---|---|---|
 | @ApiUsecase | Defines a specific usecase of the REST service. Usecases must be defined in seperate classes or interfaces apart from the normal apidoc.<br>The javadoc of the defining class (must be placed above the annotations) will be used as introduction. | Type |
 | @ApiUsecaseMethod | A specific REST method used in an usecase.<br>If the method is documented within the same service, it can be referenced by providing the restClass and name (label) of the method. In this case a link will be created and all parameters and responseValues will be cross-checked so they actually exist in the referenced method. | - |
-| @ApiUsecaseParam | Parameter used by a REST method in a usecase. If the method is linked to an actual REST method, the name must exist in the linked method. Use dot-syntax for nested parameters, eg. 'myDto.myField' | - |
+| @ApiUsecaseParam | Parameter used by a REST method in a usecase. If the method is linked to an actual REST method, the name must exist in the linked method. Use dot-syntax for nested parameters, e.g. 'myDto.myField' | - |
 | @ApiUsecaseRequestBody | Request body for a REST method in a usecase. | - |
 | @ApiUsecaseResponseBody | Response body for a REST method in a usecase. | - |
 
