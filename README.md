@@ -78,7 +78,7 @@ All newer versions require Java 11+.
                             --apiTitle "${project.name}" <!-- remember to put enclosing quotes when the name contains blanks -->
                             --docBasePath .
                             --apiBasePath ${apiBasePath}
-                            --apiHost http://yourhost.com <!-- the leading 'http://' can be omitted, but it must be provided for 'https://' -->
+                            --apiHosts http://yourhost.com <!-- the leading 'http://' can be omitted, but it must be provided for 'https://' -->
                             --scanPackages net.oneandone <!-- semicolon separated list of packages to be included -->
                         </additionalOptions>
                     </configuration>
