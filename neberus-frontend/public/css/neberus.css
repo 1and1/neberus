@@ -172,29 +172,6 @@ table p, .card-body > p, li p {
     margin-top: -10px;
 }
 
-.path-toc {
-    font-family: monospace;
-    padding-bottom: 5px;
-}
-
-.path-toc-deprecated {
-    text-decoration: line-through;
-}
-
-.path-toc-list {
-    list-style: none;
-    margin-left: -40px;
-}
-
-.path-toc-method {
-    float: left;
-    white-space: pre;
-}
-
-.path-toc-path {
-    display: table-cell;
-}
-
 .choose-style {
     position: absolute;
     right: 20px;
@@ -277,17 +254,17 @@ pre {
     transition: none !important;
 }
 
-[data-toggle="collapse"]:hover .icon-toggle {
+[data-bs-toggle="collapse"]:hover .icon-toggle {
     transform: rotate(45deg);
     transform-origin: left;
 }
 
-[data-toggle="collapse"]:not(.collapsed) .icon-toggle {
+[data-bs-toggle="collapse"]:not(.collapsed) .icon-toggle {
     transform: rotate(90deg);
     transform-origin: left;
 }
 
-[data-toggle="collapse"]:not(.collapsed):hover .icon-toggle {
+[data-bs-toggle="collapse"]:not(.collapsed):hover .icon-toggle {
     transform: rotate(45deg);
     transform-origin: left;
 }
@@ -298,7 +275,7 @@ pre {
     font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
     word-break: keep-all;
     white-space: pre-wrap;
-    line-height: 1;
+    line-height: 1.2;
     border-radius: 5px;
 }
 
@@ -451,11 +428,11 @@ tr.collapse.show-override {
     display: none !important;
 }
 
-[data-toggle="collapse"] .fa:before {
+[data-bs-toggle="collapse"] .fa:before {
     content: "\f105";
 }
 
-[data-toggle="collapse"].collapsed .fa:before {
+[data-bs-toggle="collapse"].collapsed .fa:before {
     content: "\f107";
 }
 
@@ -463,7 +440,7 @@ tr.collapse.show-override {
     opacity: 50%;
 }
 
-[data-toggle="collapse"] {
+[data-bs-toggle="collapse"] {
     cursor: pointer;
 }
 

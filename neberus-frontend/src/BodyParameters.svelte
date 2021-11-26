@@ -29,11 +29,14 @@
         </thead>
         <tbody>
         <tr data-level="0"
-            data-toggle="{currentSchema.extensions['x-java-type-expandable'] ? 'collapse' : ''}"
-            use:initCollapse
-            id={reference} data-target=".{reference}" aria-expanded="false" class="clickable collapsed parameter-highlight"
+            id={reference} class="parameter-highlight"
             data-parameter-highlight-name="{reference}" onmouseover="highlightParameter(this, event)" onmouseout="deHighlightParameter(this, event)">
-            <td>{currentSchema.type}
+            <td class="clickable collapsed"
+                data-bs-toggle="{currentSchema.extensions['x-java-type-expandable'] ? 'collapse' : ''}"
+                data-bs-target=".{reference}"
+                aria-expanded="false"
+                use:initCollapse>
+                {currentSchema.type}
                 {#if currentSchema.extensions['x-java-type-expandable']}
                     <span>
                         <i class="icon-toggle fas fa-angle-right"></i>

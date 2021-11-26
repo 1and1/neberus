@@ -25,7 +25,7 @@
                     <h6 class="card-header bg-dark">Parameters</h6>
                     <div class="card-body">
                         <div class="card-text">
-                            <table class="table table-striped table-dark table-small-head parameters">
+                            <table class="table table-dark table-small-head parameters">
                                 <thead>
                                 <tr>
                                     <th scope="col">Name</th>
@@ -41,13 +41,13 @@
                                         onmouseout="deHighlightParameter(this, event)">
                                         <td>
                                         <span class="optionalIndicator">
-                                            <span data-container="body" data-toggle="tooltip" use:initTooltip data-placement="top"
+                                            <span data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="top"
                                                   title="{param.required ? 'Mandatory' : 'Optional'}">
                                                 <i class="{param.required ? 'fas' : 'far'} fa-circle"></i>
                                             </span>
                                         </span>
                                             {#if param.deprecated}
-                                                <span class="deprecated" data-container="body" data-toggle="tooltip" use:initTooltip data-placement="top"
+                                                <span class="deprecated" data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="top"
                                                       title="{param.extensions && param.extensions['x-deprecated-description'] ? param.extensions['x-deprecated-description'] : ''}">
                                                     {param.name}
                                                 </span>
@@ -55,7 +55,11 @@
                                                 {param.name}
                                             {/if}
                                         </td>
-                                        <td class="valueHint noselect">{param.in}</td>
+                                        <td>
+                                            <span class="valueHint noselect">
+                                                {param.in}
+                                            </span>
+                                        </td>
                                         <td>{@html param.description}</td>
                                         <td>
                                             <AllowedValue param={param}/>
@@ -127,10 +131,6 @@
         padding-right: 10px;
         white-space: nowrap;
         vertical-align: middle;
-    }
-
-    .valueHint {
-        opacity: 0.6;
     }
 
     .noselect {

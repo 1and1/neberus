@@ -91,9 +91,9 @@
         </h2>
 
         {#if operation.extensions && operation.extensions['x-related-usecases']}
-            <button class="btn btn-primary relatedUsecasesToggle" data-container="body" data-toggle="popover" data-placement="left" use:initPopover
-                    data-html="true" data-content={getRelatedUsecasesBody(openApi, operation.extensions['x-related-usecases'])}
-                    data-original-title="" title="">Related Usecases
+            <button class="btn btn-primary relatedUsecasesToggle" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" use:initPopover
+                    data-bs-html="true" data-bs-content={getRelatedUsecasesBody(openApi, operation.extensions['x-related-usecases'])}
+                    data-bs-original-title="" title="">Related Usecases
             </button>
         {/if}
 

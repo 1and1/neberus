@@ -340,40 +340,21 @@ function toFormUrlencodedPretty(o, parent) {
 }
 
 function initPopoverButton(el) {
-
-    jQuery(el).popover();
-
-    // prevent click through buttons
-    jQuery(el).click(function (evt) {
-        evt.stopPropagation();
-    });
-    jQuery(el).mouseenter(function (evt) {
-        jQuery(this)
-            .parent()
-            .mouseleave();
-    });
-    jQuery(el).mouseleave(function (evt) {
-        jQuery(this)
-            .parent()
-            .mouseenter();
-    });
+    new bootstrap.Popover(el);
 }
 
 function initTooltipBox(el) {
-    jQuery(el).tooltip();
+    new bootstrap.Tooltip(el);
 }
 
 function initCollapseToggle(el) {
-    if (jQuery(el).attr("data-toggle") !== "collapse") {
+    if (jQuery(el).attr("data-bs-toggle") !== "collapse") {
         return;
     }
 
-    // recursively close children when closing parent
-    jQuery(el).click(evt => {
-        if (evt.currentTarget.getAttribute('aria-expanded') === 'true') {
-            jQuery(evt.currentTarget.getAttribute("data-target") + '[aria-expanded="true"]').click();
-        }
-    });
+    jQuery(el.getAttribute("data-bs-target"))[0].addEventListener('hide.bs.collapse', function () {
+        jQuery(el.getAttribute("data-bs-target") + '-control[aria-expanded="true"]').click();
+    })
 }
 
 function isElementInViewport(el) {

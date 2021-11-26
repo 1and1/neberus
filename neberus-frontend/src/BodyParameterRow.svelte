@@ -27,15 +27,18 @@
 {:else if currentSchema.type === 'array'}
     {#each [(currentSchema.items.$ref ? findSchema(openApi, currentSchema.items.$ref) : currentSchema.items)] as itemSchema}
         <tr data-level="{level}"
-            data-toggle="{itemSchema.extensions['x-java-type-expandable'] ? 'collapse' : ''}"
-            use:initCollapse
-            data-target={("." + parent + "_" + 'item')}
-            data-toggle-parent={("#" + parent)}
-            aria-expanded="false" class="{parent} collapse clickable collapsed parameter-highlight"
+            class="{parent} collapse parameter-highlight"
             id={(parent + "_" + 'item')}
             data-parameter-highlight-name={(parent + "_" + 'item')} onmouseover="highlightParameter(this, event)"
             onmouseout="deHighlightParameter(this, event)">
-            <td {style}><span class="noselect valueHint">[item]</span>
+            <td class="{parent}-control clickable collapsed"
+                data-bs-toggle="{itemSchema.extensions['x-java-type-expandable'] ? 'collapse' : ''}"
+                use:initCollapse
+                data-bs-target={("." + parent + "_" + 'item')}
+                data-bs-toggle-parent={("#" + parent)}
+                aria-expanded="false"
+                {style}>
+                <span class="noselect valueHint">[item]</span>
                 {#if itemSchema.extensions && itemSchema.extensions['x-java-type-expandable']}
                     <span>
                         <i class="icon-toggle fas fa-angle-right"></i>
@@ -62,7 +65,7 @@
 {:else if currentSchema.type === 'object' && currentSchema.additionalProperties}
     {#each [(currentSchema.additionalProperties.$ref ? findSchema(openApi, currentSchema.additionalProperties.$ref) : currentSchema.additionalProperties)] as valueSchema}
         <tr data-level="{level}" class="{parent} collapse parameter-highlight" id={(parent + "_" + "key")}
-            data-toggle-parent={("#" + parent)}
+            data-bs-toggle-parent={("#" + parent)}
             data-parameter-highlight-name={(parent + "_" + "key")} onmouseover="highlightParameter(this, event)"
             onmouseout="deHighlightParameter(this, event)">
             <td {style}><span class="noselect valueHint">[key]</span></td>
@@ -71,15 +74,18 @@
             <td></td>
         </tr>
         <tr data-level="{level}"
-            data-toggle="{valueSchema.extensions['x-java-type-expandable'] ? 'collapse' : ''}"
-            use:initCollapse
-            data-target={("." + parent + "_" + "value")}
-            data-toggle-parent={("#" + parent)}
-            aria-expanded="false" class="{parent} collapse clickable collapsed parameter-highlight"
+            class="{parent} collapse parameter-highlight"
             id={(parent + "_" + "value")}
             data-parameter-highlight-name={(parent + "_" + "value")} onmouseover="highlightParameter(this, event)"
             onmouseout="deHighlightParameter(this, event)">
-            <td {style}><span class="noselect valueHint">[value]</span>
+            <td class="{parent}-control clickable collapsed"
+                data-bs-toggle="{valueSchema.extensions['x-java-type-expandable'] ? 'collapse' : ''}"
+                use:initCollapse
+                data-bs-target={("." + parent + "_" + "value")}
+                data-bs-toggle-parent={("#" + parent)}
+                aria-expanded="false"
+                {style}>
+                <span class="noselect valueHint">[value]</span>
                 {#if valueSchema.extensions['x-java-type-expandable']}
                     <span>
                         <i class="icon-toggle fas fa-angle-right"></i>
@@ -106,24 +112,26 @@
         {#each [(currentSchema[property].$ref ? findSchema(openApi, currentSchema[property].$ref) : currentSchema[property])] as propertySchema}
             {#if property !== 'exampleSetFlag'}
                 <tr data-level="{level}"
-                    data-toggle="{propertySchema.extensions['x-java-type-expandable'] ? 'collapse' : ''}"
-                    use:initCollapse
-                    data-target={("." + parent + "_" + property)}
-                    data-toggle-parent={("#" + parent)}
-                    aria-expanded="false" class="{parent} collapse clickable collapsed parameter-highlight"
+                    class="{parent} collapse parameter-highlight"
                     id={(parent + "_" + property)}
                     data-parameter-highlight-name={(parent + "_" + property)} onmouseover="highlightParameter(this, event)"
                     onmouseout="deHighlightParameter(this, event)">
-                    <td {style}>
+                    <td class="{parent}-control clickable collapsed"
+                        data-bs-toggle="{propertySchema.extensions['x-java-type-expandable'] ? 'collapse' : ''}"
+                        use:initCollapse
+                        data-bs-target={("." + parent + "_" + property)}
+                        data-bs-toggle-parent={("#" + parent)}
+                        aria-expanded="false"
+                        {style}>
                         <span class="optionalIndicator">
-                            <span data-container="body" data-toggle="tooltip" use:initTooltip data-placement="top"
+                            <span data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="top"
                                   title="{(propertySchema.required || (propertySchema.extensions && propertySchema.extensions['x-java-type-required'])) ? 'Mandatory' : 'Optional'}">
                                 <i class="{(propertySchema.required || (propertySchema.extensions && propertySchema.extensions['x-java-type-required'])) ? 'fas' : 'far'} fa-circle"></i>
                             </span>
                         </span>
 
                         {#if propertySchema.deprecated}
-                            <span class="deprecated" data-container="body" data-toggle="tooltip" use:initTooltip data-placement="top"
+                            <span class="deprecated" data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="top"
                                   title="{propertySchema.extensions && propertySchema.extensions['x-deprecated-description'] ? propertySchema.extensions['x-deprecated-description'] : ''}">
                                 {property}
                             </span>

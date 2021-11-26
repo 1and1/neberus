@@ -8,14 +8,12 @@
 
             // close popovers when clicking outside
             jQuery(document).on('click', function (e) {
-                jQuery('[data-toggle="popover"],[data-original-title]')
+                jQuery('[data-bs-toggle="popover"]')
                     .each(function () {
-                        // the 'is' for buttons that trigger popups the 'has' for icons within a button
-                        // that triggers a popup
+                        // the 'is' for buttons that trigger popups the 'has' for icons within a button that triggers a popup
                         if (!jQuery(this).is(e.target) && jQuery(this).has(e.target).length === 0 && jQuery('.popover').has(e.target).length === 0) {
-                            ((jQuery(this).popover('hide').data('bs.popover') || {}).inState || {}).click = false; // fix for BS 3.3.6
+                            bootstrap.Popover.getInstance(this).hide();
                         }
-
                     });
             });
 

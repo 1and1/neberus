@@ -45,10 +45,6 @@ body {
     background: #e3e3e3;
 }
 
-.table-striped > tbody > tr:nth-of-type(2n+1) {
-    background-color: #d2d2d2;
-}
-
 .table > tbody > tr.success > td {
     background-color: #27b027;
 }
@@ -114,10 +110,6 @@ a {
 
 .table .table {
     background-color: #eaeaea;
-}
-
-.table .table-striped > tbody > tr:nth-of-type(2n+1) {
-    background-color: #dedede;
 }
 
 .code {    

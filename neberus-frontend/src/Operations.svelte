@@ -22,7 +22,7 @@
 
 <PathOverview paths={paths}/>
 
-<div data-spy="scroll" data-target="#nav-operations" data-offset="0" class="scrollspy-example">
+<div data-spy="scroll" data-bs-target="#nav-operations" data-offset="0" class="scrollspy-example">
     {#if paths}
         {#each Object.keys(paths) as path}
             {#each Object.keys(paths[path]) as method}

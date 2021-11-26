@@ -45,7 +45,7 @@
                     <h6 class="card-header bg-dark">Parameters</h6>
                     <div class="card-body">
                         <div class="card-text">
-                            <table class="table table-dark table-hover table-striped table-small-head parameters">
+                            <table class="table table-dark table-hover table-small-head parameters">
                                 <thead>
                                 <tr>
                                     <th>Name</th>
@@ -65,8 +65,8 @@
 
                                         {#if method.parameters[parameterName].value && method.parameters[parameterName].valueHint}
                                             <td>
-                                            <span data-container="body" data-toggle="tooltip" use:initTooltip data-placement="top"
-                                                  title="{method.parameters[parameterName].valueHint}" data-original-title="">
+                                            <span data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="top"
+                                                  title="{method.parameters[parameterName].valueHint}" data-bs-original-title="">
                                                 {method.parameters[parameterName].value}
                                             </span>
                                             </td>

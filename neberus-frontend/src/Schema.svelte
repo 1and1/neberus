@@ -40,8 +40,8 @@
 {#if actualSchema.extensions['x-java-type-expandable'] && !(nested && contentType.includes('form'))}
     {#each [getFullSchemaHtml(openApi, schema, contentType, nested)] as fullSchemaHtml}
         {#if fullSchemaHtml}
-            <button class="btn btn-primary" data-container="body" data-toggle="popover" data-placement="right" use:initPopover
-                    data-html="true" data-content={fullSchemaHtml}>{title}
+            <button class="btn btn-primary" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" use:initPopover
+                    data-bs-html="true" data-bs-content={fullSchemaHtml}>{title}
             </button>
         {/if}
     {/each}

@@ -112,9 +112,9 @@
             {#each Object.keys(operation.responses) as statusCode }
                 <div class="card card-primary card-nested response">
                     <div class="card-header collapsed {getCategory(statusCode)}"
-                         data-toggle="{(operation.responses[statusCode].content || operation.responses[statusCode].headers) ? 'collapse' : ''}"
+                         data-bs-toggle="{(operation.responses[statusCode].content || operation.responses[statusCode].headers) ? 'collapse' : ''}"
                          use:initCollapse
-                         data-target=".{method.toUpperCase()}-{operation.summary.replaceAll(/[^A-Za-z0-9]/g, '_')}_{statusCode}"
+                         data-bs-target=".{method.toUpperCase()}-{operation.summary.replaceAll(/[^A-Za-z0-9]/g, '_')}_{statusCode}"
                          aria-expanded="false">
                         <table>
                             <tbody>
@@ -201,15 +201,15 @@
                                                         <tr>
                                                             <td>
                                                                 <span class="optionalIndicator">
-                                                                    <span data-container="body" data-toggle="tooltip" use:initTooltip data-placement="top"
+                                                                    <span data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="top"
                                                                           title="{(operation.responses[statusCode].headers[header].required || (operation.responses[statusCode].headers[header].extensions && operation.responses[statusCode].headers[header].extensions['x-java-type-required'])) ? 'Mandatory' : 'Optional'}">
                                                                         <i class="{(operation.responses[statusCode].headers[header].required || (operation.responses[statusCode].headers[header].extensions && operation.responses[statusCode].headers[header].extensions['x-java-type-required'])) ? 'fas' : 'far'} fa-circle"></i>
                                                                     </span>
                                                                 </span>
 
                                                                 {#if operation.responses[statusCode].headers[header].deprecated}
-                                                                    <span class="deprecated" data-container="body" data-toggle="tooltip" use:initTooltip
-                                                                          data-placement="top"
+                                                                    <span class="deprecated" data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip
+                                                                          data-bs-placement="top"
                                                                           title="{operation.responses[statusCode].headers[header].extensions && operation.responses[statusCode].headers[header].extensions['x-deprecated-description'] ? operation.responses[statusCode].headers[header].extensions['x-deprecated-description'] : ''}">
                                                                         {header}
                                                                     </span>

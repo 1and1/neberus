@@ -34,7 +34,7 @@
 </script>
 
 {#if resources}
-    <select bind:value={selected} on:change={selectResource} class="custom-select custom-select-sm mb-3">
+    <select bind:value={selected} on:change={selectResource} class="form-select custom-select mb-3">
         <option value="" selected>Overview</option>
         {#each resources as resource}
             <option value="{resource}">Resource -
@@ -51,11 +51,14 @@
 <style>
     .custom-select {
         padding-right: 0.5rem;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        background-color: #1c1e22;
     }
 
     .select-caret {
         float: right;
-        margin-top: -37px;
+        margin-top: -45px;
         margin-right: 10px;
         position: relative;
     }

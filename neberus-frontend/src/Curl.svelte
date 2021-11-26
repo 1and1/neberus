@@ -539,8 +539,8 @@
 {#if operation.extensions && operation.extensions['x-curl-enabled']}
     <div class="card card-primary card-nested">
         <div>
-            <h6 class="card-header bg-dark collapsed" data-toggle="collapse" use:initCollapse
-                data-target="#{baseReference}container" aria-expanded="false">Curl <i class="fas fa-cog"/></h6>
+            <h6 class="card-header bg-dark collapsed" data-bs-toggle="collapse" use:initCollapse
+                data-bs-target="#{baseReference}container" aria-expanded="false">Curl <i class="fas fa-cog"/></h6>
 
             <div class="table-curl-container collapse" id="{baseReference}container">
 
@@ -562,7 +562,7 @@
                         <td></td>
                         <td>Host</td>
                         <td>
-                            <select class="custom-select custom-select-sm" bind:value={selectedHost} on:change={updateHost}>
+                            <select class="form-select custom-select custom-select-sm" bind:value={selectedHost} on:change={updateHost}>
                                 {#each openApi.servers as server}
                                     <option value="{server.url}">{server.url} {server.description ? '[' + server.description + ']' : ''}</option>
                                 {/each}
@@ -587,7 +587,7 @@
                             <td></td>
                             <td>Accept</td>
                             <td>
-                                <select class="custom-select custom-select-sm" bind:value={selectedAcceptType} on:change={updateAcceptType}>
+                                <select class="form-select custom-select custom-select-sm" bind:value={selectedAcceptType} on:change={updateAcceptType}>
                                     {#each getAcceptTypes(operation) as acceptType}
                                         <option value="{acceptType}">{acceptType}</option>
                                     {/each}
@@ -614,7 +614,7 @@
                             <td></td>
                             <td>Content-Type</td>
                             <td>
-                                <select class="custom-select custom-select-sm"
+                                <select class="form-select custom-select custom-select-sm"
                                         bind:value={selectedContentType} on:change={updateContentType}>
                                     {#each Object.keys(operation.requestBody.content) as contentType}
                                         <option value="{contentType}">{contentType}</option>
@@ -691,6 +691,10 @@
     textarea {
         width: 100%;
         height: 200px;
+    }
+
+    select {
+        width: 100%;
     }
 
     .card {

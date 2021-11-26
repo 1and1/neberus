@@ -48,10 +48,11 @@
                             data-operation="{method.toUpperCase()}-{paths[path][method].summary.replaceAll(/[^A-Za-z0-9]/g, '_')}"
                             on:click={selectOperation}>
                             <div>
-                                <span location="" href="" data-container="body" data-toggle="tooltip" use:initTooltip data-placement="left" title=""
-                                      data-original-title="{paths[path][method].summary}">
+                                <span location="" href="">
                                     <span class="path-toc-method">{padRight(method.toUpperCase(), padTo)} -</span>
-                                    <span class="path-toc-path">{@html path.replaceAll("/", "/<span class='word-wrap'></span>")}</span>
+                                    <span data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="left" title=""
+                                          data-bs-original-title="{paths[path][method].summary}"
+                                          class="path-toc-path">{@html path.replaceAll("/", "/<span class='word-wrap'></span>")}</span>
                                 </span>
                             </div>
                         </li>
@@ -85,7 +86,7 @@
 
     .path-toc-list {
         list-style: none;
-        margin-left: -40px;
+        margin-left: -29px;
         margin-bottom: 0;
     }
 

@@ -42,8 +42,8 @@
     {#each param.extensions['x-allowed-values'] as allowedValue}
         <span class="allowed-value">
         {#if allowedValue.value && allowedValue.valueHint}
-            <span data-container="body" data-toggle="tooltip" use:initTooltip data-placement="top"
-                  title="{allowedValue.valueHint}" data-original-title="">
+            <span data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="top"
+                  title="{allowedValue.valueHint}" data-bs-original-title="">
                 {allowedValue.value}
             </span>
         {:else if allowedValue.valueHint}

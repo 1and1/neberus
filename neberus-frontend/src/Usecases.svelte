@@ -42,7 +42,7 @@
             {#each Object.keys(openApi.extensions['x-usecases'].usecases) as usecaseId}
                 <div class="card card-primary usecase" id="usecase-{usecaseId}">
                     <div class="card-header bg-secondary collapsed {shouldHighlightUsecase(usecaseId) ? 'highlight' : ''}"
-                         data-toggle="collapse" data-target=".usecase-body-{usecaseId}" aria-expanded="false">
+                         data-bs-toggle="collapse" data-bs-target=".usecase-body-{usecaseId}" aria-expanded="false">
                         <span>{openApi.extensions['x-usecases'].usecases[usecaseId].name}</span>
                         <span>
                             <i class="icon-toggle fas fa-angle-right"></i>
