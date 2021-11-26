@@ -1,5 +1,7 @@
 <script>
     import {onMount} from "svelte";
+    // noinspection ES6UnusedImports
+    import {} from "@fortawesome/fontawesome-free/js/all.js" // webfont might not work correctly when embedded -> use js version
     import ResourceInfo from "./ResourceInfo.svelte";
     import ResourceSelector from "./ResourceSelector.svelte";
     import Operations from "./Operations.svelte";
