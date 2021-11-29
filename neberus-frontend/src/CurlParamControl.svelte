@@ -21,8 +21,8 @@
         dispatch('updateEnumParam', this);
     }
 
-    function reference(type, name) {
-        return baseReference + type + '_' + name.replaceAll('.', '_');
+    function reference(type, escapedName) {
+        return baseReference + type + '_' + escapedName;
     }
 
     function getPlaceholder(param) {
@@ -44,13 +44,14 @@
         </tr>
     {/if}
     {#each params as param}
-        <tr id="{reference(type, param.name)}_controls" class="controls-row parameter-highlight {(param.required || !param.deprecated) ? '' : 'deactivated'}"
-            data-parameter-highlight-name="{baseReference.replaceAll('_curl_', '')}_param_{param.name.replaceAll('.', '_')}"
+        <tr id="{reference(type, param.extensions['x-name-escaped'])}_controls"
+            class="controls-row parameter-highlight {(param.required || !param.deprecated) ? '' : 'deactivated'}"
+            data-parameter-highlight-name="{baseReference.replaceAll('_curl_', '')}_param_{param.extensions['x-name-escaped']}"
             onmouseover="highlightParameter(this, event)" onmouseout="deHighlightParameter(this, event)">
             <th></th>
             <td>
                 <div class="form-check">
-                    <input class="form-check-input" data-type="{type}" data-name="{param.name}"
+                    <input class="form-check-input" data-type="{type}" data-name="{param.extensions['x-name-escaped']}"
                            type="checkbox" on:change={dispatchToggleParam} checked={param.required || !param.deprecated}
                            disabled={param.required}/>
                 </div>
@@ -60,14 +61,15 @@
             </td>
             <td>
                 {#if param.schema.enum}
-                    <select class="custom-select custom-select-sm mb-3" bind:value={selectedEnumValue} on:change={dispatchUpdateEnumParam}
-                            data-type="{type}_value" data-name="{param.name}">
+                    <select class="form-select custom-select mb-3" bind:value={selectedEnumValue} on:change={dispatchUpdateEnumParam}
+                            data-type="{type}_value" data-name="{param.extensions['x-name-escaped']}">
                         {#each param.schema.enum as enumValue}
                             <option value="{enumValue}">{enumValue}</option>
                         {/each}
                     </select>
+                    <i class="fa fa-caret-down select-caret" aria-hidden="true"></i>
                 {:else}
-                    <input data-type="{type}_value" data-name="{param.name}" type="text"
+                    <input data-type="{type}_value" data-name="{param.extensions['x-name-escaped']}" type="text"
                            placeholder="{getPlaceholder(param)}"
                            on:keyup={dispatchUpdateParam}/>
                 {/if}
@@ -84,7 +86,6 @@
     }
 
     .form-check {
-        margin-top: -0.75rem;
         padding-left: 30px;
         padding-right: 10px;
     }

@@ -45,7 +45,7 @@
                 {#each Object.keys(paths).sort() as path}
                     {#each Object.keys(paths[path]) as method}
                         <li class="{paths[path][method].deprecated?'path-toc-deprecated':''} path-toc-item"
-                            data-operation="{method.toUpperCase()}-{paths[path][method].summary.replaceAll(/[^A-Za-z0-9]/g, '_')}"
+                            data-operation="{paths[path][method].operationId}"
                             on:click={selectOperation}>
                             <div>
                                 <span location="" href="">

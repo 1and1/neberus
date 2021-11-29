@@ -107,7 +107,7 @@ body {
     box-shadow: inset 4px 4px 10px -6px #00000061;
 }
 
-input[type='text'] {
+input[type='text'], textarea {
     border: 1px solid #111;
     padding: 0.5em;
     font-size: 15px;
@@ -130,6 +130,22 @@ input[type='text'] {
 input[type='checkbox'] {
     background: #333;
     color: whitesmoke;
+}
+
+.custom-select {
+    padding-right: 0.5rem;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: #efefef;
+    background: #2e3338;
+    cursor: pointer;
+}
+
+.select-caret {
+    float: right;
+    margin-top: -25px;
+    margin-right: 10px;
+    position: relative;
 }
 
 .highlight, .highlight td {

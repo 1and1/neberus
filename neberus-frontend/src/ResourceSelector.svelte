@@ -57,10 +57,8 @@
     }
 
     .select-caret {
-        float: right;
         margin-top: -45px;
         margin-right: 10px;
-        position: relative;
     }
 
 </style>

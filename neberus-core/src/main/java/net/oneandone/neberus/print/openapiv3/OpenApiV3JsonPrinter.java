@@ -241,10 +241,15 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
 
     private HashMap<String, String> getLinkedMethodMap(RestMethodData linkedMethod) {
         HashMap<String, String> linkedMethodMap = new HashMap<>();
+        linkedMethodMap.put("operationId", getOperationId(linkedMethod));
         linkedMethodMap.put("resource", linkedMethod.containingClass.className);
         linkedMethodMap.put("label", linkedMethod.methodData.label);
         linkedMethodMap.put("httpMethod", linkedMethod.methodData.httpMethod);
         return linkedMethodMap;
+    }
+
+    private String getOperationId(RestMethodData linkedMethod) {
+        return linkedMethod.methodData.httpMethod.toUpperCase() + "-" + linkedMethod.methodData.label.replaceAll("[^A-Za-z0-9]", "_");
     }
 
     private Map<String, HashMap<String, String>> toStringMap(Map<String, RestUsecaseData.UsecaseValueInfo> valueInfoMap) {
@@ -274,7 +279,8 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             Components components) {
         Operation operation = new Operation();
 
-        operation.summary(method.methodData.label)
+        operation.operationId(getOperationId(method))
+                .summary(method.methodData.label)
                 .description(expand(method.methodData.description))
                 .parameters(getParameterItems(restClassData, method.requestData.parameters, method.methodData, components))
                 .deprecated(method.methodData.deprecated)
@@ -441,6 +447,8 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
                             .deprecated(param.deprecated)
                             .required(param.isRequired())
                             .schema(toSchema(param, param.entityClass, new HashMap<>(), null, methodData, true, components));
+
+                    parameter.addExtension("x-name-escaped", param.name.replaceAll("[^A-Za-z0-9]", "_"));
 
                     if (param.deprecated) {
                         parameter.addExtension("x-deprecated-description", expand(param.deprecatedDescription));

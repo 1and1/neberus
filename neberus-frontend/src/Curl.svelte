@@ -14,12 +14,12 @@
     $: queryParams = [];
     $: pathParams = [];
 
-    function reference(type, name) {
-        return baseReference + type + '_' + name.replaceAll('.', '_');
+    function reference(type, escapedName) {
+        return baseReference + type + '_' + escapedName;
     }
 
-    function highlightReference(name) {
-        return baseReference.replaceAll('_curl_', '') + '_param_' + name.replaceAll('.', '_');
+    function highlightReference(escapedName) {
+        return baseReference.replaceAll('_curl_', '') + '_param_' + escapedName;
     }
 
     function getAcceptTypes(operation) {
@@ -40,9 +40,10 @@
         let curl = 'curl -i -X ' + method.toUpperCase() + ' ';
 
         headers.forEach(header => {
-            curl += "<span id=" + reference('header', header.name) + " data-parameter-highlight-name='" + highlightReference(header.name) +
+            curl += "<span id=" + reference('header', header.extensions['x-name-escaped']) +
+                " data-parameter-highlight-name='" + highlightReference(header.extensions['x-name-escaped']) +
                 "' class='parameter-highlight' onmouseover='highlightParameter(this, event)' onmouseout='deHighlightParameter(this, event)'>";
-            curl += "-H '" + header.name + ": <span id=" + reference('header_value', header.name) + ">{" + header.name + "}</span>'";
+            curl += "-H '" + header.name + ": <span id=" + reference('header_value', header.extensions['x-name-escaped']) + ">{" + header.name + "}</span>'";
             curl += "</span> ";
         });
 
@@ -79,8 +80,8 @@
         pathParams.forEach(pathParam => {
             expandedPath = expandedPath.replaceAll(
                 '{' + pathParam.name + '}',
-                '<span id="' + reference('path_value', pathParam.name) +
-                '" data-parameter-highlight-name="' + highlightReference(pathParam.name) + '" class="parameter-highlight" ' +
+                '<span id="' + reference('path_value', pathParam.extensions['x-name-escaped']) +
+                '" data-parameter-highlight-name="' + highlightReference(pathParam.extensions['x-name-escaped']) + '" class="parameter-highlight" ' +
                 ' onmouseover="highlightParameter(this, event)" onmouseout="deHighlightParameter(this, event)">{' + pathParam.name + '}</span>'
             );
         });
@@ -93,11 +94,12 @@
             let deprecatedClass = queryParam.deprecated ? 'curl-param-deprecated' : '';
             let deprecatedStyle = !queryParam.required && queryParam.deprecated ? ' style="display: none"' : '';
 
-            curl += "<span id=" + reference('query', queryParam.name) + " data-parameter-highlight-name='" + highlightReference(queryParam.name) +
+            curl += "<span id=" + reference('query', queryParam.extensions['x-name-escaped']) +
+                " data-parameter-highlight-name='" + highlightReference(queryParam.extensions['x-name-escaped']) +
                 "' class='parameter-highlight " + deprecatedClass + "' onmouseover='highlightParameter(this, event)' onmouseout='deHighlightParameter(this, event)'" +
                 deprecatedStyle + ">";
             curl += '<span class="query-param-delimiter">' + (firstQueryParam ? '?' : '&') + '</span>';
-            curl += queryParam.name + '=<span id="' + reference('query_value', queryParam.name) + '">{' + queryParam.name + '}</span>';
+            curl += queryParam.name + '=<span id="' + reference('query_value', queryParam.extensions['x-name-escaped']) + '">{' + queryParam.name + '}</span>';
             curl += "</span>";
             firstQueryParam = false;
         })
@@ -499,7 +501,7 @@
     }
 
     beforeUpdate(async () => {
-        baseReference = method.toUpperCase() + '-' + operation.summary.replaceAll(/[^A-Za-z0-9]/g, '_') + '_curl_';
+        baseReference = operation.operationId + '_curl_';
 
         if (operation.parameters) {
             let tmpHeaders = [];
@@ -562,12 +564,13 @@
                         <td></td>
                         <td>Host</td>
                         <td>
-                            <select class="form-select custom-select custom-select-sm" bind:value={selectedHost} on:change={updateHost}>
+                            <select class="form-select custom-select" bind:value={selectedHost} on:change={updateHost}>
                                 {#each openApi.servers as server}
                                     <option value="{server.url}">{server.url} {server.description ? '[' + server.description + ']' : ''}</option>
                                 {/each}
                                 <option value="__custom">Other</option>
                             </select>
+                            <i class="fa fa-caret-down select-caret" aria-hidden="true"></i>
                             <input id={reference('base', 'host_custom_control')} type="text" placeholder="https://myserver.tld"
                                    on:keyup={updateCustomHost} style="display: none;"/>
                         </td>
@@ -587,11 +590,12 @@
                             <td></td>
                             <td>Accept</td>
                             <td>
-                                <select class="form-select custom-select custom-select-sm" bind:value={selectedAcceptType} on:change={updateAcceptType}>
+                                <select class="form-select custom-select" bind:value={selectedAcceptType} on:change={updateAcceptType}>
                                     {#each getAcceptTypes(operation) as acceptType}
                                         <option value="{acceptType}">{acceptType}</option>
                                     {/each}
                                 </select>
+                                <i class="fa fa-caret-down select-caret" aria-hidden="true"></i>
                             </td>
                         </tr>
                     {/if}
@@ -614,12 +618,13 @@
                             <td></td>
                             <td>Content-Type</td>
                             <td>
-                                <select class="form-select custom-select custom-select-sm"
+                                <select class="form-select custom-select"
                                         bind:value={selectedContentType} on:change={updateContentType}>
                                     {#each Object.keys(operation.requestBody.content) as contentType}
                                         <option value="{contentType}">{contentType}</option>
                                     {/each}
                                 </select>
+                                <i class="fa fa-caret-down select-caret" aria-hidden="true"></i>
                             </td>
                         </tr>
                         <tr>

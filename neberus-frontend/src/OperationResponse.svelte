@@ -114,7 +114,7 @@
                     <div class="card-header collapsed {getCategory(statusCode)}"
                          data-bs-toggle="{(operation.responses[statusCode].content || operation.responses[statusCode].headers) ? 'collapse' : ''}"
                          use:initCollapse
-                         data-bs-target=".{method.toUpperCase()}-{operation.summary.replaceAll(/[^A-Za-z0-9]/g, '_')}_{statusCode}"
+                         data-bs-target=".{operation.operationId}_{statusCode}"
                          aria-expanded="false">
                         <table>
                             <tbody>
@@ -134,7 +134,7 @@
                     </div>
 
                     {#if operation.responses[statusCode].content || operation.responses[statusCode].headers}
-                        <div class="card-body collapse {method.toUpperCase()}-{operation.summary.replaceAll(/[^A-Za-z0-9]/g, '_')}_{statusCode}">
+                        <div class="card-body collapse {operation.operationId}_{statusCode}">
                             <div class="card-text">
 
                                 {#if operation.responses[statusCode].content}
@@ -160,7 +160,7 @@
                                                 <div class="card-text">
                                                     <BodyParameters openApi={openApi}
                                                                     schema={operation.responses[statusCode].content[contentType].schema}
-                                                                    operationReference={method.toUpperCase()}-{operation.summary.replaceAll(/[^A-Za-z0-9]/g, '_')}_response
+                                                                    operationReference={operation.operationId}_response
                                                                     contentType={contentType}/>
                                                 </div>
                                             </div>

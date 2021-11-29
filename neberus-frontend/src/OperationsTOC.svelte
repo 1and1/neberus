@@ -63,7 +63,7 @@
         {#each Object.keys(paths) as path}
             {#each Object.keys(paths[path]) as method}
                 <span class="list-group-item list-group-item-action list-group-item-indent {paths[path][method].deprecated?'operation-toc-deprecated':''}"
-                   data-operation="{method.toUpperCase()}-{paths[path][method].summary.replaceAll(/[^A-Za-z0-9]/g, '_')}"
+                   data-operation="{paths[path][method].operationId}"
                    on:click={selectOperation}>
                     {method.toUpperCase()} - {paths[path][method].summary}
                 </span>

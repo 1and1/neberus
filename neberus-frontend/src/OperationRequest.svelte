@@ -36,7 +36,7 @@
                                 </thead>
                                 <tbody>
                                 {#each operation.parameters as param}
-                                    <tr data-parameter-highlight-name="{method.toUpperCase()}-{operation.summary.replaceAll(/[^A-Za-z0-9]/g, '_')}_param_{param.name.replaceAll('.', '_')}"
+                                    <tr data-parameter-highlight-name="{operation.operationId}_param_{param.extensions['x-name-escaped']}"
                                         class="parameter-highlight" onmouseover="highlightParameter(this, event)"
                                         onmouseout="deHighlightParameter(this, event)">
                                         <td>
@@ -96,7 +96,7 @@
                         <div class="card-body">
                             <div class="card-text">
                                 <BodyParameters openApi={openApi} schema={operation.requestBody.content[contentType].schema}
-                                                operationReference={method.toUpperCase()}-{operation.summary.replaceAll(/[^A-Za-z0-9]/g, '_')}
+                                                operationReference={operation.operationId}
                                                 contentType={contentType}/>
                             </div>
                         </div>
