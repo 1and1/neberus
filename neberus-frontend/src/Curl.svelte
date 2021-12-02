@@ -24,15 +24,20 @@
 
     function getAcceptTypes(operation) {
         let acceptTypes = new Set();
+        let optional = false;
 
         Object.keys(operation.responses).forEach((status) => {
             if (status < 400 && operation.responses[status].content) {
                 Object.keys(operation.responses[status].content).forEach((contentType) => {
                     acceptTypes.add(contentType);
                 });
+            } else if (!operation.responses[status].content) {
+                optional = true;
             }
         });
-        return Array.from(acceptTypes);
+        let array = Array.from(acceptTypes);
+        array.optional = optional;
+        return array;
     }
 
     function generateCurl() {
@@ -44,7 +49,7 @@
                 " data-parameter-highlight-name='" + highlightReference(header.extensions['x-name-escaped']) +
                 "' class='parameter-highlight' onmouseover='highlightParameter(this, event)' onmouseout='deHighlightParameter(this, event)'>";
             curl += "-H '" + header.name + ": <span id=" + reference('header_value', header.extensions['x-name-escaped']) + ">{" + header.name + "}</span>'";
-            curl += "</span> ";
+            curl += " </span>";
         });
 
         if (operation.responses) {
@@ -52,9 +57,10 @@
 
             if (acceptTypes.length > 0) {
                 curl += "<span id=" + reference('header', 'Accept') + " data-parameter-highlight-name='" + highlightReference('Accept') +
-                    "' class='parameter-highlight' onmouseover='highlightParameter(this, event)' onmouseout='deHighlightParameter(this, event)'>";
+                    "' class='parameter-highlight' onmouseover='highlightParameter(this, event)' onmouseout='deHighlightParameter(this, event)'" +
+                    (acceptTypes.optional ? "style='display: none;'" : "") + ">";
                 curl += "-H '" + "Accept" + ": <span id=" + reference('header_value', 'Accept') + ">" + acceptTypes[0] + "</span>'";
-                curl += "</span> ";
+                curl += " </span>";
             }
         }
 
@@ -437,8 +443,10 @@
     }
 
     function toggleParam(event) {
-        let type = jQuery(event.detail).data('type');
-        let name = jQuery(event.detail).data('name');
+        let element = event.detail ?? event.target;
+
+        let type = jQuery(element).data('type');
+        let name = jQuery(element).data('name');
         let value = this.checked;
 
         // toggle visibility
@@ -583,21 +591,35 @@
                     {/if}
 
                     {#if operation.responses && getAcceptTypes(operation).length > 0}
-                        <tr id="{reference('header', 'Accept')}_controls" class="controls-row parameter-highlight"
-                            data-parameter-highlight-name="{baseReference.replaceAll('_curl_', '')}_param_Accept"
-                            onmouseover="highlightParameter(this, event)" onmouseout="deHighlightParameter(this, event)">
-                            <th></th>
-                            <td></td>
-                            <td>Accept</td>
-                            <td>
-                                <select class="form-select custom-select" bind:value={selectedAcceptType} on:change={updateAcceptType}>
-                                    {#each getAcceptTypes(operation) as acceptType}
-                                        <option value="{acceptType}">{acceptType}</option>
-                                    {/each}
-                                </select>
-                                <i class="fa fa-caret-down select-caret" aria-hidden="true"></i>
-                            </td>
-                        </tr>
+                        {#each [getAcceptTypes(operation)] as acceptTypes}
+                            {#if acceptTypes && acceptTypes.length > 0}
+                                <tr id="{reference('header', 'Accept')}_controls"
+                                    class="controls-row parameter-highlight {acceptTypes.optional ? 'deactivated' : ''}"
+                                    data-parameter-highlight-name="{baseReference.replaceAll('_curl_', '')}_param_Accept"
+                                    onmouseover="highlightParameter(this, event)" onmouseout="deHighlightParameter(this, event)">
+                                    <th></th>
+                                    <td>
+                                        {#if acceptTypes.optional}
+                                            <div class="form-check">
+                                                <input class="form-check-input" data-type="header" data-name="Accept"
+                                                       type="checkbox" on:change={toggleParam} />
+                                            </div>
+                                        {/if}
+                                    </td>
+                                    <td>Accept</td>
+                                    <td>
+                                        <select class="form-select custom-select" bind:value={selectedAcceptType} on:change={updateAcceptType}>
+                                            {#each acceptTypes as acceptType}
+                                                {#if acceptType !== ""}
+                                                    <option value="{acceptType}">{acceptType}</option>
+                                                {/if}
+                                            {/each}
+                                        </select>
+                                        <i class="fa fa-caret-down select-caret" aria-hidden="true"></i>
+                                    </td>
+                                </tr>
+                            {/if}
+                        {/each}
                     {/if}
 
                     <CurlParamControl params={headers} type="header" name="" baseReference={baseReference}
@@ -663,7 +685,6 @@
     }
 
     .form-check {
-        margin-top: -0.75rem;
         padding-left: 30px;
         padding-right: 10px;
     }
