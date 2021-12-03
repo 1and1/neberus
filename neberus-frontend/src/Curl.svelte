@@ -136,7 +136,7 @@
     function getBodyString(contentType, pretty) {
         let schema = operation.requestBody.content[contentType].schema;
         let currentSchema = (schema.$ref ? findSchema(openApi, schema.$ref) : schema);
-        let typeReference = baseReference.replaceAll('_curl_', '') + "_" + contentType.replaceAll(/[/;.=+-]/g, '_') + "_" + currentSchema.type;
+        let typeReference = baseReference.replaceAll('_curl_', '') + "_" + contentType.replaceAll(/[^A-Za-z0-9]/g, '_') + "_" + currentSchema.type;
 
         let schemaString = '';
 

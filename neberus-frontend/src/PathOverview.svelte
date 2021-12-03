@@ -3,13 +3,15 @@
 
     function findMaxLength(paths) {
         let longestFound = 0;
-        Object.keys(paths).forEach(path => {
-            Object.keys(paths[path]).forEach(method => {
-                if (method.length > longestFound) {
-                    longestFound = method.length;
-                }
+        if (paths) {
+            Object.keys(paths).forEach(path => {
+                Object.keys(paths[path]).forEach(method => {
+                    if (method.length > longestFound) {
+                        longestFound = method.length;
+                    }
+                })
             })
-        })
+        }
         return longestFound;
     }
 

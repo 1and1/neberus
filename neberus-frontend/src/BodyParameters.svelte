@@ -8,7 +8,7 @@
     export let contentType;
 
     $: currentSchema = (schema.$ref ? findSchema(openApi, schema.$ref) : schema);
-    $: reference = operationReference + "_" + contentType.replaceAll(/[/;.=+-]/g, '_') + "_" + currentSchema.type;
+    $: reference = operationReference + "_" + contentType.replaceAll(/[^A-Za-z0-9]/g, '_') + "_" + currentSchema.type;
 
     const initCollapse = el => {
         initCollapseToggle(el);
