@@ -150,7 +150,7 @@ public class RestMethodData {
     @Override
     public String toString() {
         return "RestMethodData{" +
-                "containingClass=" + containingClass.className +
+                "containingClass=" + (containingClass != null ? containingClass.className : null) +
                 ", methodData=" + methodData +
                 ", requestData=" + requestData +
                 ", responseValues=" + responseValues +

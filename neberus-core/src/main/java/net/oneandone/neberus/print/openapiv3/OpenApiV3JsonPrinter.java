@@ -265,8 +265,15 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             Components components) {
         restClassData.methods.stream().collect(Collectors.groupingBy(e -> e.methodData.path))
                 .forEach((path, methods) -> {
-                    PathItem pathItem = new PathItem();
-                    paths.addPathItem(path, pathItem);
+                    PathItem pathItem;
+
+                    // path may have already been added by another resource for different httpMethods
+                    if (paths.containsKey(path)) {
+                        pathItem = paths.get(path);
+                    } else {
+                        pathItem = new PathItem();
+                        paths.addPathItem(path, pathItem);
+                    }
 
                     methods.forEach(method -> {
                         pathItem.operation(PathItem.HttpMethod.valueOf(method.methodData.httpMethod),

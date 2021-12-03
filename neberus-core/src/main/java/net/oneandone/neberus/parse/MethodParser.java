@@ -103,6 +103,7 @@ public abstract class MethodParser {
 
     public RestMethodData parseMethod(ExecutableElement method, String httpMethod) {
         try {
+            System.out.println(" - " + method);
             RestMethodData data = new RestMethodData(httpMethod);
 
             addMethodData(method, data);
