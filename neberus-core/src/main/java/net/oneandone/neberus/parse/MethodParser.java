@@ -158,6 +158,11 @@ public abstract class MethodParser {
 
                     data.requestData.parameters.add(formParamContainer);
                 }
+
+                // for form params, directly overwrite the entityClass
+                if (parameterInfo.displayClass != null) {
+                    parameterInfo.entityClass = parameterInfo.displayClass;
+                }
                 formParamContainer.nestedParameters.add(parameterInfo);
 
             } else {
