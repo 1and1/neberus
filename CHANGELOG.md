@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.0.5] - 2021-12-05
+
+### Fixed
+
+- allow same path to be used by different resources with different httpMethods
+- fix @ApiType for form params
+
+
 ## [3.0.4] - 2021-12-02
 
 ### Fixed
