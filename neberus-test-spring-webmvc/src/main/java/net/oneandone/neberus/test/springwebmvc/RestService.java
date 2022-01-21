@@ -7,6 +7,7 @@ import net.oneandone.neberus.annotation.ApiDescription;
 import net.oneandone.neberus.annotation.ApiDocumentation;
 import net.oneandone.neberus.annotation.ApiEntity;
 import net.oneandone.neberus.annotation.ApiExample;
+import net.oneandone.neberus.annotation.ApiFormParam;
 import net.oneandone.neberus.annotation.ApiHeader;
 import net.oneandone.neberus.annotation.ApiHeaderDefinition;
 import net.oneandone.neberus.annotation.ApiIgnore;
@@ -195,7 +196,16 @@ public class RestService {
                  produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiCurl
     @ApiRequestEntity(entityClass = GenericForm.class)
-    public ResponseEntity<?> putGenericFormMethod(@RequestBody final MultiValueMap<String, String> parameters) {
+    public ResponseEntity<?> postGenericFormMethod(@RequestBody final MultiValueMap<String, String> parameters) {
+        return null;
+    }
+
+    @PostMapping(path = "/post/form/requestparam",
+                 consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                 produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiCurl
+    public ResponseEntity<?> postParamFormMethod(@RequestParam @ApiFormParam String formParamName,
+            @RequestParam String queryParam) {
         return null;
     }
 

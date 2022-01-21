@@ -1,6 +1,7 @@
 package net.oneandone.neberus.parse;
 
 import net.oneandone.neberus.Options;
+import net.oneandone.neberus.annotation.ApiFormParam;
 import net.oneandone.neberus.util.MvcUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -75,6 +76,10 @@ public class SpringMvcMethodParser extends MethodParser {
 
     @Override
     protected String getFormParam(ExecutableElement method, VariableElement parameter, int index) {
+        if (hasAnnotation(method, parameter, ApiFormParam.class, index, options.environment)) {
+            return getParam(method, parameter, index, RequestParam.class);
+        }
+
         return null;
     }
 
