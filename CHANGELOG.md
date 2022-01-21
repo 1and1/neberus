@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.0.6] - 2022-01-21
+
+### Changed
+
+- add @ApiFormParam to allow usage of @RequestParam for form parameters
+
+### Fixed
+
+- fix @ApiRequestEntity when using MultiValueMap for form parameters
+- fix wrong popover contents after switching to a different resource
+
+
 ## [3.0.5] - 2021-12-05
 
 ### Fixed
