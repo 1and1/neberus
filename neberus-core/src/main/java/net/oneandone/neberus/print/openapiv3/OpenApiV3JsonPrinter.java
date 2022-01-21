@@ -38,8 +38,10 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -494,7 +496,9 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
                 .filter(param -> StringUtils.isBlank(param.contentType))
                 .findFirst();
 
-        if (fallbackBodyParam.isEmpty()) {
+        Map<String, RestMethodData.Entity> mediaTypesWithEntity = getMediaTypesWithEntity(requestData, fallbackBodyParam);
+
+        if (mediaTypesWithEntity.isEmpty()) {
             return null;
         }
 
@@ -502,26 +506,21 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         Content content = new Content();
         requestBody.content(content);
 
-        requestData.mediaType.forEach(type -> {
+        mediaTypesWithEntity.forEach((type, entity) -> {
             MediaType mediaType = new MediaType();
 
-
-            RestMethodData.Entity bodyParamForContentType = requestData.entities.stream()
-                    .filter(param -> type.equals(param.contentType))
-                    .findFirst().orElse(fallbackBodyParam.get());
-
-            if (StringUtils.isNotBlank(bodyParamForContentType.description)) {
-                mediaType.addExtension("x-description", bodyParamForContentType.description);
+            if (StringUtils.isNotBlank(entity.description)) {
+                mediaType.addExtension("x-description", entity.description);
             }
 
             RestMethodData.ParameterInfo parameterInfo = new RestMethodData.ParameterInfo();
-            parameterInfo.entityClass = bodyParamForContentType.entityClass;
-            parameterInfo.nestedParameters = bodyParamForContentType.nestedParameters;
+            parameterInfo.entityClass = entity.entityClass;
+            parameterInfo.nestedParameters = entity.nestedParameters;
 
-            mediaType.schema(toSchema(parameterInfo, bodyParamForContentType.entityClass, Collections.emptyMap(),
+            mediaType.schema(toSchema(parameterInfo, entity.entityClass, Collections.emptyMap(),
                     null, methodData, true, components));
 
-            bodyParamForContentType.examples.forEach(example -> {
+            entity.examples.forEach(example -> {
                 Example ex = new Example();
                 ex.value(example.value)
                         .description(expand(example.description));
@@ -532,6 +531,28 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         });
 
         return requestBody;
+    }
+
+    private Map<String, RestMethodData.Entity> getMediaTypesWithEntity(RestMethodData.RequestData requestData,
+            Optional<RestMethodData.Entity> fallbackBodyParam) {
+
+        if (requestData.mediaType == null || requestData.mediaType.isEmpty()) {
+            return Map.of();
+        }
+
+        return requestData.mediaType
+                .stream().map(mediaType -> {
+                    Optional<RestMethodData.Entity> entityForMediaType = requestData.entities.stream()
+                            .filter(param -> mediaType.equals(param.contentType))
+                            .findFirst();
+
+                    if (entityForMediaType.isEmpty()) {
+                        entityForMediaType = fallbackBodyParam;
+                    }
+                    return new AbstractMap.SimpleEntry<>(mediaType, entityForMediaType);
+                })
+                .filter(e -> e.getValue().isPresent())
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
     }
 
     private Schema toSchema(RestMethodData.ParameterInfo param, TypeMirror type, Map<String, String> parameterUsecaseValues,
