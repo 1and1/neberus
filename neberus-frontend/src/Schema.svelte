@@ -31,16 +31,12 @@
         }
     }
 
-    const initPopover = el => {
-        initPopoverButton(el);
-    }
-
 </script>
 
 {#if actualSchema.extensions['x-java-type-expandable'] && !(nested && contentType.includes('form'))}
     {#each [getFullSchemaHtml(openApi, schema, contentType, nested)] as fullSchemaHtml}
         {#if fullSchemaHtml}
-            <button class="btn btn-primary" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" use:initPopover
+            <button class="btn btn-primary btn-popover" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right"
                     data-bs-html="true" data-bs-content={fullSchemaHtml}>{title}
             </button>
         {/if}

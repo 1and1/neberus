@@ -78,10 +78,6 @@
         return description;
     }
 
-    const initPopover = el => {
-        initPopoverButton(el);
-    }
-
 </script>
 
 <div class="card card-primary operation {operation.deprecated?'deprecated':''}">
@@ -91,7 +87,7 @@
         </h2>
 
         {#if operation.extensions && operation.extensions['x-related-usecases']}
-            <button class="btn btn-primary relatedUsecasesToggle" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" use:initPopover
+            <button class="btn btn-primary relatedUsecasesToggle btn-popover" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left"
                     data-bs-html="true" data-bs-content={getRelatedUsecasesBody(openApi, operation.extensions['x-related-usecases'])}
                     data-bs-original-title="" title="">Related Usecases
             </button>

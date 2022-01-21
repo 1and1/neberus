@@ -340,11 +340,11 @@ function toFormUrlencodedPretty(o, parent) {
 }
 
 function initPopoverButton(el) {
-    new bootstrap.Popover(el);
+    return new bootstrap.Popover(el);
 }
 
 function initTooltipBox(el) {
-    new bootstrap.Tooltip(el);
+    return new bootstrap.Tooltip(el);
 }
 
 function initCollapseToggle(el) {

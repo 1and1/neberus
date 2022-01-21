@@ -2,7 +2,7 @@
     import PathOverview from "./PathOverview.svelte";
     import Operation from "./Operation.svelte";
     import queryString from "query-string";
-    import {afterUpdate} from "svelte";
+    import {afterUpdate, beforeUpdate} from "svelte";
 
     export let paths;
     export let openApi;
@@ -16,6 +16,22 @@
                 scrollToTop();
             }
         }
+
+        jQuery('button.btn-popover').each((idx, elem) => initPopover(elem));
+    })
+
+    let popoverElems = [];
+
+    const initPopover = el => {
+        let popoverElem = initPopoverButton(el);
+        popoverElems.push(popoverElem);
+    }
+
+    beforeUpdate(() => {
+        popoverElems.forEach(elem => {
+            elem.dispose();
+        });
+        popoverElems = [];
     })
 
 </script>
