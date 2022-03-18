@@ -113,6 +113,14 @@ public abstract class JavaDocUtils {
         return getDirectAnnotationDesc(annotations, annotationClass.getCanonicalName());
     }
 
+    private static List<? extends AnnotationMirror> getAnnotationDesc(TypeMirror typeMirror, String annotationClass) {
+        return getDirectAnnotationDesc(typeMirror.getAnnotationMirrors(), annotationClass);
+    }
+
+    public static List<? extends AnnotationMirror> getAnnotationDesc(TypeMirror typeMirror, Class annotationClass) {
+        return getDirectAnnotationDesc(typeMirror.getAnnotationMirrors(), annotationClass.getCanonicalName());
+    }
+
     private static List<? extends AnnotationMirror> getDirectAnnotationDesc(List<? extends AnnotationMirror> annotations,
                                                                             String annotationClass) {
         return annotations.stream()
@@ -157,6 +165,19 @@ public abstract class JavaDocUtils {
 
     public static <T> T getDirectAnnotationValue(Element field, String annotationClass, String key) {
         Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(field, annotationClass).stream().findFirst();
+        if (findFirst.isEmpty()) {
+            return null;
+        }
+        return extractValue(findFirst.get(), key);
+    }
+
+
+    public static <T> T getDirectAnnotationValue(TypeMirror typeArgument, Class annotationClass, String key) {
+        return getDirectAnnotationValue(typeArgument, annotationClass.getCanonicalName(), key);
+    }
+
+    public static <T> T getDirectAnnotationValue(TypeMirror typeArgument, String annotationClass, String key) {
+        Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(typeArgument, annotationClass).stream().findFirst();
         if (findFirst.isEmpty()) {
             return null;
         }

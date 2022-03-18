@@ -1,9 +1,15 @@
 <script>
     export let param;
+    export let forMapKey = false;
 
     const initTooltip = el => {
         initTooltipBox(el);
     }
+
+    function getAllowedValues(p) {
+        return forMapKey ? param.extensions['x-allowed-key-values'] : param.extensions['x-allowed-values'];
+    }
+
 </script>
 
 {#if param.pattern}
@@ -38,8 +44,8 @@
     <span>
         {param.enum.toString().replaceAll(',', ' | ')}
     </span>
-{:else if param.extensions && param.extensions['x-allowed-values']}
-    {#each param.extensions['x-allowed-values'] as allowedValue}
+{:else if param.extensions && getAllowedValues(param)}
+    {#each getAllowedValues(param) as allowedValue}
         <span class="allowed-value">
         {#if allowedValue.value && allowedValue.valueHint}
             <span data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="top"

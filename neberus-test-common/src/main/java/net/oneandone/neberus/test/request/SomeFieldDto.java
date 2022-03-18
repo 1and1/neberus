@@ -70,9 +70,9 @@ public class SomeFieldDto {
     public byte[] byteArrayField;
     public SomeEnum enumField;
 
-    public Map<String, String> mapOfStringsField;
-    public Set<String> setOfStringsField;
-    public List<String> listOfStringsField;
+    public Map<@ApiAllowedValue(valueHint = "map key value") String, @ApiAllowedValue(valueHint = "map value value") @Size(min = 5) String> mapOfStringsField;
+    public Set<@ApiAllowedValue(enumValues = SomeEnum.class) String> setOfStringsField;
+    public List<@ApiAllowedValue(valueHint = "list type argument value") @Size(min = 5) String> listOfStringsField;
     public String[] arrayOfStringsField;
 
     public NestedDto nestedDtoField;

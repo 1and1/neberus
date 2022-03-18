@@ -154,26 +154,26 @@ Definitions in the REST-class will be used as fallback in case the interface doe
 
 ### Annotations
 
-| Name                 | Description  |  Target |
-|----------------------|---|---|
-| @ApiDocumentation    | Enables Neberus documentation for a class containing REST methods.  | Type |
-| @ApiCurl             | Generate an example curl. | Method |
-| @ApiAllowedValue     | Define the allowed values for a parameter. | Method, Parameter, Field |
-| @ApiDescription      | If provided, the value of this will be used as description of the method instead of the javadoc comment. If defined on a class, this will be used as short description of the resource on the service overview page. | Method, Type |
-| @ApiHeader           | Define a response Header within a @ApiResponse. | - |
-| @ApiHeaderDefinition | Define a Header on class level, this can be used to provided descriptions of headers that are reused many times. The header name will be used for reference. | Type |
-| @ApiLabel            | Defines the name of a REST class or method. | Method, Type |
-| @ApiParameter        | Defines a custom parameter for a REST method. Most likely used to document fields inside the body. | Method |
-| @ApiResponse         | Document a Response. | Method |
-| @ApiCommonResponse   | Document a common Response on class level, the response will be added to every method inside that class. An @ApiResponse defined on the method with the same status will be favoured. | Type |
-| @ApiEntity           | Define a response entity. | - |
-| @ApiRequestEntity    | Define a request entity for a specific content-type. | Method |
-| @ApiExample          | Define a example for a specific value. | - |
-| @ApiType             | Define the type that should be displayed instead of the actual type. This can be used to hide internal wrapper DTOs. | Parameter |
-| @ApiOptional         | Declare a parameter as optional. This will have precedence over framework declarations. | Method, Parameter, Field |
-| @ApiRequired         | Declare a parameter as required. This will have precedence over framework declarations. | Method, Parameter, Field |
-| @ApiIgnore           | Exclude a request parameter, DTO field or a whole REST method from documentation. | Method, Parameter, Field |
-| @ApiFormParam        | Declare a @RequestParam annotated parameter as form parameter instead of query parameter. | Parameter |
+| Name                 | Description                                                                                                                                                                                                           | Target                                 |
+|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------|
+| @ApiDocumentation    | Enables Neberus documentation for a class containing REST methods.                                                                                                                                                    | Type                                   |
+| @ApiCurl             | Generate an example curl.                                                                                                                                                                                             | Method                                 |
+| @ApiAllowedValue     | Define the allowed values for a parameter.                                                                                                                                                                            | Method, Parameter, Field, TypeArgument |
+| @ApiDescription      | If provided, the value of this will be used as description of the method instead of the javadoc comment. If defined on a class, this will be used as short description of the resource on the service overview page.  | Method, Type                           |
+| @ApiHeader           | Define a response Header within a @ApiResponse.                                                                                                                                                                       | -                                      |
+| @ApiHeaderDefinition | Define a Header on class level, this can be used to provided descriptions of headers that are reused many times. The header name will be used for reference.                                                          | Type                                   |
+| @ApiLabel            | Defines the name of a REST class or method.                                                                                                                                                                           | Method, Type                           |
+| @ApiParameter        | Defines a custom parameter for a REST method. Most likely used to document fields inside the body.                                                                                                                    | Method                                 |
+| @ApiResponse         | Document a Response.                                                                                                                                                                                                  | Method                                 |
+| @ApiCommonResponse   | Document a common Response on class level, the response will be added to every method inside that class. An @ApiResponse defined on the method with the same status will be favoured.                                 | Type                                   |
+| @ApiEntity           | Define a response entity.                                                                                                                                                                                             | -                                      |
+| @ApiRequestEntity    | Define a request entity for a specific content-type.                                                                                                                                                                  | Method                                 |
+| @ApiExample          | Define a example for a specific value.                                                                                                                                                                                | -                                      |
+| @ApiType             | Define the type that should be displayed instead of the actual type. This can be used to hide internal wrapper DTOs.                                                                                                  | Parameter                              |
+| @ApiOptional         | Declare a parameter as optional. This will have precedence over framework declarations.                                                                                                                               | Method, Parameter, Field               |
+| @ApiRequired         | Declare a parameter as required. This will have precedence over framework declarations.                                                                                                                               | Method, Parameter, Field               |
+| @ApiIgnore           | Exclude a request parameter, DTO field or a whole REST method from documentation.                                                                                                                                     | Method, Parameter, Field               |
+| @ApiFormParam        | Declare a @RequestParam annotated parameter as form parameter instead of query parameter.                                                                                                                             | Parameter                              |
 
 ### Example Usage
 

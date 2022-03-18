@@ -679,6 +679,13 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         addConstraints(mapSchema, param);
         addAllowedValues(mapSchema, param);
 
+        RestMethodData.ParameterInfo keyType = param != null && !param.nestedParameters.isEmpty()
+                                               ? param.nestedParameters.stream().filter(p -> p.name.equals("[key]")).findFirst().get()
+                                               : null;
+
+        if (keyType != null) {
+            addAllowedMapKeyValues(mapSchema, keyType);
+        }
 
         RestMethodData.ParameterInfo valueType = param != null && !param.nestedParameters.isEmpty()
                                                  ? param.nestedParameters.stream().filter(p -> p.name.equals("[value]")).findFirst().get()
@@ -700,6 +707,11 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             schema.addExtension("x-java-type-expandable", !typeCantBeDocumented(valueTypeMirror, options));
 
             schema.type(getTypeString(valueTypeMirror, options.environment));
+
+            if (valueType != null) {
+                addConstraints(schema, valueType);
+                addAllowedValues(schema, valueType);
+            }
 
             mapSchema.additionalProperties(schema);
         }
@@ -778,6 +790,14 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     }
 
     private void addAllowedValues(Schema schema, RestMethodData.ParameterInfo param) {
+        addAllowedValues(schema, param, "x-allowed-values");
+    }
+
+    private void addAllowedMapKeyValues(Schema schema, RestMethodData.ParameterInfo param) {
+        addAllowedValues(schema, param, "x-allowed-key-values");
+    }
+
+    private void addAllowedValues(Schema schema, RestMethodData.ParameterInfo param, String extensionName) {
         if (param == null) {
             return;
         }
@@ -791,7 +811,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
                 allowedValueList.add(allowedValueMap);
             });
 
-            schema.addExtension("x-allowed-values", allowedValueList);
+            schema.addExtension(extensionName, allowedValueList);
         }
     }
 

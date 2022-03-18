@@ -338,6 +338,8 @@ public abstract class MethodParser {
         nestedInfoKey.name = "[key]";
         nestedInfoKey.parameterType = BODY;
         nestedInfoKey.entityClass = typeArguments.get(0);
+        nestedInfoKey.constraints = getConstraints(typeArguments.get(0).getAnnotationMirrors());
+        addAllowedValuesFromAnnotation(typeArguments.get(0), nestedInfoKey);
 
         if (!typeCantBeDocumented(typeArguments.get(0), options)) {
             TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArguments.get(0));
@@ -350,6 +352,8 @@ public abstract class MethodParser {
 
         nestedInfoValue.name = "[value]";
         nestedInfoValue.entityClass = typeArguments.get(1);
+        nestedInfoValue.constraints = getConstraints(typeArguments.get(1).getAnnotationMirrors());
+        addAllowedValuesFromAnnotation(typeArguments.get(1), nestedInfoValue);
 
         if (!typeCantBeDocumented(typeArguments.get(1), options)) {
             TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArguments.get(1));
@@ -365,6 +369,8 @@ public abstract class MethodParser {
 
         RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
         nestedInfo.entityClass = typeArgument;
+        nestedInfo.constraints = getConstraints(typeArgument.getAnnotationMirrors());
+        addAllowedValuesFromAnnotation(typeArgument, nestedInfo);
         parentList.add(nestedInfo);
 
         nestedInfo.name = "[element]";
@@ -593,6 +599,19 @@ public abstract class MethodParser {
         } else {
             //or look for a single annotation
             List<? extends AnnotationMirror> singleParameter = getAnnotationDesc(memberDoc, ApiAllowedValue.class);
+            singleParameter.forEach(annotationMirror -> addAllowedValuesFromAnnotation(annotationMirror, nestedInfo.allowedValues));
+        }
+    }
+
+    private void addAllowedValuesFromAnnotation(TypeMirror typeArgument, RestMethodData.ParameterInfo nestedInfo) {
+        //check for the (maybe implicit) container annotation...
+        List<AnnotationValue> parameters = getDirectAnnotationValue(typeArgument, ApiAllowedValues.class, VALUE);
+        if (parameters != null) {
+            //...and iterate over it's content
+            parameters.forEach(repsonse -> addAllowedValuesFromAnnotation((AnnotationMirror) repsonse.getValue(), nestedInfo.allowedValues));
+        } else {
+            //or look for a single annotation
+            List<? extends AnnotationMirror> singleParameter = getAnnotationDesc(typeArgument, ApiAllowedValue.class);
             singleParameter.forEach(annotationMirror -> addAllowedValuesFromAnnotation(annotationMirror, nestedInfo.allowedValues));
         }
     }

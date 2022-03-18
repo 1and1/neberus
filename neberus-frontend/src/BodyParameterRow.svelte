@@ -71,7 +71,9 @@
             <td {style}><span class="noselect valueHint">[key]</span></td>
             <td>String</td>
             <td></td>
-            <td></td>
+            <td>
+                <AllowedValue param={currentSchema} forMapKey=true />
+            </td>
         </tr>
         <tr data-level="{level}"
             class="{parent} collapse parameter-highlight"
@@ -100,7 +102,9 @@
                     {@html valueSchema.description}
                 {/if}
             </td>
-            <td></td>
+            <td>
+                <AllowedValue param={valueSchema}/>
+            </td>
         </tr>
         <svelte:self schema={valueSchema} openApi={openApi} level={level+1} parent={(parent + "_" + "value")}
                      contentType={contentType}/>

@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 /**
  * Define the allowed values for a parameter. This will be used to replace placeholders in the example curl.
  */
-@Target({ ElementType.PARAMETER, ElementType.FIELD, ElementType.METHOD })
+@Target({ ElementType.TYPE_USE, ElementType.PARAMETER, ElementType.FIELD, ElementType.METHOD })
 @Retention(RetentionPolicy.SOURCE)
 @Repeatable(ApiAllowedValues.class)
 public @interface ApiAllowedValue {
