@@ -863,6 +863,10 @@ public abstract class JavaDocUtils {
     }
 
     public static String getQualifiedName(TypeMirror typeMirror, DocletEnvironment environment) {
+        if (typeMirror.getKind().isPrimitive()) {
+            return getPrimitiveTypeString(typeMirror);
+        }
+
         if (typeMirror.getKind() == TypeKind.ARRAY) {
             return getQualifiedName(((ArrayType) typeMirror).getComponentType(), environment) + "[]";
         }

@@ -205,7 +205,7 @@ public class RestService {
                  produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiCurl
     public ResponseEntity<?> postParamFormMethod(@RequestParam @ApiFormParam String formParamName,
-            @RequestParam String queryParam) {
+            @RequestParam String queryParam, @RequestParam boolean booleanQueryParam, @RequestParam int intQueryParam) {
         return null;
     }
 
