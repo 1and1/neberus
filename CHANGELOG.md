@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.0.7] - 2022-03-18
+
+### Changed
+
+- allow usage of primitive types for parameters
+- enable @ApiAllowedValue & javax constraints on type arguments
+
+### Fixed
+
+- fix handling of empty return body
+
+
 ## [3.0.6] - 2022-01-21
 
 ### Changed
