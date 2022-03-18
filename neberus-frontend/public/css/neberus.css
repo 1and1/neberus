@@ -92,6 +92,9 @@ table p, .card-body > p, li p {
 
 .card-table > .card-body {
     padding: 0px;
+}
+
+.card-table > .card-body:not(:empty) {
     margin-bottom: -15px;
 }
 

@@ -563,6 +563,10 @@ public abstract class JavaDocUtils {
     }
 
     public static TypeMirror getExtendedCollectionType(TypeMirror type, DocletEnvironment environment) {
+        if (type == null) {
+            return null;
+        }
+
         Element element = environment.getTypeUtils().asElement(type);
 
         if (!(element instanceof TypeElement)) {

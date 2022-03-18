@@ -353,7 +353,8 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         return apiResponses;
     }
 
-    private ApiResponse getApiResponse(RestClassData restClassData, RestMethodData.MethodData methodData, Components components, RestMethodData.ResponseData response) {
+    private ApiResponse getApiResponse(RestClassData restClassData, RestMethodData.MethodData methodData, Components components,
+            RestMethodData.ResponseData response) {
         ApiResponse apiResponse = new ApiResponse();
 
         apiResponse.description(expand(response.description));
@@ -371,11 +372,15 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
                 }
 
                 RestMethodData.ParameterInfo parameterInfo = new RestMethodData.ParameterInfo();
-                parameterInfo.entityClass = entity.entityClass;
+                parameterInfo.entityClass = entity.entityClass.equals(options.environment.getElementUtils()
+                        .getTypeElement("java.lang.Void").asType())
+                                            ? null : entity.entityClass;
                 parameterInfo.nestedParameters = entity.nestedParameters;
 
-                mediaType.schema(toSchema(parameterInfo, entity.entityClass, Collections.emptyMap(),
-                        null, methodData, true, components));
+                if (parameterInfo.entityClass != null) {
+                    mediaType.schema(toSchema(parameterInfo, entity.entityClass, Collections.emptyMap(),
+                            null, methodData, true, components));
+                }
 
                 if (entity.contentType == null) {
                     System.err.println("Null content type for " + entity);

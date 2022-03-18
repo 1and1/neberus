@@ -379,6 +379,10 @@ public abstract class MethodParser {
 
     protected void addNestedParameters(TypeMirror type, List<RestMethodData.ParameterInfo> parentList,
             List<TypeMirror> parentTypes) {
+        if (type == null) {
+            return;
+        }
+
         try {
             //add nested parameters (ie. fields)
 
@@ -1020,6 +1024,10 @@ public abstract class MethodParser {
 
                 responseEntity.entityClass = extractValue(entityDesc, "entityClass");
                 responseEntity.description = extractValue(entityDesc, DESCRIPTION);
+
+                if (responseEntity.entityClass == null) {
+                    responseEntity.entityClass = options.environment.getElementUtils().getTypeElement("java.lang.Void").asType();
+                }
 
                 if (responseEntity.description == null) {
                     // get javadoc from entityClass, if not set in annotation

@@ -157,12 +157,14 @@
                                                 </table>
                                             </div>
                                             <div class="card-body">
-                                                <div class="card-text">
-                                                    <BodyParameters openApi={openApi}
-                                                                    schema={operation.responses[statusCode].content[contentType].schema}
-                                                                    operationReference={operation.operationId}_response
-                                                                    contentType={contentType}/>
-                                                </div>
+                                                {#if operation.responses[statusCode].content[contentType].schema}
+                                                    <div class="card-text">
+                                                        <BodyParameters openApi={openApi}
+                                                                        schema={operation.responses[statusCode].content[contentType].schema}
+                                                                        operationReference={operation.operationId}_response
+                                                                        contentType={contentType}/>
+                                                    </div>
+                                                {/if}
                                             </div>
                                             {#if operation.responses[statusCode].content[contentType].examples}
                                                 <div class="card-footer">
@@ -201,14 +203,16 @@
                                                         <tr>
                                                             <td>
                                                                 <span class="optionalIndicator">
-                                                                    <span data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="top"
+                                                                    <span data-bs-container="body" data-bs-toggle="tooltip"
+                                                                          use:initTooltip data-bs-placement="top"
                                                                           title="{(operation.responses[statusCode].headers[header].required || (operation.responses[statusCode].headers[header].extensions && operation.responses[statusCode].headers[header].extensions['x-java-type-required'])) ? 'Mandatory' : 'Optional'}">
                                                                         <i class="{(operation.responses[statusCode].headers[header].required || (operation.responses[statusCode].headers[header].extensions && operation.responses[statusCode].headers[header].extensions['x-java-type-required'])) ? 'fas' : 'far'} fa-circle"></i>
                                                                     </span>
                                                                 </span>
 
                                                                 {#if operation.responses[statusCode].headers[header].deprecated}
-                                                                    <span class="deprecated" data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip
+                                                                    <span class="deprecated" data-bs-container="body"
+                                                                          data-bs-toggle="tooltip" use:initTooltip
                                                                           data-bs-placement="top"
                                                                           title="{operation.responses[statusCode].headers[header].extensions && operation.responses[statusCode].headers[header].extensions['x-deprecated-description'] ? operation.responses[statusCode].headers[header].extensions['x-deprecated-description'] : ''}">
                                                                         {header}
@@ -223,7 +227,8 @@
                                                                 {/if}
                                                             </td>
                                                             <td>
-                                                                <AllowedValue param={operation.responses[statusCode].headers[header]}/>
+                                                                <AllowedValue
+                                                                        param={operation.responses[statusCode].headers[header]}/>
                                                             </td>
                                                         </tr>
                                                     {/each}
