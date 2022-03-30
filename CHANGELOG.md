@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.0.8] - 2022-03-30
+
+### Fixed
+
+- fix allowedValues in @ApiParameter
+
+
 ## [3.0.7] - 2022-03-18
 
 ### Changed
