@@ -41,7 +41,7 @@ public @interface ApiParameter {
      *
      * @return the allowed value
      */
-    ApiAllowedValues[] allowedValues() default {};
+    ApiAllowedValue[] allowedValues() default {};
 
     /**
      * Define the class of the parameter. May be used for templates and as containerClass for other parameters.

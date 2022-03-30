@@ -186,7 +186,7 @@ public class RestService {
     })
     @ApiCurl
     @ApiParameter(name = "Authorization", type = ApiParameter.Type.HEADER, description = "the authorization header", optional = true)
-    @ApiParameter(name = "header1", type = ApiParameter.Type.HEADER)
+    @ApiParameter(name = "header1", type = ApiParameter.Type.HEADER, allowedValues = @ApiAllowedValue("that allowed value"))
     public ResponseEntity<?> getEntityMethod(@RequestHeader HttpHeaders ignored) {
         return null;
     }
