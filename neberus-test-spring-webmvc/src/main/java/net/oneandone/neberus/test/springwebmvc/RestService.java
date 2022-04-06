@@ -112,7 +112,7 @@ public class RestService {
     })
     @ApiResponse(status = ApiStatus.OK, description = "success", entities = {
             @ApiEntity(entityClass = Problem.class, contentType = MediaType.APPLICATION_PROBLEM_JSON_VALUE),
-            @ApiEntity(entityClass = SomeFieldDto.class, contentType = MediaType.APPLICATION_JSON_VALUE),
+            @ApiEntity(entityClass = SomeCtorDto.class, contentType = MediaType.APPLICATION_JSON_VALUE),
             @ApiEntity(entityClass = SomeFieldDtoList.class, contentType = MediaType.APPLICATION_JSON_VALUE + "+list"),
             @ApiEntity(entityClass = SomeFieldDto[].class, contentType = MediaType.APPLICATION_JSON_VALUE + "+array")
     })

@@ -454,8 +454,7 @@ public abstract class JavaDocUtils {
         var element = options.environment.getTypeUtils().asElement(fieldType);
 
         return element == null
-                || options.scanPackages.stream()
-                .noneMatch(pack -> getPackageName(element, options.environment).startsWith(pack))
+                || options.scanPackages.stream().noneMatch(pack -> getPackageName(element, options.environment).startsWith(pack))
                 || getDataFields(fieldType, options.environment).isEmpty()
                 || getDataFields(fieldType, options.environment).keySet().stream()
                 .anyMatch((String k) -> k.matches("arg\\d"));

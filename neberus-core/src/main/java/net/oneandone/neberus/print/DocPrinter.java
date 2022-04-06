@@ -14,8 +14,8 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 import static net.oneandone.neberus.util.JavaDocUtils.asElement;
+import static net.oneandone.neberus.util.JavaDocUtils.getDataFields;
 import static net.oneandone.neberus.util.JavaDocUtils.getQualifiedName;
-import static net.oneandone.neberus.util.JavaDocUtils.getVisibleFields;
 import static net.oneandone.neberus.util.JavaDocUtils.isEnum;
 
 public abstract class DocPrinter extends NeberusPrinter {
@@ -51,7 +51,7 @@ public abstract class DocPrinter extends NeberusPrinter {
                 && !type.getKind().isPrimitive()
                 && !getQualifiedName(type, options.environment).startsWith("java.lang")
                 && !isEnum(type, options.environment)
-                && getVisibleFields(type, options.environment).size() != 0;
+                && !getDataFields(type, options.environment).isEmpty();
     }
 
 }

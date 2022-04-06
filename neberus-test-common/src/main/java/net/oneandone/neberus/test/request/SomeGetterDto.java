@@ -52,6 +52,7 @@ public class SomeGetterDto {
     private List<Map<String, Set<String>>> listFieldWithNestedMapWithNestedSet;
     private List<NestedDto> mapOfNestedDtoField;
     private String stringFieldDeprecated;
+    private NestedGetterDto nestedGetterDto;
 
     public String getStringField() {
         return stringField;
@@ -221,4 +222,7 @@ public class SomeGetterDto {
         return stringFieldDeprecated;
     }
 
+    public NestedGetterDto getNestedGetterDto() {
+        return nestedGetterDto;
+    }
 }
