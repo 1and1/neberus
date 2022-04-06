@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.0.9] - 2022-04-06
+
+### Fixed
+
+- fix handling of nested getter & ctor DTOs
+
+
 ## [3.0.8] - 2022-03-30
 
 ### Fixed
