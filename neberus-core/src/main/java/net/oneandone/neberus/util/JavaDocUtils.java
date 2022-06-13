@@ -30,6 +30,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -54,19 +55,19 @@ public abstract class JavaDocUtils {
     }
 
     public static List<? extends AnnotationMirror> getAnnotationDesc(TypeElement clazz, Class annotationClass,
-                                                                     DocletEnvironment environment) {
+            DocletEnvironment environment) {
 
         List<? extends AnnotationMirror> annotationMirrors = collectAllAnnotationMirrors(clazz, environment);
         return getAnnotationDesc(annotationMirrors, annotationClass);
     }
 
     public static List<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, Class annotationClass,
-                                                                     DocletEnvironment environment) {
+            DocletEnvironment environment) {
         return getAnnotationDesc(method, annotationClass.getCanonicalName(), environment);
     }
 
     public static List<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, String annotationClass,
-                                                                     DocletEnvironment environment) {
+            DocletEnvironment environment) {
         Optional<ExecutableElement> interfaceMethod = getInterfaceMethod(method, environment);
         List<? extends AnnotationMirror> onInterface = Collections.emptyList();
 
@@ -78,14 +79,14 @@ public abstract class JavaDocUtils {
     }
 
     public static List<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, VariableElement param,
-                                                                     Class annotationClass, int index,
-                                                                     DocletEnvironment environment) {
+            Class annotationClass, int index,
+            DocletEnvironment environment) {
         return getAnnotationDesc(method, param, annotationClass.getCanonicalName(), index, environment);
     }
 
     public static List<? extends AnnotationMirror> getAnnotationDesc(ExecutableElement method, VariableElement param,
-                                                                     String annotationClass, int index,
-                                                                     DocletEnvironment environment) {
+            String annotationClass, int index,
+            DocletEnvironment environment) {
         Optional<VariableElement> interfaceParam = getInterfaceParameter(method, index, environment);
         List<? extends AnnotationMirror> onInterface = Collections.emptyList();
 
@@ -109,7 +110,7 @@ public abstract class JavaDocUtils {
     }
 
     private static List<? extends AnnotationMirror> getAnnotationDesc(List<? extends AnnotationMirror> annotations,
-                                                                      Class annotationClass) {
+            Class annotationClass) {
         return getDirectAnnotationDesc(annotations, annotationClass.getCanonicalName());
     }
 
@@ -122,7 +123,7 @@ public abstract class JavaDocUtils {
     }
 
     private static List<? extends AnnotationMirror> getDirectAnnotationDesc(List<? extends AnnotationMirror> annotations,
-                                                                            String annotationClass) {
+            String annotationClass) {
         return annotations.stream()
                 .filter((AnnotationMirror a) -> ((TypeElement) a.getAnnotationType().asElement())
                         .getQualifiedName().toString().equals(annotationClass))
@@ -146,12 +147,12 @@ public abstract class JavaDocUtils {
     }
 
     public static <T> T getAnnotationValue(ExecutableElement method, Class annotationClass, String key,
-                                           DocletEnvironment environment) {
+            DocletEnvironment environment) {
         return getAnnotationValue(method, annotationClass.getCanonicalName(), key, environment);
     }
 
     public static <T> T getAnnotationValue(ExecutableElement method, String annotationClass, String key,
-                                           DocletEnvironment environment) {
+            DocletEnvironment environment) {
         Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(method, annotationClass, environment).stream().findFirst();
         if (findFirst.isEmpty()) {
             return null;
@@ -171,7 +172,6 @@ public abstract class JavaDocUtils {
         return extractValue(findFirst.get(), key);
     }
 
-
     public static <T> T getDirectAnnotationValue(TypeMirror typeArgument, Class annotationClass, String key) {
         return getDirectAnnotationValue(typeArgument, annotationClass.getCanonicalName(), key);
     }
@@ -185,12 +185,12 @@ public abstract class JavaDocUtils {
     }
 
     public static <T> T getAnnotationValue(ExecutableElement method, VariableElement param, Class annotationClass,
-                                           int index, String key, DocletEnvironment environment) {
+            int index, String key, DocletEnvironment environment) {
         return getAnnotationValue(method, param, annotationClass.getCanonicalName(), index, key, environment);
     }
 
     public static <T> T getAnnotationValue(ExecutableElement method, VariableElement param, String annotationClass,
-                                           int index, String key, DocletEnvironment environment) {
+            int index, String key, DocletEnvironment environment) {
         Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(method, param, annotationClass, index, environment).stream().findFirst();
         if (findFirst.isEmpty()) {
             return null;
@@ -211,7 +211,7 @@ public abstract class JavaDocUtils {
     }
 
     public static <T> T getAnnotationValue(ExecutableElement method, VariableElement parameter,
-                                           Class annotationClass, String key, int index, DocletEnvironment environment) {
+            Class annotationClass, String key, int index, DocletEnvironment environment) {
         Optional<? extends AnnotationMirror> findFirst = getAnnotationDesc(method, parameter, annotationClass,
                 index, environment).stream().findFirst();
 
@@ -222,7 +222,7 @@ public abstract class JavaDocUtils {
     }
 
     public static List<? extends AnnotationMirror> getAnnotations(ExecutableElement method, VariableElement parameter,
-                                                                  int index, DocletEnvironment environment) {
+            int index, DocletEnvironment environment) {
         Optional<VariableElement> interfaceParam = getInterfaceParameter(method, index, environment);
 
         ArrayList<AnnotationMirror> annotations = new ArrayList<>(parameter.getAnnotationMirrors());
@@ -266,7 +266,7 @@ public abstract class JavaDocUtils {
     }
 
     private static Optional<VariableElement> getInterfaceParameter(ExecutableElement method, int index,
-                                                                   DocletEnvironment environment) {
+            DocletEnvironment environment) {
         Optional<ExecutableElement> methodInterface = getInterfaceMethod(method, environment);
 
         if (methodInterface.isEmpty() || methodInterface.get().getParameters().size() < (index - 1)) {
@@ -288,7 +288,7 @@ public abstract class JavaDocUtils {
     }
 
     public static boolean hasAnnotation(ExecutableElement method, VariableElement parameter, Class annotationClass, int index,
-                                        DocletEnvironment environment) {
+            DocletEnvironment environment) {
         Optional<VariableElement> interfaceParam = getInterfaceParameter(method, index, environment);
 
         boolean definedOnInterface = false;
@@ -351,7 +351,7 @@ public abstract class JavaDocUtils {
     }
 
     public static String getCommentTextFromInterfaceOrClass(TypeElement clazz, DocletEnvironment environment,
-                                                            boolean stripInlineTags) {
+            boolean stripInlineTags) {
         Optional<TypeElement> interfaceClass = getInterfaceClass(clazz, environment);
 
         String onInterface = null;
@@ -364,7 +364,7 @@ public abstract class JavaDocUtils {
     }
 
     public static String getCommentTextFromInterfaceOrClass(ExecutableElement method, DocletEnvironment environment,
-                                                            boolean stripInlineTags) {
+            boolean stripInlineTags) {
         Optional<ExecutableElement> interfaceMethod = getInterfaceMethod(method, environment);
 
         String onInterface = null;
@@ -393,7 +393,7 @@ public abstract class JavaDocUtils {
     }
 
     public static ParamTree getParamTag(ExecutableElement method, int index, Map<String, ParamTree> paramTags,
-                                        DocletEnvironment environment) {
+            DocletEnvironment environment) {
         Optional<ExecutableElement> interfaceMethod = getInterfaceMethod(method, environment);
 
         if (interfaceMethod.isPresent()) { // from interface is preferred, so it can match paramTags precedence
@@ -424,6 +424,18 @@ public abstract class JavaDocUtils {
                 .collect(Collectors.toMap(p -> p.getName().getName().toString(), p -> p));
 
         onClass.putAll(onInterface); // onInterface has precedence
+
+        if (method.getEnclosingElement() != null
+                && method.getEnclosingElement().getKind().name().equals("RECORD")) {
+            // record may have @param tags on the class javadoc
+
+            Map<String, ParamTree> onRecord = getBlockTags(method.getEnclosingElement(), environment).stream()
+                    .filter(d -> d instanceof ParamTree)
+                    .map(d -> (ParamTree) d)
+                    .collect(Collectors.toMap(p -> p.getName().getName().toString(), p -> p));
+
+            onClass.putAll(onRecord);
+        }
 
         return onClass;
     }
@@ -597,7 +609,7 @@ public abstract class JavaDocUtils {
         List<? extends TypeMirror> interfaces = typeElement.getInterfaces();
 
         for (TypeMirror anInterface : interfaces) {
-            if(isCollectionType(anInterface)) {
+            if (isCollectionType(anInterface)) {
                 return anInterface;
             }
         }
@@ -608,7 +620,7 @@ public abstract class JavaDocUtils {
             return null;
         }
 
-        if(isCollectionType(superclass)) {
+        if (isCollectionType(superclass)) {
             return superclass;
         }
 
@@ -847,9 +859,8 @@ public abstract class JavaDocUtils {
     }
 
     public static String getCommentText(Element element, DocletEnvironment environment, boolean stripInlineTags) {
-        if (!stripInlineTags) {
+        if (!stripInlineTags && !element.getKind().name().equals("RECORD")) {
             return Optional.ofNullable(environment.getElementUtils().getDocComment(element)).orElse("");
-
         }
 
         DocCommentTree docCommentTree = environment.getDocTrees().getDocCommentTree(element);
