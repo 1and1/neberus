@@ -66,8 +66,8 @@
 
     <properties>
         <java.version>11</java.version>
-        <maven.compiler.target>11</maven.compiler.target>
-        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -106,7 +106,7 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-webmvc</artifactId>
-                <version>5.3.20</version>
+                <version>5.3.22</version>
                 <optional>true</optional>
             </dependency>
             <dependency>
@@ -119,13 +119,13 @@
             <dependency>
                 <groupId>org.jsoup</groupId>
                 <artifactId>jsoup</artifactId>
-                <version>1.14.3</version>
+                <version>1.15.3</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
-                <version>3.22.0</version>
+                <version>3.23.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -137,7 +137,7 @@
             <dependency>
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-models</artifactId>
-                <version>2.1.13</version>
+                <version>2.2.2</version>
                 <optional>true</optional>
                 <exclusions>
                     <exclusion>
@@ -149,13 +149,13 @@
             <dependency>
                 <groupId>org.commonmark</groupId>
                 <artifactId>commonmark</artifactId>
-                <version>0.18.2</version>
+                <version>0.19.0</version>
                 <optional>true</optional>
             </dependency>
             <dependency>
                 <groupId>org.asciidoctor</groupId>
                 <artifactId>asciidoctorj</artifactId>
-                <version>2.5.3</version>
+                <version>2.5.5</version>
                 <optional>true</optional>
                 <scope>compile</scope>
             </dependency>
@@ -175,7 +175,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.8.1</version>
                     <configuration>
-                        <release>11</release>
+                        <release>${java.version}</release>
                     </configuration>
                 </plugin>
                 <plugin>
