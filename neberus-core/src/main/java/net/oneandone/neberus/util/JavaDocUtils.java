@@ -631,35 +631,54 @@ public abstract class JavaDocUtils {
         return type != null && type.toString().startsWith("java.util.Map");
     }
 
-    public static String getTypeString(TypeMirror type, DocletEnvironment environment) {
+    public static String getOpenApiTypeString(TypeMirror type, DocletEnvironment environment) {
         if (type.getKind().isPrimitive()) {
-            return getPrimitiveTypeString(type);
+            switch (type.getKind()) {
+                case BOOLEAN:
+                    return "boolean";
+                case BYTE:
+                case SHORT:
+                case INT:
+                    return "integer";
+                case CHAR:
+                    return "string";
+                case LONG:
+                case FLOAT:
+                case DOUBLE:
+                    return "number";
+                case VOID:
+                    return "null";
+                default:
+                    return "object";
+            }
         }
 
         Element element = environment.getTypeUtils().asElement(type);
 
         if (element == null) {
-            return "String";
+            return "string";
         }
 
         if (isEnum(type, environment)) {
-            StringJoiner sj = new StringJoiner("|");
-            getEnumValuesAsList(type, environment).forEach(ev -> sj.add(ev.getSimpleName().toString()));
-            return sj.toString();
+            return "string";
         }
 
         String name = element.getSimpleName().toString();
 
         if (isArrayType(type)) {
-            name += "[]";
+            if (name.equals("byte")) {
+                //printing out "byte[]" as type may confuse people, so change it to String
+                return "string";
+            } else {
+                return "array";
+            }
         }
 
-        //printing out "byte[]" as type may confuse people, so change it to String
-        if (name.equals("byte[]")) {
-            return "String";
+        if (isMapType(type)) {
+            return "object";
         }
 
-        return name;
+        return "string";
     }
 
     public static String getSimpleTypeName(TypeMirror type, DocletEnvironment environment) {

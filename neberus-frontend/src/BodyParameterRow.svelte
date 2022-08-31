@@ -109,7 +109,7 @@
         <svelte:self schema={valueSchema} openApi={openApi} level={level+1} parent={(parent + "_" + "value")}
                      contentType={contentType}/>
     {/each}
-{:else if currentSchema.type === 'String' || currentSchema.type === 'int' || currentSchema.type === 'boolean'}
+{:else if currentSchema.type === 'string' || currentSchema.type === 'integer' || currentSchema.type === 'number' || currentSchema.type === 'boolean' || currentSchema.type === 'null'}
     <!--noop-->
 {:else}
     {#each Object.keys(currentSchema) as property}

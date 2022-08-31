@@ -59,7 +59,7 @@ function resolveRefs(openApi, current, onlyProperties) {
         let map = {};
         map['{String}'] = resolveRefs(openApi, current.additionalProperties, false);
         result = map;
-    } else if (current.type === 'String' || current.type === 'int' || current.type === 'boolean') {
+    } else if (current.type === 'string' || current.type === 'integer' || current.type === 'boolean' || current.type === 'number' || current.type === 'null') {
         result = '{' + current.type + '}';
     } else if (onlyProperties) {
         // only properties
@@ -79,7 +79,7 @@ function resolveRefs(openApi, current, onlyProperties) {
             //     resolveRefs(resolved.properties, result);
             // } else
             if (typeof value === 'string') {
-                value.__type = 'String';
+                value.__type = 'string';
                 result[key] = value;
             } else {
                 result[key] = resolveRefs(openApi, value, false);
@@ -280,7 +280,7 @@ function toXmlPretty(o, level) {
             xmlSchema += '&lt;/{String}&gt;\n';
         }
 
-    } else if (o.__type === 'String' || o.__type === 'int' || o.__type === 'boolean') {
+    } else if (o.__type === 'string' || o.__type === 'integer' || o.__type === 'number' || o.__type === 'boolean' || o.__type === 'null') {
         xmlSchema += '{' + o.__type + '}' + '\n';
     } else if (typeof o === 'string') {
         xmlSchema += o + '\n';
@@ -316,7 +316,7 @@ function toFormUrlencodedPretty(o, parent) {
         formSchema += toFormUrlencodedPretty(o[0], parent + '[0]');
     } else if (o.__type === 'object') {
         formSchema += toFormUrlencodedPretty(o['{String}'], parent + '[{String}]');
-    } else if (o.__type === 'String' || o.__type === 'int' || o.__type === 'boolean') {
+    } else if (o.__type === 'string' || o.__type === 'integer' || o.__type === 'number' || o.__type === 'boolean' || o.__type === 'null') {
         formSchema += parent + '={' + o.__type + '}';
     } else if (typeof o === 'string') {
         formSchema += parent + '=' + o;

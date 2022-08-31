@@ -36,7 +36,7 @@
                 data-bs-target=".{reference}"
                 aria-expanded="false"
                 use:initCollapse>
-                {currentSchema.type}
+                {currentSchema.extensions['x-java-type'] ?? currentSchema.type}
                 {#if currentSchema.extensions['x-java-type-expandable']}
                     <span>
                         <i class="icon-toggle fas fa-angle-right"></i>

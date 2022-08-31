@@ -322,7 +322,7 @@
 
             xmlSchema += '</span>'
 
-        } else if (o.__type === 'String' || o.__type === 'int' || o.__type === 'boolean') {
+        } else if (o.__type === 'string' || o.__type === 'integer' || o.__type === 'number' || o.__type === 'boolean' || o.__type === 'null') {
             xmlSchema += '{' + o.__type + '}' + '\n';
         } else if (typeof o === 'string') {
             xmlSchema += o + '\n';
@@ -395,7 +395,7 @@
             formSchema += toFormUrlencoded(o['{String}'], formParent + '[' + mapKey + ']', paramValue);
             formSchema += '</span>'
 
-        } else if (o.__type === 'String' || o.__type === 'int' || o.__type === 'boolean') {
+        } else if (o.__type === 'string' || o.__type === 'integer' || o.__type === 'number' || o.__type === 'boolean' || o.__type === 'null') {
             formSchema += formParent + '={' + o.__type + '}';
         } else if (typeof o === 'string') {
             formSchema += formParent + '=' + o;

@@ -56,7 +56,7 @@ import static net.oneandone.neberus.util.JavaDocUtils.containedFieldNamesAreNotA
 import static net.oneandone.neberus.util.JavaDocUtils.getEnumValuesAsList;
 import static net.oneandone.neberus.util.JavaDocUtils.getQualifiedName;
 import static net.oneandone.neberus.util.JavaDocUtils.getSimpleTypeName;
-import static net.oneandone.neberus.util.JavaDocUtils.getTypeString;
+import static net.oneandone.neberus.util.JavaDocUtils.getOpenApiTypeString;
 import static net.oneandone.neberus.util.JavaDocUtils.isCollectionType;
 import static net.oneandone.neberus.util.JavaDocUtils.isEnum;
 import static net.oneandone.neberus.util.JavaDocUtils.isMapType;
@@ -578,7 +578,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         } else {
             Schema schema = new ObjectSchema();
             schema.description(expand(param.description));
-            schema.type(getSimpleTypeName(param.entityClass, options.environment));
+            schema.type(getOpenApiTypeString(param.entityClass, options.environment));
             schema.addExtension("x-java-type", getSimpleTypeName(param.entityClass, options.environment));
             schema.addExtension("x-java-type-required", param.isRequired());
             addConstraints(schema, param);
@@ -621,7 +621,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             RestMethodData.MethodData methodData, boolean skipEnhance, Components components) {
 
         Schema schema = new ObjectSchema();
-        schema.type(getSimpleTypeName(type, options.environment));
+        schema.type(getOpenApiTypeString(type, options.environment));
         schema.addExtension("x-java-type", getSimpleTypeName(type, options.environment));
 
         if (param != null) {
@@ -706,7 +706,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             schema.addExtension("x-java-type", getSimpleTypeName(valueTypeMirror, options.environment));
             schema.addExtension("x-java-type-expandable", !typeCantBeDocumented(valueTypeMirror, options));
 
-            schema.type(getTypeString(valueTypeMirror, options.environment));
+            schema.type(getOpenApiTypeString(valueTypeMirror, options.environment));
 
             if (valueType != null) {
                 addConstraints(schema, valueType);
@@ -769,7 +769,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         Schema schema = new Schema();
         schema.addExtension("x-java-type", getSimpleTypeName(type, options.environment));
         schema.addExtension("x-java-type-expandable", false);
-        schema.type(getSimpleTypeName(type, options.environment));
+        schema.type(getOpenApiTypeString(type, options.environment));
         if (param != null) {
             schema.addExtension("x-java-type-required", param.isRequired());
             schema.description(expand(param.description));
