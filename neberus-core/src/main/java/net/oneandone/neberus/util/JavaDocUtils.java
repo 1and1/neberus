@@ -424,8 +424,7 @@ public abstract class JavaDocUtils {
 
         onClass.putAll(onInterface); // onInterface has precedence
 
-        if (method.getEnclosingElement() != null
-                && method.getEnclosingElement().getKind().name().equals("RECORD")) {
+        if (method.getEnclosingElement() != null && isRecord(method.getEnclosingElement())) {
             // record may have @param tags on the class javadoc
 
             Map<String, ParamTree> onRecord = getBlockTags(method.getEnclosingElement(), environment).stream()
@@ -806,7 +805,7 @@ public abstract class JavaDocUtils {
     }
 
     public static List<ExecutableElement> getVisibleGetters(TypeMirror type, DocletEnvironment environment) {
-        if (isJavaType(type, environment) || type.getKind().isPrimitive()) {
+        if (isJavaType(type, environment) || type.getKind().isPrimitive() || isRecord(type, environment)) {
             return Collections.emptyList();
         }
 
@@ -877,7 +876,7 @@ public abstract class JavaDocUtils {
     }
 
     public static String getCommentText(Element element, DocletEnvironment environment, boolean stripInlineTags) {
-        if (!stripInlineTags && !element.getKind().name().equals("RECORD")) {
+        if (!stripInlineTags && !isRecord(element)) {
             return Optional.ofNullable(environment.getElementUtils().getDocComment(element)).orElse("");
         }
 
@@ -888,6 +887,15 @@ public abstract class JavaDocUtils {
         }
 
         return getCommentTextWithoutInlineTags(docCommentTree.getFullBody());
+    }
+
+    private static boolean isRecord(TypeMirror type, DocletEnvironment environment) {
+        Element element = environment.getTypeUtils().asElement(type);
+        return element != null && isRecord(element);
+    }
+
+    private static boolean isRecord(Element element) {
+        return element.getKind().name().equals("RECORD");
     }
 
     public static String getCommentTextWithoutInlineTags(List<? extends DocTree> description) {
