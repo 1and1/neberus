@@ -47,7 +47,9 @@ public abstract class JavaDocUtils {
     private static final String JSON_PROPERTY = "com.fasterxml.jackson.annotation.JsonProperty";
     private static final String JSON_PROPERTY_LEGACY = "org.codehaus.jackson.annotate.JsonProperty";
     public static final String XML_TRANSIENT = "javax.xml.bind.annotation.XmlTransient";
+    public static final String XML_TRANSIENT_JAKARTA = "jakarta.xml.bind.annotation.XmlTransient";
     public static final String XML_ROOT_ELEMENT = "javax.xml.bind.annotation.XmlRootElement";
+    public static final String XML_ROOT_ELEMENT_JAKARTA = "jakarta.xml.bind.annotation.XmlRootElement";
     public static final String JACKSON_XML_ROOT_ELEMENT = "com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement";
 
     private JavaDocUtils() {
@@ -723,6 +725,8 @@ public abstract class JavaDocUtils {
             publicName = getAnnotationValue(annotationMirrors, ApiLabel.class.getCanonicalName(), "value");
         } else if (hasAnnotation(annotationMirrors, XML_ROOT_ELEMENT)) {
             publicName = getAnnotationValue(annotationMirrors, XML_ROOT_ELEMENT, "name");
+        } else if (hasAnnotation(annotationMirrors, XML_ROOT_ELEMENT_JAKARTA)) {
+            publicName = getAnnotationValue(annotationMirrors, XML_ROOT_ELEMENT_JAKARTA, "name");
         } else if (hasAnnotation(annotationMirrors, JACKSON_XML_ROOT_ELEMENT)) {
             publicName = getAnnotationValue(annotationMirrors, JACKSON_XML_ROOT_ELEMENT, "localName");
         }
@@ -797,6 +801,7 @@ public abstract class JavaDocUtils {
     private static boolean fieldIsVisible(VariableElement field) {
         return !hasDirectAnnotation(field, ApiIgnore.class)
                 && !hasDirectAnnotation(field, XML_TRANSIENT)
+                && !hasDirectAnnotation(field, XML_TRANSIENT_JAKARTA)
                 && !hasDirectAnnotation(field, JSON_IGNORE)
                 && !hasDirectAnnotation(field, JSON_IGNORE_LEGACY)
                 && !field.getModifiers().contains(Modifier.STATIC)
@@ -823,6 +828,7 @@ public abstract class JavaDocUtils {
     private static boolean methodIsVisibleGetter(ExecutableElement method, DocletEnvironment environment) {
         return !hasAnnotation(method, ApiIgnore.class, environment)
                 && !hasAnnotation(method, XML_TRANSIENT, environment)
+                && !hasAnnotation(method, XML_TRANSIENT_JAKARTA, environment)
                 && !hasAnnotation(method, JSON_IGNORE, environment)
                 && !hasAnnotation(method, JSON_IGNORE_LEGACY, environment)
                 && method.getSimpleName().toString().startsWith("get")
