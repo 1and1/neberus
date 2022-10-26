@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.included.IncludedDto;
 import com.notincluded.NotIncludedDto;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import net.oneandone.neberus.annotation.ApiAllowedValue;
 import net.oneandone.neberus.annotation.ApiOptional;
 
@@ -11,7 +12,6 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
