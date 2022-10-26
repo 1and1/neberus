@@ -115,7 +115,23 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             String[] split = host.trim().split("\\[");
 
             Server server = new Server();
-            server.url(split[0]);
+
+            String url = split[0];
+
+            if (url.endsWith("/")) {
+                url = url.substring(0, url.length() - 1);
+            }
+
+            if (!options.apiBasePath.isBlank()) {
+                String basePath = options.apiBasePath;
+                String divider = basePath.startsWith("/") ? "" : "/";
+                if (basePath.endsWith("/")) {
+                    basePath = basePath.substring(0, basePath.length() - 1);
+                }
+                url += divider + basePath;
+            }
+
+            server.url(url);
 
             if (split.length > 1) {
                 server.description(split[1].substring(0, split[1].length() - 1));

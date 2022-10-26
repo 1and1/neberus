@@ -100,7 +100,7 @@
                                 --apiVersion ${project.version}
                                 --apiTitle "${project.name}"
                                 --docBasePath .
-                                --apiBasePath /rest
+                                --apiBasePath /rest/base/path
                                 --apiHosts "https://testserver.com[the default testserver];https://otherserver.com[the other testserver]"
                                 --scanPackages com.included;net.oneandone
                                 --markup MARKDOWN
