@@ -587,7 +587,7 @@ public abstract class JavaDocUtils {
 
     public static boolean isCollectionType(TypeMirror type) {
         return type != null
-                && (type instanceof ArrayType
+                && (type instanceof ArrayType && ((ArrayType) type).getComponentType().getKind() != TypeKind.BYTE
                 || type.toString().startsWith("java.util.List")
                 || type.toString().startsWith("java.util.Set"));
     }
