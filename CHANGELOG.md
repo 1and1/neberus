@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.0.13] - 2022-10-26
+
+### Changed
+
+- add handling for jakarta.xml.bind annotations
+
+### Fixed
+
+- ignore getters in records
+- append apiBasePath to server url
+- don't handle byte[] as collection type
+
+
 ## [3.0.12] - 2022-08-31
 
 ### Fixed
