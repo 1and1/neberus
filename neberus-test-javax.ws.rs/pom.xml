@@ -10,7 +10,7 @@
 
     <artifactId>neberus-test-javax.ws.rs</artifactId>
     <name>Neberus - Test Javax Ws Rs</name>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
