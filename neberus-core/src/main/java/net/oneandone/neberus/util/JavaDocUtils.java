@@ -663,6 +663,10 @@ public abstract class JavaDocUtils {
             return "string";
         }
 
+        if (element.getSimpleName().toString().equals(FormParameters.class.getSimpleName())) {
+            return null;
+        }
+
         String name = element.getSimpleName().toString();
 
         if (isArrayType(type)) {
