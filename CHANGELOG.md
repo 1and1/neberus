@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.0.14] - 2023-01-20
+
+### Fixed
+
+- fix schema for @FormParam parameters without container
+
+
 ## [3.0.13] - 2022-10-26
 
 ### Changed
