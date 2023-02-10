@@ -36,6 +36,12 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>neberus-jakarta.ws.rs</artifactId>
+            <version>${project.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>neberus-spring-webmvc</artifactId>
             <version>${project.version}</version>
             <optional>true</optional>

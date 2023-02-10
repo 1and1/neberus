@@ -7,6 +7,8 @@ import net.oneandone.neberus.annotation.ApiDocumentation;
 import net.oneandone.neberus.annotation.ApiUsecase;
 import net.oneandone.neberus.annotation.ApiUsecases;
 import net.oneandone.neberus.parse.ClassParser;
+import net.oneandone.neberus.parse.JakartaWsRsClassParser;
+import net.oneandone.neberus.parse.JakartaWsRsMethodParser;
 import net.oneandone.neberus.parse.JavaxWsRsClassParser;
 import net.oneandone.neberus.parse.JavaxWsRsMethodParser;
 import net.oneandone.neberus.parse.RestClassData;
@@ -28,6 +30,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import javax.ws.rs.Path;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -63,6 +66,7 @@ public class Neberus implements Doclet {
         DocPrinter docPrinter = new OpenApiV3JsonPrinter(modules, expander, options);
 
         ClassParser javaxWsRsParser = new JavaxWsRsClassParser(new JavaxWsRsMethodParser(options));
+        ClassParser jakartaWsRsParser = new JakartaWsRsClassParser(new JakartaWsRsMethodParser(options));
         ClassParser springMvcParser = new SpringMvcClassParser(new SpringMvcMethodParser(options));
         UsecaseParser usecaseParser = new UsecaseParser(options);
 
@@ -101,6 +105,8 @@ public class Neberus implements Doclet {
 
                 if (usesJavaxWsRs(typeElement, options)) {
                     restClassData = javaxWsRsParser.parse(typeElement);
+                } else if (usesJakartaWsRs(typeElement, options)) {
+                    restClassData = jakartaWsRsParser.parse(typeElement);
                 } else {
                     restClassData = springMvcParser.parse(typeElement);
                 }
@@ -170,6 +176,15 @@ public class Neberus implements Doclet {
 
         return getExecutableElements(typeElement).stream()
                 .anyMatch(method -> hasAnnotation(method, Path.class, options.environment));
+    }
+
+    private static boolean usesJakartaWsRs(TypeElement typeElement, Options options) {
+        if (hasAnnotation(typeElement, jakarta.ws.rs.Path.class, options.environment)) {
+            return true;
+        }
+
+        return getExecutableElements(typeElement).stream()
+                .anyMatch(method -> hasAnnotation(method, jakarta.ws.rs.Path.class, options.environment));
     }
 
     private static void validateMultipleMethodsForSameHttpMethodAndPath(List<RestClassData> restClasses, Options options) {

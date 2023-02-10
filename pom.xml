@@ -56,10 +56,12 @@
         <module>neberus-frontend</module>
         <module>neberus-core</module>
         <module>neberus-javax.ws.rs</module>
+        <module>neberus-jakarta.ws.rs</module>
         <module>neberus-spring-webmvc</module>
         <module>neberus-doclet</module>
         <module>neberus-test-common</module>
         <module>neberus-test-javax.ws.rs</module>
+        <module>neberus-test-jakarta.ws.rs</module>
         <module>neberus-test-spring-webmvc</module>
         <module>neberus-test-assert</module>
     </modules>
@@ -79,6 +81,12 @@
                 <groupId>javax.ws.rs</groupId>
                 <artifactId>javax.ws.rs-api</artifactId>
                 <version>2.1.1</version>
+                <optional>true</optional>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.ws.rs</groupId>
+                <artifactId>jakarta.ws.rs-api</artifactId>
+                <version>3.1.0</version>
                 <optional>true</optional>
             </dependency>
             <dependency>
