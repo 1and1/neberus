@@ -830,7 +830,8 @@ public abstract class MethodParser {
                             .getPackageOf(a.getAnnotationType().asElement()).getQualifiedName().toString();
                     String simpleName = a.getAnnotationType().asElement().getSimpleName().toString();
 
-                    return packageName.equals("javax.validation") && simpleName.equals("Constraint");
+                    return (packageName.equals("javax.validation") || packageName.equals("jakarta.validation"))
+                           && simpleName.equals("Constraint");
                 });
     }
 
