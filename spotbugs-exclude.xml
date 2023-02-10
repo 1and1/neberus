@@ -25,4 +25,9 @@
         <Bug pattern="NP_NULL_PARAM_DEREF"/>
     </Match>
 
+    <!-- false positive -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
 </FindBugsFilter>
