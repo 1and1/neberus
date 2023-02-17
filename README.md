@@ -24,11 +24,13 @@ Out of the box compatibility with javax.ws.rs and spring-webmvc.
 
 ## Setup
 
-### Java 8 vs. Java 11+
+### Java Version Compatibility
 
 Java 8 is only supported with version 1.x.
 
-All newer versions require Java 11+. 
+Java 11 is only supported with version 2.x and 3.x.
+
+All newer versions require Java 17+. 
 
 ### Maven
 
