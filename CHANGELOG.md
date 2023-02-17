@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [4.0.0] - 2023-02-17
+
+### Changed
+
+- compile with jdk 17
+- add support for jakarta.ws.rs
+- add support for jakarta.validation annotations
+
+
 ## [3.0.14] - 2023-01-20
 
 ### Fixed
