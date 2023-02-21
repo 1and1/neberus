@@ -113,57 +113,59 @@
     <!--noop-->
 {:else}
     {#each Object.keys(currentSchema) as property}
-        {#each [(currentSchema[property].$ref ? findSchema(openApi, currentSchema[property].$ref) : currentSchema[property])] as propertySchema}
-            {#if property !== 'exampleSetFlag'}
-                <tr data-level="{level}"
-                    class="{parent} collapse parameter-highlight"
-                    id={(parent + "_" + property)}
-                    data-parameter-highlight-name={(parent + "_" + property)} onmouseover="highlightParameter(this, event)"
-                    onmouseout="deHighlightParameter(this, event)">
-                    <td class="{parent}-control clickable collapsed"
-                        data-bs-toggle="{propertySchema.extensions['x-java-type-expandable'] ? 'collapse' : ''}"
-                        use:initCollapse
-                        data-bs-target={("." + parent + "_" + property)}
-                        data-bs-toggle-parent={("#" + parent)}
-                        aria-expanded="false"
-                        {style}>
-                        <span class="optionalIndicator">
-                            <span data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="top"
-                                  title="{(propertySchema.required || (propertySchema.extensions && propertySchema.extensions['x-java-type-required'])) ? 'Mandatory' : 'Optional'}">
-                                <i class="{(propertySchema.required || (propertySchema.extensions && propertySchema.extensions['x-java-type-required'])) ? 'fas' : 'far'} fa-circle"></i>
+        {#each [parent + "_" + property.replaceAll(/[^A-Za-z0-9]/g, '_')] as propertyReference}
+            {#each [(currentSchema[property].$ref ? findSchema(openApi, currentSchema[property].$ref) : currentSchema[property])] as propertySchema}
+                {#if property !== 'exampleSetFlag'}
+                    <tr data-level="{level}"
+                        class="{parent} collapse parameter-highlight"
+                        id={(propertyReference)}
+                        data-parameter-highlight-name={(propertyReference)} onmouseover="highlightParameter(this, event)"
+                        onmouseout="deHighlightParameter(this, event)">
+                        <td class="{parent}-control clickable collapsed"
+                            data-bs-toggle="{propertySchema.extensions['x-java-type-expandable'] ? 'collapse' : ''}"
+                            use:initCollapse
+                            data-bs-target={("." + propertyReference)}
+                            data-bs-toggle-parent={("#" + parent)}
+                            aria-expanded="false"
+                            {style}>
+                            <span class="optionalIndicator">
+                                <span data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="top"
+                                      title="{(propertySchema.required || (propertySchema.extensions && propertySchema.extensions['x-java-type-required'])) ? 'Mandatory' : 'Optional'}">
+                                    <i class="{(propertySchema.required || (propertySchema.extensions && propertySchema.extensions['x-java-type-required'])) ? 'fas' : 'far'} fa-circle"></i>
+                                </span>
                             </span>
-                        </span>
 
-                        {#if propertySchema.deprecated}
-                            <span class="deprecated" data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="top"
-                                  title="{propertySchema.extensions && propertySchema.extensions['x-deprecated-description'] ? propertySchema.extensions['x-deprecated-description'] : ''}">
+                            {#if propertySchema.deprecated}
+                                <span class="deprecated" data-bs-container="body" data-bs-toggle="tooltip" use:initTooltip data-bs-placement="top"
+                                      title="{propertySchema.extensions && propertySchema.extensions['x-deprecated-description'] ? propertySchema.extensions['x-deprecated-description'] : ''}">
+                                    {property}
+                                </span>
+                            {:else}
                                 {property}
-                            </span>
-                        {:else}
-                            {property}
-                        {/if}
+                            {/if}
 
 
-                        {#if propertySchema.extensions && propertySchema.extensions['x-java-type-expandable']}
-                            <span>
-                                <i class="icon-toggle fas fa-angle-right"></i>
-                            </span>
-                        {/if}
-                    </td>
-                    <td>
-                        <Schema openApi={openApi} schema={propertySchema} contentType={contentType} nested={true}/>
-                    </td>
-                    <td>{@html propertySchema.description}</td>
-                    <td>
-                        <AllowedValue param={propertySchema}/>
-                    </td>
-                </tr>
-                {#if propertySchema.extensions && propertySchema.extensions['x-java-type-expandable']}
-                    <svelte:self schema={propertySchema} openApi={openApi} level={level+1} parent={(parent + "_" + property)}
-                                 contentType={contentType}/>
+                            {#if propertySchema.extensions && propertySchema.extensions['x-java-type-expandable']}
+                                <span>
+                                    <i class="icon-toggle fas fa-angle-right"></i>
+                                </span>
+                            {/if}
+                        </td>
+                        <td>
+                            <Schema openApi={openApi} schema={propertySchema} contentType={contentType} nested={true}/>
+                        </td>
+                        <td>{@html propertySchema.description}</td>
+                        <td>
+                            <AllowedValue param={propertySchema}/>
+                        </td>
+                    </tr>
+                    {#if propertySchema.extensions && propertySchema.extensions['x-java-type-expandable']}
+                        <svelte:self schema={propertySchema} openApi={openApi} level={level+1} parent={(propertyReference)}
+                                     contentType={contentType}/>
+                    {/if}
                 {/if}
-            {/if}
 
+            {/each}
         {/each}
     {/each}
 {/if}

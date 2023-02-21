@@ -44,7 +44,7 @@ public class SomeFieldDto {
     @ApiAllowedValue(enumValues = SomeEnum.class)
     public String stringFieldWithEnumValuesFromApiAllowedValuesAnnotation;
 
-    @JsonProperty("I_AM_FIELDMAN")
+    @JsonProperty("ns:I_AM_FIELDMAN")
     public String stringFieldWithNameFromJsonPropertyAnnotation;
 
     @Pattern(regexp = "abc.123")
@@ -87,6 +87,7 @@ public class SomeFieldDto {
     @Size(max = 42)
     public Map<String, String> mapFieldWithConstraintSize;
 
+    @JsonProperty("ns:mapFieldWithNestedMap")
     public Map<String, Map<String, String>> mapFieldWithNestedMap;
 
     public List<List<String>> listFieldWithNestedList;
