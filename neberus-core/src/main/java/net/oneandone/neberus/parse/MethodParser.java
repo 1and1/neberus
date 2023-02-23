@@ -171,7 +171,8 @@ public abstract class MethodParser {
         }
 
         // convert entities
-        List<RestMethodData.ParameterInfo> bodyParams = data.requestData.parameters.stream().filter(p -> p.parameterType == BODY).collect(Collectors.toList());
+        List<RestMethodData.ParameterInfo> bodyParams = data.requestData.parameters.stream().filter(p -> p.parameterType == BODY)
+                .collect(Collectors.toList());
 
         bodyParams.forEach(p -> {
             data.requestData.parameters.remove(p);
@@ -222,7 +223,7 @@ public abstract class MethodParser {
         List<AnnotationValue> examples = extractValue(entityDefinition, "examples");
         entity.examples.addAll(getExamples(examples));
 
-        addNestedParameters(entity.entityClass, entity.nestedParameters, new ArrayList<>());
+        addNestedParameters(entity.entityClass, entity.nestedParameters, new ArrayList<>(), true);
 
         data.requestData.entities.add(entity);
     }
@@ -322,14 +323,15 @@ public abstract class MethodParser {
             parameterInfo.parameterType = BODY;
 
             addNestedParameters(parameterInfo.displayClass != null ? parameterInfo.displayClass : parameterInfo.entityClass,
-                    parameterInfo.nestedParameters, new ArrayList<>());
+                    parameterInfo.nestedParameters, new ArrayList<>(), true);
 
             sortByTypeAndOptionalAndDeprecatedState(parameterInfo.nestedParameters);
         }
         return parameterInfo;
     }
 
-    protected void addNestedMap(TypeMirror type, List<RestMethodData.ParameterInfo> parentList, List<TypeMirror> parentTypes) {
+    protected void addNestedMap(TypeMirror type, List<RestMethodData.ParameterInfo> parentList, List<TypeMirror> parentTypes,
+            boolean isRequest) {
         List<? extends TypeMirror> typeArguments = ((DeclaredType) type).getTypeArguments();
 
         RestMethodData.ParameterInfo nestedInfoKey = new RestMethodData.ParameterInfo();
@@ -344,7 +346,7 @@ public abstract class MethodParser {
         if (!typeCantBeDocumented(typeArguments.get(0), options)) {
             TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArguments.get(0));
             nestedInfoKey.description = getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
-            addNestedParameters(typeArguments.get(0), nestedInfoKey.nestedParameters, parentTypes);
+            addNestedParameters(typeArguments.get(0), nestedInfoKey.nestedParameters, parentTypes, isRequest);
         }
 
         RestMethodData.ParameterInfo nestedInfoValue = new RestMethodData.ParameterInfo();
@@ -358,11 +360,12 @@ public abstract class MethodParser {
         if (!typeCantBeDocumented(typeArguments.get(1), options)) {
             TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArguments.get(1));
             nestedInfoValue.description = getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
-            addNestedParameters(typeArguments.get(1), nestedInfoValue.nestedParameters, parentTypes);
+            addNestedParameters(typeArguments.get(1), nestedInfoValue.nestedParameters, parentTypes, isRequest);
         }
     }
 
-    protected void addNestedArray(TypeMirror type, List<RestMethodData.ParameterInfo> parentList, List<TypeMirror> parentTypes) {
+    protected void addNestedArray(TypeMirror type, List<RestMethodData.ParameterInfo> parentList, List<TypeMirror> parentTypes,
+            boolean isRequest) {
         TypeMirror typeArgument = type instanceof ArrayType
                                   ? ((ArrayType) type).getComponentType()
                                   : ((DeclaredType) type).getTypeArguments().get(0);
@@ -378,13 +381,13 @@ public abstract class MethodParser {
         if (!typeCantBeDocumented(typeArgument, options)) {
             TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArgument);
             nestedInfo.description = getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
-            addNestedParameters(typeArgument, nestedInfo.nestedParameters, parentTypes);
+            addNestedParameters(typeArgument, nestedInfo.nestedParameters, parentTypes, isRequest);
         }
 
     }
 
     protected void addNestedParameters(TypeMirror type, List<RestMethodData.ParameterInfo> parentList,
-            List<TypeMirror> parentTypes) {
+            List<TypeMirror> parentTypes, boolean isRequest) {
         if (type == null) {
             return;
         }
@@ -395,9 +398,9 @@ public abstract class MethodParser {
             //add nested parameters (ie. fields)
 
             if (isCollectionType(type)) {
-                addNestedArray(type, parentList, branchParentTypes);
+                addNestedArray(type, parentList, branchParentTypes, isRequest);
             } else if (isMapType(type)) {
-                addNestedMap(type, parentList, branchParentTypes);
+                addNestedMap(type, parentList, branchParentTypes, isRequest);
             } else {
                 branchParentTypes.add(type);
                 if (typeCantBeDocumented(type, options)) {
@@ -406,35 +409,60 @@ public abstract class MethodParser {
 
                 List<VariableElement> fields = getVisibleFields(type, options.environment);
 
-                fields.forEach(field -> addNestedField(type, parentList, branchParentTypes, field));
+                fields.forEach(field -> addNestedField(type, parentList, branchParentTypes, field, isRequest));
 
                 if (!fields.isEmpty()) {
                     return;
                 }
 
-                List<ExecutableElement> getters = getVisibleGetters(type, options.environment);
+                if (isRequest) {
+                    // for requests, prefer ctor over getters
+                    if (parseCtor(type, parentList, parentTypes, isRequest)) {
+                        return;
+                    }
 
-                getters.forEach(getter -> addNestedGetter(type, parentList, branchParentTypes, getter));
+                    parseGetters(type, parentList, branchParentTypes, isRequest);
+                } else {
+                    // for response, prefer getters over ctor
+                    if (parseGetters(type, parentList, branchParentTypes, isRequest)) {
+                        return;
+                    }
 
-                if (!getters.isEmpty()) {
-                    return;
+                    parseCtor(type, parentList, parentTypes, isRequest);
                 }
 
-                ExecutableElement chosenCtor = getCtorDoc(type);
-
-                if (chosenCtor == null) {
-                    return;
-                }
-
-                Map<String, ParamTree> paramTags = getParamTags(chosenCtor, options.environment);
-
-                for (VariableElement param : getVisibleCtorParameters(chosenCtor)) {
-                    addNestedCtorParam(type, parentList, parentTypes, paramTags, param);
-                }
             }
         } finally {
             sortByTypeAndOptionalAndDeprecatedState(parentList);
         }
+    }
+
+    private boolean parseCtor(TypeMirror type, List<RestMethodData.ParameterInfo> parentList, List<TypeMirror> parentTypes,
+            boolean isRequest) {
+        ExecutableElement chosenCtor = getCtorDoc(type);
+
+        if (chosenCtor == null) {
+            return false;
+        }
+
+        Map<String, ParamTree> paramTags = getParamTags(chosenCtor, options.environment);
+
+        for (VariableElement param : getVisibleCtorParameters(chosenCtor)) {
+            addNestedCtorParam(type, parentList, parentTypes, paramTags, param, isRequest);
+        }
+        return true;
+    }
+
+    private boolean parseGetters(TypeMirror type, List<RestMethodData.ParameterInfo> parentList,
+            List<TypeMirror> branchParentTypes, boolean isRequest) {
+        List<ExecutableElement> getters = getVisibleGetters(type, options.environment);
+
+        getters.forEach(getter -> addNestedGetter(type, parentList, branchParentTypes, getter, isRequest));
+
+        if (!getters.isEmpty()) {
+            return true;
+        }
+        return false;
     }
 
     private void sortByTypeAndOptionalAndDeprecatedState(List<RestMethodData.ParameterInfo> parentList) {
@@ -471,7 +499,7 @@ public abstract class MethodParser {
     }
 
     private void addNestedCtorParam(TypeMirror type, List<RestMethodData.ParameterInfo> parentList, List<TypeMirror> parentTypes,
-            Map<String, ParamTree> paramTags, VariableElement param) {
+            Map<String, ParamTree> paramTags, VariableElement param, boolean isRequest) {
         RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
 
         ParamTree paramTag = paramTags.get(param.getSimpleName().toString());
@@ -496,12 +524,12 @@ public abstract class MethodParser {
         parentList.add(nestedInfo);
 
         if (!type.equals(param.asType()) && !parentTypes.contains(param.asType())) { // break loops
-            addNestedParameters(param.asType(), nestedInfo.nestedParameters, parentTypes); // recursive
+            addNestedParameters(param.asType(), nestedInfo.nestedParameters, parentTypes, isRequest); // recursive
         }
     }
 
     private void addNestedGetter(TypeMirror type, List<RestMethodData.ParameterInfo> parentList, List<TypeMirror> parentTypes,
-            ExecutableElement getter) {
+            ExecutableElement getter, boolean isRequest) {
 
         RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
         nestedInfo.name = getNameFromGetter(getter, options.environment);
@@ -546,12 +574,12 @@ public abstract class MethodParser {
 
         if (!type.equals(getter.getReturnType()) && !parentTypes.contains(getter.getReturnType())) {
             // break loops
-            addNestedParameters(getter.getReturnType(), nestedInfo.nestedParameters, parentTypes); // recursive
+            addNestedParameters(getter.getReturnType(), nestedInfo.nestedParameters, parentTypes, isRequest); // recursive
         }
     }
 
     private void addNestedField(TypeMirror type, List<RestMethodData.ParameterInfo> parentList, List<TypeMirror> parentTypes,
-            VariableElement field) {
+            VariableElement field, boolean isRequest) {
         RestMethodData.ParameterInfo nestedInfo = new RestMethodData.ParameterInfo();
 
         nestedInfo.parameterType = BODY;
@@ -587,7 +615,7 @@ public abstract class MethodParser {
 
         if (!type.equals(field.asType()) && !parentTypes.contains(field.asType())) {
             // break loops
-            addNestedParameters(field.asType(), nestedInfo.nestedParameters, parentTypes); // recursive
+            addNestedParameters(field.asType(), nestedInfo.nestedParameters, parentTypes, isRequest); // recursive
         }
     }
 
@@ -1074,7 +1102,7 @@ public abstract class MethodParser {
                     responseEntity.contentType = (String) produces.get(0).getValue();
                 }
 
-                addNestedParameters(responseEntity.entityClass, responseEntity.nestedParameters, new ArrayList<>());
+                addNestedParameters(responseEntity.entityClass, responseEntity.nestedParameters, new ArrayList<>(), false);
 
                 List<AnnotationValue> examples = extractValue(entityDesc, "examples");
                 responseEntity.examples.addAll(getExamples(examples));

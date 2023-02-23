@@ -20,6 +20,7 @@ import net.oneandone.neberus.annotation.ApiResponse;
 import net.oneandone.neberus.annotation.ApiType;
 import net.oneandone.neberus.model.ApiStatus;
 import net.oneandone.neberus.test.request.SomeChildFieldDto;
+import net.oneandone.neberus.test.request.SomeCtorAndGetterDto;
 import net.oneandone.neberus.test.request.SomeCtorDto;
 import net.oneandone.neberus.test.request.SomeFieldDto;
 import net.oneandone.neberus.test.request.SomeFieldDtoList;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.validation.constraints.Max;
 
@@ -206,6 +208,17 @@ public class RestService {
     @ApiCurl
     public ResponseEntity<?> postParamFormMethod(@RequestParam @ApiFormParam String formParamName,
             @RequestParam String queryParam, @RequestParam boolean booleanQueryParam, @RequestParam int intQueryParam) {
+        return null;
+    }
+
+    @PostMapping(path = "/post/jsonPropertyTestMethod",
+                 consumes = MediaType.APPLICATION_JSON_VALUE,
+                 produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponse(status = ApiStatus.OK, description = "success", entities = {
+            @ApiEntity(entityClass = SomeCtorAndGetterDto.class)
+    })
+    @ApiCurl
+    public ResponseEntity<?> jsonPropertyTestMethod(@RequestBody SomeCtorAndGetterDto dto) {
         return null;
     }
 

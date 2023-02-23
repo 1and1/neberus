@@ -395,7 +395,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
 
                 if (parameterInfo.entityClass != null) {
                     mediaType.schema(toSchema(parameterInfo, entity.entityClass, Collections.emptyMap(),
-                            null, methodData, true, components));
+                            null, methodData, true, components, false));
                 }
 
                 if (entity.contentType == null) {
@@ -476,7 +476,8 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
                             .description(expand(param.description))
                             .deprecated(param.deprecated)
                             .required(param.isRequired())
-                            .schema(toSchema(param, param.entityClass, new HashMap<>(), null, methodData, true, components));
+                            .schema(toSchema(param, param.entityClass, new HashMap<>(), null, methodData, true,
+                                    components, true));
 
                     parameter.addExtension("x-name-escaped", param.name.replaceAll("[^A-Za-z0-9]", "_"));
 
@@ -539,7 +540,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             parameterInfo.nestedParameters = entity.nestedParameters;
 
             mediaType.schema(toSchema(parameterInfo, entity.entityClass, Collections.emptyMap(),
-                    null, methodData, true, components));
+                    null, methodData, true, components, true));
 
             entity.examples.forEach(example -> {
                 Example ex = new Example();
@@ -577,9 +578,9 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     }
 
     private Schema toSchema(RestMethodData.ParameterInfo param, TypeMirror type, Map<String, String> parameterUsecaseValues,
-            String parent, RestMethodData.MethodData methodData, boolean skipEnhance, Components components) {
+            String parent, RestMethodData.MethodData methodData, boolean skipEnhance, Components components, boolean isRequest) {
 
-        String qualifiedName = getQualifiedName(param.entityClass, options.environment);
+        String qualifiedName = (isRequest ? "request-" : "response-") + getQualifiedName(param.entityClass, options.environment);
 
         if (components.getSchemas() != null && components.getSchemas().containsKey(qualifiedName)) {
             Schema refSchema = new Schema();
@@ -588,9 +589,11 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         }
 
         if (isCollectionType(param.entityClass)) {
-            return processArrayType(param, param.entityClass, parameterUsecaseValues, parent, methodData, skipEnhance, components);
+            return processArrayType(param, param.entityClass, parameterUsecaseValues, parent, methodData, skipEnhance,
+                    components, isRequest);
         } else if (isMapType(param.entityClass)) {
-            return processMapType(param, param.entityClass, parameterUsecaseValues, parent, methodData, skipEnhance, components);
+            return processMapType(param, param.entityClass, parameterUsecaseValues, parent, methodData, skipEnhance,
+                    components, isRequest);
         } else {
             Schema schema = new ObjectSchema();
             schema.description(expand(param.description));
@@ -607,16 +610,16 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             for (RestMethodData.ParameterInfo nestedParam : param.nestedParameters) {
                 if (isCollectionType(nestedParam.entityClass)) {
                     schema.addProperty(nestedParam.name, processArrayType(nestedParam, nestedParam.entityClass,
-                            parameterUsecaseValues, parent, methodData, skipEnhance, components));
+                            parameterUsecaseValues, parent, methodData, skipEnhance, components, isRequest));
                 } else if (isMapType(nestedParam.entityClass)) {
                     schema.addProperty(nestedParam.name, processMapType(nestedParam, nestedParam.entityClass,
-                            parameterUsecaseValues, parent, methodData, skipEnhance, components));
+                            parameterUsecaseValues, parent, methodData, skipEnhance, components, isRequest));
                 } else if (containedFieldNamesAreNotAvailableOrPackageExcluded(nestedParam.entityClass, options) // stop at 'arg0' etc. this does not provide useful information
                         || nestedParam.entityClass.equals(type)) {  // break simple recursive loops
                     schema.addProperty(nestedParam.name, getSimpleSchema(nestedParam, nestedParam.entityClass));
                 } else {
                     schema.addProperty(nestedParam.name, processType(nestedParam, nestedParam.entityClass, nestedParam.name,
-                            parameterUsecaseValues, concat(parent), methodData, skipEnhance, components));
+                            parameterUsecaseValues, concat(parent), methodData, skipEnhance, components, isRequest));
                 }
             }
 
@@ -634,7 +637,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     }
 
     private Schema processType(RestMethodData.ParameterInfo param, TypeMirror type, String fieldName, Map<String, String> parameterUsecaseValues, String parent,
-            RestMethodData.MethodData methodData, boolean skipEnhance, Components components) {
+            RestMethodData.MethodData methodData, boolean skipEnhance, Components components, boolean isRequest) {
 
         Schema schema = new ObjectSchema();
         schema.type(getOpenApiTypeString(type, options.environment));
@@ -652,9 +655,11 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         addAllowedValues(schema, param);
 
         if (isDocumentableSimpleType(type, fieldName)) {
-            schema = toSchema(param, type, parameterUsecaseValues, concat(parent, fieldName), methodData, skipEnhance, components);
+            schema = toSchema(param, type, parameterUsecaseValues, concat(parent, fieldName),
+                    methodData, skipEnhance, components, isRequest);
         } else if (isMapType(type)) {
-            MapSchema mapSchema = processMapType(param, type, parameterUsecaseValues, concat(parent, fieldName), methodData, skipEnhance, components);
+            MapSchema mapSchema = processMapType(param, type, parameterUsecaseValues, concat(parent, fieldName),
+                    methodData, skipEnhance, components, isRequest);
 
             if (fieldName != null) {
                 schema.addProperty(fieldName, mapSchema);
@@ -662,7 +667,8 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
                 schema = mapSchema;
             }
         } else if (isCollectionType(type)) {
-            ArraySchema arraySchema = processArrayType(param, type, parameterUsecaseValues, concat(parent, fieldName), methodData, skipEnhance, components);
+            ArraySchema arraySchema = processArrayType(param, type, parameterUsecaseValues, concat(parent, fieldName),
+                    methodData, skipEnhance, components, isRequest);
 
             if (fieldName != null) {
                 schema.addProperty(fieldName, arraySchema);
@@ -680,7 +686,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     }
 
     private MapSchema processMapType(RestMethodData.ParameterInfo param, TypeMirror type, Map<String, String> parameterUsecaseValues, String parent,
-            RestMethodData.MethodData methodData, boolean skipEnhance, Components components) {
+            RestMethodData.MethodData methodData, boolean skipEnhance, Components components, boolean isRequest) {
         MapSchema mapSchema = new MapSchema();
         mapSchema.addExtension("x-java-type", getSimpleTypeName(type, options.environment));
         mapSchema.addExtension("x-java-type-expandable", true);
@@ -712,11 +718,13 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
                                      : ((DeclaredType) type).getTypeArguments().get(1);
 
         if (isCollectionType(valueTypeMirror)) {
-            mapSchema.additionalProperties(processArrayType(valueType, valueTypeMirror, parameterUsecaseValues, parent, methodData, skipEnhance, components));
+            mapSchema.additionalProperties(processArrayType(valueType, valueTypeMirror, parameterUsecaseValues, parent,
+                    methodData, skipEnhance, components, isRequest));
         } else if (valueTypeMirror != null && asElement(valueTypeMirror, options.environment) != null && !valueTypeMirror.getKind().isPrimitive()
                 && !getQualifiedName(valueTypeMirror, options.environment).startsWith("java.lang") && !isEnum(valueTypeMirror, options.environment)) {
 
-            mapSchema.additionalProperties(processType(valueType, valueTypeMirror, null, parameterUsecaseValues, parent, methodData, skipEnhance, components));
+            mapSchema.additionalProperties(processType(valueType, valueTypeMirror, null, parameterUsecaseValues, parent,
+                    methodData, skipEnhance, components, isRequest));
         } else {
             Schema schema = new Schema();
             schema.addExtension("x-java-type", getSimpleTypeName(valueTypeMirror, options.environment));
@@ -735,8 +743,9 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         return mapSchema;
     }
 
-    private ArraySchema processArrayType(RestMethodData.ParameterInfo param, TypeMirror type, Map<String, String> parameterUsecaseValues, String parent,
-            RestMethodData.MethodData methodData, boolean skipEnhance, Components components) {
+    private ArraySchema processArrayType(RestMethodData.ParameterInfo param, TypeMirror type,
+            Map<String, String> parameterUsecaseValues, String parent,
+            RestMethodData.MethodData methodData, boolean skipEnhance, Components components, boolean isRequest) {
 
         ArraySchema arraySchema = new ArraySchema();
         arraySchema.addExtension("x-java-type", getSimpleTypeName(type, options.environment));
@@ -765,12 +774,15 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
                                      : fallbackValue;
 
         if (isCollectionType(valueTypeMirror)) {
-            arraySchema.items(processArrayType(valueType, valueTypeMirror, parameterUsecaseValues, parent, methodData, skipEnhance, components));
+            arraySchema.items(processArrayType(valueType, valueTypeMirror, parameterUsecaseValues, parent, methodData,
+                    skipEnhance, components, isRequest));
         } else if (isMapType(valueTypeMirror)) {
-            arraySchema.items(processMapType(valueType, valueTypeMirror, parameterUsecaseValues, parent, methodData, skipEnhance, components));
+            arraySchema.items(processMapType(valueType, valueTypeMirror, parameterUsecaseValues, parent, methodData,
+                    skipEnhance, components, isRequest));
         } else if (valueType != null && asElement(valueTypeMirror, options.environment) != null && !valueTypeMirror.getKind().isPrimitive()
                 && !getQualifiedName(valueTypeMirror, options.environment).startsWith("java.lang") && !isEnum(valueTypeMirror, options.environment)) {
-            arraySchema.items(toSchema(valueType, valueTypeMirror, parameterUsecaseValues, parent, methodData, skipEnhance, components));
+            arraySchema.items(toSchema(valueType, valueTypeMirror, parameterUsecaseValues, parent, methodData,
+                    skipEnhance, components, isRequest));
         } else {
             arraySchema.items(getSimpleSchema(valueType, valueTypeMirror));
         }
@@ -798,7 +810,8 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         addAllowedValues(schema, param);
 
         if (isEnum(type, options.environment)) {
-            schema.setEnum(getEnumValuesAsList(type, options.environment).stream().map(ev -> ev.getSimpleName().toString()).collect(Collectors.toList()));
+            schema.setEnum(getEnumValuesAsList(type, options.environment).stream().map(ev -> ev.getSimpleName().toString())
+                    .collect(Collectors.toList()));
         }
 
 

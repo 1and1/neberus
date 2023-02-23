@@ -51,6 +51,7 @@ public class SomeGetterDto {
     private Map<String, List<Set<String>>> mapFieldWithNestedListWithNestedSet;
     private List<Map<String, Set<String>>> listFieldWithNestedMapWithNestedSet;
     private List<NestedDto> mapOfNestedDtoField;
+    @JsonProperty("deprecated:annotation-on-private-field")
     private String stringFieldDeprecated;
     private NestedGetterDto nestedGetterDto;
 
