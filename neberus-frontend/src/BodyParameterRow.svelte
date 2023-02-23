@@ -7,10 +7,20 @@
     export let level;
     export let parent;
     export let contentType;
+    export let parentTypeRefs;
 
     $: style = 'padding-left: ' + (level * 25) + 'px';
 
-    $: currentSchema = (schema.$ref ? findSchema(openApi, schema.$ref) : schema);
+    $: currentSchema = initCurrentSchema(schema, openApi, parentTypeRefs);
+
+    function initCurrentSchema(schema, openApi, parentTypes) {
+        let current = schema.$ref ? findSchema(openApi, schema.$ref) : schema;
+
+        if (schema.$ref) {
+            parentTypes.push(schema.$ref);
+        }
+        return current;
+    }
 
     const initTooltip = el => {
         initTooltipBox(el);
@@ -23,7 +33,8 @@
 </script>
 
 {#if currentSchema.properties}
-    <svelte:self schema={currentSchema.properties} openApi={openApi} level={level} parent={parent} contentType={contentType}/>
+    <svelte:self schema={currentSchema.properties} openApi={openApi} level={level} parent={parent}
+                 contentType={contentType} parentTypeRefs={[...parentTypeRefs]}/>
 {:else if currentSchema.type === 'array'}
     {#each [(currentSchema.items.$ref ? findSchema(openApi, currentSchema.items.$ref) : currentSchema.items)] as itemSchema}
         <tr data-level="{level}"
@@ -59,7 +70,7 @@
         </tr>
         {#if itemSchema.extensions && itemSchema.extensions['x-java-type-expandable']}
             <svelte:self schema={itemSchema} openApi={openApi} level={level+1} parent={(parent + "_" + 'item')}
-                         contentType={contentType}/>
+                         contentType={contentType} parentTypeRefs={[...parentTypeRefs]}/>
         {/if}
     {/each}
 {:else if currentSchema.type === 'object' && currentSchema.additionalProperties}
@@ -107,7 +118,7 @@
             </td>
         </tr>
         <svelte:self schema={valueSchema} openApi={openApi} level={level+1} parent={(parent + "_" + "value")}
-                     contentType={contentType}/>
+                     contentType={contentType} parentTypeRefs={[...parentTypeRefs]}/>
     {/each}
 {:else if currentSchema.type === 'string' || currentSchema.type === 'integer' || currentSchema.type === 'number' || currentSchema.type === 'boolean' || currentSchema.type === 'null'}
     <!--noop-->
@@ -122,7 +133,7 @@
                         data-parameter-highlight-name={(propertyReference)} onmouseover="highlightParameter(this, event)"
                         onmouseout="deHighlightParameter(this, event)">
                         <td class="{parent}-control clickable collapsed"
-                            data-bs-toggle="{propertySchema.extensions['x-java-type-expandable'] ? 'collapse' : ''}"
+                            data-bs-toggle="{propertySchema.extensions['x-java-type-expandable'] && !parentTypeRefs.includes(currentSchema[property].$ref) ? 'collapse' : ''}"
                             use:initCollapse
                             data-bs-target={("." + propertyReference)}
                             data-bs-toggle-parent={("#" + parent)}
@@ -146,9 +157,13 @@
 
 
                             {#if propertySchema.extensions && propertySchema.extensions['x-java-type-expandable']}
-                                <span>
-                                    <i class="icon-toggle fas fa-angle-right"></i>
-                                </span>
+                                {#if !parentTypeRefs.includes(currentSchema[property].$ref)}
+                                    <span>
+                                        <i class="icon-toggle fas fa-angle-right"></i>
+                                    </span>
+                                {:else}
+                                    <span class="valueHint">[recursive]</span>
+                                {/if}
                             {/if}
                         </td>
                         <td>
@@ -160,8 +175,10 @@
                         </td>
                     </tr>
                     {#if propertySchema.extensions && propertySchema.extensions['x-java-type-expandable']}
-                        <svelte:self schema={propertySchema} openApi={openApi} level={level+1} parent={(propertyReference)}
-                                     contentType={contentType}/>
+                        {#if !parentTypeRefs.includes(currentSchema[property].$ref)}
+                            <svelte:self schema={currentSchema[property]} openApi={openApi} level={level+1} parent={(propertyReference)}
+                                         contentType={contentType} parentTypeRefs={[...parentTypeRefs]}/>
+                        {/if}
                     {/if}
                 {/if}
 

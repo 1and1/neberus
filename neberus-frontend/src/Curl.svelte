@@ -140,7 +140,7 @@
 
         let schemaString = '';
 
-        let fullSchema = resolveRefs(openApi, schema);
+        let fullSchema = resolveRefs(openApi, schema, false, []);
 
         if (contentType.includes('json')) {
             schemaString = pretty

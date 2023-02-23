@@ -23,7 +23,8 @@ function findSchema(openApi, ref) {
 
 let resolveCache = {};
 
-function resolveRefs(openApi, current, onlyProperties) {
+function resolveRefs(openApi, current, onlyProperties, parentTypeRefs) {
+
 
     let result = {}
     // console.log("resolve: ", current);
@@ -32,17 +33,28 @@ function resolveRefs(openApi, current, onlyProperties) {
         return result;
     }
 
+    let branchParentTypeRefs = [...parentTypeRefs];
+
     if (current.$ref) {
+        if (branchParentTypeRefs.includes(current.$ref)) {
+            result.__type = current.type;
+            result.__recursive = true;
+            result['...'] = 'recursive...';
+            return result;
+        }
+
+        branchParentTypeRefs.push(current.$ref);
+
         if (current.$ref in resolveCache) {
             // console.log("cached resolve", current.$ref, resolveCache[current.$ref]);
             return resolveCache[current.$ref];
         }
         // reference
         let resolved = findSchema(openApi, current.$ref);
-        result = resolveRefs(openApi, resolved.properties, true);
+        result = resolveRefs(openApi, resolved.properties, true, branchParentTypeRefs);
     } else if (current.properties) {
         // normal object
-        result = resolveRefs(openApi, current.properties, true);
+        result = resolveRefs(openApi, current.properties, true, branchParentTypeRefs);
     } else if (current.enum) {
         // enum
         result = '{String}'
@@ -51,13 +63,13 @@ function resolveRefs(openApi, current, onlyProperties) {
         if (current.items.type === 'byte') {
             result = '{String}'
         } else {
-            let item = resolveRefs(openApi, current.items, false);
+            let item = resolveRefs(openApi, current.items, false, branchParentTypeRefs);
             result = [item];
         }
     } else if (current.type === 'object' && current.additionalProperties) {
         // map
         let map = {};
-        map['{String}'] = resolveRefs(openApi, current.additionalProperties, false);
+        map['{String}'] = resolveRefs(openApi, current.additionalProperties, false, branchParentTypeRefs);
         result = map;
     } else if (current.type === 'string' || current.type === 'integer' || current.type === 'boolean' || current.type === 'number' || current.type === 'null') {
         result = '{' + current.type + '}';
@@ -82,7 +94,7 @@ function resolveRefs(openApi, current, onlyProperties) {
                 value.__type = 'string';
                 result[key] = value;
             } else {
-                result[key] = resolveRefs(openApi, value, false);
+                result[key] = resolveRefs(openApi, value, false, branchParentTypeRefs);
             }
 
         });
@@ -99,7 +111,7 @@ function resolveRefs(openApi, current, onlyProperties) {
 }
 
 function getSchemaJson(openApi, schema) {
-    let fullSchema = resolveRefs(openApi, schema);
+    let fullSchema = resolveRefs(openApi, schema, false, []);
 
     return JSON.stringify(fullSchema, undefined, 2)
         .replaceAll('"{int}"', '{int}')

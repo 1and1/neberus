@@ -329,7 +329,7 @@ public abstract class MethodParser {
         return parameterInfo;
     }
 
-    protected void addNestedMap(TypeMirror type, List<RestMethodData.ParameterInfo> parentList) {
+    protected void addNestedMap(TypeMirror type, List<RestMethodData.ParameterInfo> parentList, List<TypeMirror> parentTypes) {
         List<? extends TypeMirror> typeArguments = ((DeclaredType) type).getTypeArguments();
 
         RestMethodData.ParameterInfo nestedInfoKey = new RestMethodData.ParameterInfo();
@@ -344,7 +344,7 @@ public abstract class MethodParser {
         if (!typeCantBeDocumented(typeArguments.get(0), options)) {
             TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArguments.get(0));
             nestedInfoKey.description = getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
-            addNestedParameters(typeArguments.get(0), nestedInfoKey.nestedParameters, new ArrayList<>());
+            addNestedParameters(typeArguments.get(0), nestedInfoKey.nestedParameters, parentTypes);
         }
 
         RestMethodData.ParameterInfo nestedInfoValue = new RestMethodData.ParameterInfo();
@@ -358,11 +358,11 @@ public abstract class MethodParser {
         if (!typeCantBeDocumented(typeArguments.get(1), options)) {
             TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArguments.get(1));
             nestedInfoValue.description = getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
-            addNestedParameters(typeArguments.get(1), nestedInfoValue.nestedParameters, new ArrayList<>());
+            addNestedParameters(typeArguments.get(1), nestedInfoValue.nestedParameters, parentTypes);
         }
     }
 
-    protected void addNestedArray(TypeMirror type, List<RestMethodData.ParameterInfo> parentList) {
+    protected void addNestedArray(TypeMirror type, List<RestMethodData.ParameterInfo> parentList, List<TypeMirror> parentTypes) {
         TypeMirror typeArgument = type instanceof ArrayType
                                   ? ((ArrayType) type).getComponentType()
                                   : ((DeclaredType) type).getTypeArguments().get(0);
@@ -378,7 +378,7 @@ public abstract class MethodParser {
         if (!typeCantBeDocumented(typeArgument, options)) {
             TypeElement typeElement = (TypeElement) options.environment.getTypeUtils().asElement(typeArgument);
             nestedInfo.description = getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
-            addNestedParameters(typeArgument, nestedInfo.nestedParameters, new ArrayList<>());
+            addNestedParameters(typeArgument, nestedInfo.nestedParameters, parentTypes);
         }
 
     }
@@ -389,23 +389,24 @@ public abstract class MethodParser {
             return;
         }
 
+        List<TypeMirror> branchParentTypes = new ArrayList<>(parentTypes);
+
         try {
             //add nested parameters (ie. fields)
 
-            parentTypes.add(type);
-
             if (isCollectionType(type)) {
-                addNestedArray(type, parentList);
+                addNestedArray(type, parentList, branchParentTypes);
             } else if (isMapType(type)) {
-                addNestedMap(type, parentList);
+                addNestedMap(type, parentList, branchParentTypes);
             } else {
+                branchParentTypes.add(type);
                 if (typeCantBeDocumented(type, options)) {
                     return;
                 }
 
                 List<VariableElement> fields = getVisibleFields(type, options.environment);
 
-                fields.forEach(field -> addNestedField(type, parentList, parentTypes, field));
+                fields.forEach(field -> addNestedField(type, parentList, branchParentTypes, field));
 
                 if (!fields.isEmpty()) {
                     return;
@@ -413,7 +414,7 @@ public abstract class MethodParser {
 
                 List<ExecutableElement> getters = getVisibleGetters(type, options.environment);
 
-                getters.forEach(getter -> addNestedGetter(type, parentList, parentTypes, getter));
+                getters.forEach(getter -> addNestedGetter(type, parentList, branchParentTypes, getter));
 
                 if (!getters.isEmpty()) {
                     return;

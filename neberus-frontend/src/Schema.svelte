@@ -15,7 +15,7 @@
             let actualSchema = schema.$ref ? findSchema(openApi, schema.$ref) : schema;
             let title = typeof (schema) == "string" ? schema : actualSchema.extensions['x-java-type'];
 
-            let fullSchema = resolveRefs(openApi, schema);
+            let fullSchema = resolveRefs(openApi, schema, false, []);
 
             if (!contentType || contentType.includes('json')) {
                 fullSchemaHtml = toJsonPretty(fullSchema);

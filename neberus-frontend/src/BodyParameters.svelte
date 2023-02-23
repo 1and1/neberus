@@ -55,7 +55,8 @@
         </tr>
 
         {#if currentSchema.extensions['x-java-type-expandable']}
-            <BodyParameterRow openApi={openApi} schema={schema} level={1} parent={reference} contentType={contentType}/>
+            <BodyParameterRow openApi={openApi} schema={schema} level={1} parent={reference} contentType={contentType}
+                              parentTypeRefs={[schema.$ref]}/>
         {/if}
         </tbody>
     </table>
