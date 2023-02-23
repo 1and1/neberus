@@ -606,16 +606,16 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
 
             for (RestMethodData.ParameterInfo nestedParam : param.nestedParameters) {
                 if (isCollectionType(nestedParam.entityClass)) {
-                    schema.addProperties(nestedParam.name, processArrayType(nestedParam, nestedParam.entityClass,
+                    schema.addProperty(nestedParam.name, processArrayType(nestedParam, nestedParam.entityClass,
                             parameterUsecaseValues, parent, methodData, skipEnhance, components));
                 } else if (isMapType(nestedParam.entityClass)) {
-                    schema.addProperties(nestedParam.name, processMapType(nestedParam, nestedParam.entityClass,
+                    schema.addProperty(nestedParam.name, processMapType(nestedParam, nestedParam.entityClass,
                             parameterUsecaseValues, parent, methodData, skipEnhance, components));
                 } else if (containedFieldNamesAreNotAvailableOrPackageExcluded(nestedParam.entityClass, options) // stop at 'arg0' etc. this does not provide useful information
                         || nestedParam.entityClass.equals(type)) {  // break simple recursive loops
-                    schema.addProperties(nestedParam.name, getSimpleSchema(nestedParam, nestedParam.entityClass));
+                    schema.addProperty(nestedParam.name, getSimpleSchema(nestedParam, nestedParam.entityClass));
                 } else {
-                    schema.addProperties(nestedParam.name, processType(nestedParam, nestedParam.entityClass, nestedParam.name,
+                    schema.addProperty(nestedParam.name, processType(nestedParam, nestedParam.entityClass, nestedParam.name,
                             parameterUsecaseValues, concat(parent), methodData, skipEnhance, components));
                 }
             }
@@ -657,7 +657,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             MapSchema mapSchema = processMapType(param, type, parameterUsecaseValues, concat(parent, fieldName), methodData, skipEnhance, components);
 
             if (fieldName != null) {
-                schema.addProperties(fieldName, mapSchema);
+                schema.addProperty(fieldName, mapSchema);
             } else {
                 schema = mapSchema;
             }
@@ -665,7 +665,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             ArraySchema arraySchema = processArrayType(param, type, parameterUsecaseValues, concat(parent, fieldName), methodData, skipEnhance, components);
 
             if (fieldName != null) {
-                schema.addProperties(fieldName, arraySchema);
+                schema.addProperty(fieldName, arraySchema);
             } else {
                 throw new IllegalArgumentException("field name is required for array type");
             }
