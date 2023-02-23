@@ -647,7 +647,7 @@ public abstract class MethodParser {
 
     private void addAllowedValuesFromAnnotation(ExecutableElement memberDoc, VariableElement param, int index, RestMethodData.ParameterInfo nestedInfo) {
         //check for the (maybe implicit) container annotation...
-        List<AnnotationValue> parameters = getDirectAnnotationValue(param, ApiAllowedValues.class, VALUE);
+        List<AnnotationValue> parameters = getAnnotationValue(memberDoc, param, ApiAllowedValues.class, index, VALUE, options.environment);
         if (parameters != null) {
             //...and iterate over it's content
             parameters.forEach(repsonse -> addAllowedValuesFromAnnotation((AnnotationMirror) repsonse.getValue(), nestedInfo.allowedValues));

@@ -122,8 +122,11 @@ public interface RestServiceInterfaceDoc extends CommonRestServiceInterfaceDoc {
                          @ApiHeader(name = "header_2")
                  })
     @ApiCurl
-    Object getMethod(@ApiAllowedValue(value = "default", valueHint = "the default value") String stringPathParam,
-                     @Size(max = 42) String anotherPathParam,
-                     @ApiType(UUID.class) @ApiAllowedValue(valueHint = "queryParam value hint") String queryParam);
+    Object getMethod(
+            @ApiAllowedValue(value = "default", valueHint = "the default value")
+            @ApiAllowedValue(value = "not-default")
+            String stringPathParam,
+            @Size(max = 42) String anotherPathParam,
+            @ApiType(UUID.class) @ApiAllowedValue(valueHint = "queryParam value hint") String queryParam);
 
 }

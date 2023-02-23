@@ -89,10 +89,13 @@ public class RestService {
                   optional = true)
     @ApiCurl
     @Deprecated
-    public String justAnotherGetMethod(@PathVariable @ApiAllowedValue("default") String pathParam,
-                                       @PathVariable("anotherPathParam") String anotherPathParam,
-                                       @PathVariable("wrappedPathParam") @ApiType(String.class) WrappedString wrappedPathParam,
-                                       @Deprecated @RequestParam("queryParam") String queryParam) {
+    public String justAnotherGetMethod(
+            @PathVariable
+            @ApiAllowedValue(value = "default", valueHint = "default hint")
+            @ApiAllowedValue("not-default") String pathParam,
+            @PathVariable("anotherPathParam") String anotherPathParam,
+            @PathVariable("wrappedPathParam") @ApiType(String.class) WrappedString wrappedPathParam,
+            @Deprecated @RequestParam("queryParam") String queryParam) {
         return "";
     }
 
