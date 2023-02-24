@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [4.0.1] - 2023-02-24
+
+### Fixed
+
+- fix handling of special characters in json property names on expandable fields
+- fix handling of recursive request/response classes
+- parse getters and ctor for request and response entity classes in different order
+- fix usage of multiple @ApiAllowedValue on parameter in interface
+
+
 ## [4.0.0] - 2023-02-17
 
 ### Changed
