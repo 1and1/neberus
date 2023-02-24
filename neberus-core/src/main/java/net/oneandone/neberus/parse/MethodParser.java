@@ -38,6 +38,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -417,7 +418,7 @@ public abstract class MethodParser {
 
                 if (isRequest) {
                     // for requests, prefer ctor over getters
-                    if (parseCtor(type, parentList, parentTypes, isRequest)) {
+                    if (parseCtor(type, parentList, branchParentTypes, isRequest)) {
                         return;
                     }
 
@@ -428,7 +429,7 @@ public abstract class MethodParser {
                         return;
                     }
 
-                    parseCtor(type, parentList, parentTypes, isRequest);
+                    parseCtor(type, parentList, branchParentTypes, isRequest);
                 }
 
             }
@@ -827,16 +828,16 @@ public abstract class MethodParser {
             annotation.getAnnotationType().asElement().getEnclosedElements()
                     .stream().filter(e -> e instanceof ExecutableElement)
                     .map(e -> (ExecutableElement) e).forEach(element -> {
-                if (element.getDefaultValue() == null) {
-                    return;
-                }
+                        if (element.getDefaultValue() == null) {
+                            return;
+                        }
 
-                Object defaultValue = element.getDefaultValue().getValue();
+                        Object defaultValue = element.getDefaultValue().getValue();
 
-                if (defaultValue instanceof Number) {
-                    params.put(element.getSimpleName().toString(), defaultValue.toString());
-                }
-            });
+                        if (defaultValue instanceof Number) {
+                            params.put(element.getSimpleName().toString(), defaultValue.toString());
+                        }
+                    });
 
             annotation.getElementValues().forEach((element, value) -> {
                 params.put(element.getSimpleName().toString(), value.getValue().toString());
