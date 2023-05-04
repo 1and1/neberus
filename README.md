@@ -34,7 +34,7 @@ All newer versions require Java 17+.
 
 ### Maven
 
-- Add a dependency to `neberus-doclet` to get access to Neberus annotations in your code.
+- Add a dependency to `neberus-core` to get access to Neberus annotations in your code.
 - Configure the maven-javadoc-plugin to use the Neberus doclet
 
 
@@ -45,7 +45,7 @@ All newer versions require Java 17+.
     ...
     <dependency>
         <groupId>net.oneandone.neberus</groupId>
-        <artifactId>neberus-doclet</artifactId>
+        <artifactId>neberus-core</artifactId>
         <version>${neberus.version}</version>
     </dependency>
     ...
