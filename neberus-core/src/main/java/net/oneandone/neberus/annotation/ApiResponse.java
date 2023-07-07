@@ -44,4 +44,11 @@ public @interface ApiResponse {
      */
     ApiHeader[] headers() default {};
 
+    /**
+     * Cookies used in this response.
+     *
+     * @return the cookies
+     */
+    ApiCookie[] cookies() default {};
+
 }

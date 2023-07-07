@@ -24,6 +24,7 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.servers.Server;
 import net.oneandone.neberus.NeberusModule;
 import net.oneandone.neberus.Options;
+import net.oneandone.neberus.model.CookieSameSite;
 import net.oneandone.neberus.parse.RestClassData;
 import net.oneandone.neberus.parse.RestMethodData;
 import net.oneandone.neberus.parse.RestUsecaseData;
@@ -425,6 +426,11 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
 
             apiResponse.addHeaderObject(headerInfo.name, header);
         });
+
+        if (!response.cookies.isEmpty()) {
+            apiResponse.addHeaderObject("Set-Cookie", getHeader(restClassData, response.cookies));
+        }
+
         return apiResponse;
     }
 
@@ -452,6 +458,92 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         }
 
         return header;
+    }
+
+    private Header getHeader(RestClassData restClassData, List<RestMethodData.CookieInfo> cookies) {
+        Header header = new Header();
+
+        header.explode(true);
+
+        Schema schema = new Schema();
+        header.schema(schema);
+        schema.type("array");
+
+        List<Schema> items = new LinkedList<>();
+        schema.allOf(items);
+
+        cookies.forEach(cookieInfo -> {
+            Schema item = new Schema();
+            items.add(item);
+
+            Map<String, String> options = new HashMap<>();
+
+            RestMethodData.CookieInfo cookieDefinition = restClassData.cookieDefinitions.get(cookieInfo.name);
+
+            if (cookieDefinition != null) {
+                if (StringUtils.isNotBlank(cookieDefinition.description)) {
+                    item.description(expand(cookieDefinition.description));
+                }
+                if (StringUtils.isNotBlank(cookieDefinition.description)) {
+                    item.description(expand(cookieDefinition.description));
+                }
+
+                collectCookieOptions(options, cookieDefinition);
+            }
+
+
+            item.title(cookieInfo.name);
+            item.description(expand(cookieInfo.description));
+            if (cookieInfo.isRequired()) {
+                item.required(List.of("self"));
+            }
+            item.deprecated(cookieInfo.deprecated);
+
+            collectCookieOptions(options, cookieInfo);
+
+            item.addExtension("x-cookie-options", options);
+
+            if (cookieInfo.deprecated) {
+                item.addExtension("x-deprecated-description", expand(cookieInfo.deprecatedDescription));
+            }
+
+            if (!cookieInfo.allowedValues.isEmpty()) {
+                List<Map<String, String>> allowedValueList = new ArrayList<>();
+                cookieInfo.allowedValues.forEach(allowedValue -> {
+                    HashMap<String, String> allowedValueMap = new HashMap<>();
+                    allowedValueMap.put("value", allowedValue.value);
+                    allowedValueMap.put("valueHint", allowedValue.valueHint);
+                    allowedValueList.add(allowedValueMap);
+                });
+
+                item.addExtension("x-allowed-values", allowedValueList);
+            }
+
+        });
+
+
+        return header;
+    }
+
+    private static void collectCookieOptions(Map<String, String> options, RestMethodData.CookieInfo cookieDefinition) {
+        if (cookieDefinition.httpOnly != null) {
+            options.put("httpOnly", String.valueOf(cookieDefinition.httpOnly));
+        }
+        if (cookieDefinition.secure != null) {
+            options.put("secure", String.valueOf(cookieDefinition.secure));
+        }
+        if (cookieDefinition.sameSite != CookieSameSite.UNSET) {
+            options.put("sameSite", cookieDefinition.sameSite.name());
+        }
+        if (StringUtils.isNotBlank(cookieDefinition.domain)) {
+            options.put("domain", cookieDefinition.domain);
+        }
+        if (StringUtils.isNotBlank(cookieDefinition.path)) {
+            options.put("path", cookieDefinition.path);
+        }
+        if (StringUtils.isNotBlank(cookieDefinition.maxAge)) {
+            options.put("maxAge", cookieDefinition.maxAge);
+        }
     }
 
     private List<RestUsecaseData.UsecaseData> getRelatedUsecases(List<RestUsecaseData> restUsecases, RestMethodData method) {

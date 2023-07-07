@@ -1,6 +1,8 @@
 package net.oneandone.neberus.test;
 
 import net.oneandone.neberus.annotation.ApiAllowedValue;
+import net.oneandone.neberus.annotation.ApiCookie;
+import net.oneandone.neberus.annotation.ApiCookieDefinition;
 import net.oneandone.neberus.annotation.ApiCurl;
 import net.oneandone.neberus.annotation.ApiDescription;
 import net.oneandone.neberus.annotation.ApiEntity;
@@ -8,10 +10,12 @@ import net.oneandone.neberus.annotation.ApiExample;
 import net.oneandone.neberus.annotation.ApiHeader;
 import net.oneandone.neberus.annotation.ApiHeaderDefinition;
 import net.oneandone.neberus.annotation.ApiLabel;
+import net.oneandone.neberus.annotation.ApiParameter;
 import net.oneandone.neberus.annotation.ApiRequestEntity;
 import net.oneandone.neberus.annotation.ApiResponse;
 import net.oneandone.neberus.annotation.ApiType;
 import net.oneandone.neberus.model.ApiStatus;
+import net.oneandone.neberus.model.CookieSameSite;
 import net.oneandone.neberus.test.request.SomeChildFieldDto;
 import net.oneandone.neberus.test.request.SomeFieldDto;
 import net.oneandone.neberus.test.request.SomeGetterDto;
@@ -19,6 +23,7 @@ import net.oneandone.neberus.test.response.Problem;
 import net.oneandone.neberus.test.response.SuccessResponse;
 
 import javax.validation.constraints.Size;
+
 import java.util.UUID;
 
 /**
@@ -27,6 +32,8 @@ import java.util.UUID;
 @ApiLabel("REST Service with doc in interface")
 @ApiDescription("Contains methods with ApiDoc defined in an interface.")
 @ApiHeaderDefinition(name = "header_2", description = "header description 2")
+@ApiCookieDefinition(name = "response-cookie_3", description = "descrption", sameSite = CookieSameSite.STRICT,
+                     domain = "some.domain", path = "/somepath", httpOnly = true, secure = true, maxAge = "")
 public interface RestServiceInterfaceDoc extends CommonRestServiceInterfaceDoc {
 
     String PATH_ROOT = "/root/restServiceInterfaceDoc";
@@ -45,8 +52,15 @@ public interface RestServiceInterfaceDoc extends CommonRestServiceInterfaceDoc {
     @ApiLabel("GET method with interface doc")
     @ApiDescription("Description of 'GET method with interface doc' defined in annotation!")
     @ApiCurl
+    @ApiParameter(name = "some-cookie", description = "cookie description", type = ApiParameter.Type.COOKIE)
     @ApiResponse(status = ApiStatus.OK, description = "Successful response",
-                 entities = @ApiEntity(entityClass = SuccessResponse.class, description = "Success response annotation doc"))
+                 entities = @ApiEntity(entityClass = SuccessResponse.class, description = "Success response annotation doc"),
+                 cookies = {
+                         @ApiCookie(name = "response-cookie_1", description = "description", sameSite = CookieSameSite.STRICT,
+                                    domain = "some.domain", path = "/somepath", httpOnly = true, secure = true),
+                         @ApiCookie(name = "response-cookie_2", description = "description"),
+                         @ApiCookie(name = "response-cookie_3"),
+                 })
     @ApiResponse(status = ApiStatus.CREATED, description = "Successful response",
                  entities = @ApiEntity(entityClass = SuccessResponse.class))
     Object getMethod();
@@ -87,9 +101,9 @@ public interface RestServiceInterfaceDoc extends CommonRestServiceInterfaceDoc {
      * <br>
      * This is a line
      * that should not have newlines in apidoc, but a newline after.
-     *
+     * <p>
      * This line should only have one newline after, and not two...<br>
-     *
+     * <p>
      * ...until this line.
      *
      * @param stringPathParam  param doc

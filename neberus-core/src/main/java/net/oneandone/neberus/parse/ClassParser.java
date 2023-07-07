@@ -2,16 +2,21 @@ package net.oneandone.neberus.parse;
 
 import net.oneandone.neberus.annotation.ApiCommonResponse;
 import net.oneandone.neberus.annotation.ApiCommonResponses;
+import net.oneandone.neberus.annotation.ApiCookieDefinition;
+import net.oneandone.neberus.annotation.ApiCookieDefinitions;
 import net.oneandone.neberus.annotation.ApiDescription;
 import net.oneandone.neberus.annotation.ApiHeaderDefinition;
 import net.oneandone.neberus.annotation.ApiHeaderDefinitions;
 import net.oneandone.neberus.annotation.ApiIgnore;
 import net.oneandone.neberus.annotation.ApiLabel;
+import net.oneandone.neberus.model.CookieSameSite;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,6 +48,7 @@ public abstract class ClassParser {
         // class related stuff
         addLabel(classDoc, restClassData);
         addHeaders(classDoc, restClassData);
+        addCookies(classDoc, restClassData);
         addResponsesFromAnnotations(classDoc, restClassData);
         addDescription(classDoc, restClassData);
 
@@ -129,6 +135,36 @@ public abstract class ClassParser {
         headerInfo.description = description;
 
         restClassData.headerDefinitions.put(name, headerInfo);
+    }
+
+    protected void addCookies(TypeElement classDoc, RestClassData restClassData) {
+        List<AnnotationValue> cookies = getAnnotationValue(classDoc, ApiCookieDefinitions.class, "value", methodParser.options.environment);
+        if (cookies != null) {
+            //more than one annotation is defined, so we got the container
+            cookies.forEach(cookie -> addCookie((AnnotationMirror) cookie.getValue(), restClassData));
+        } else {
+            //check if a single annotation is defined
+            List<? extends AnnotationMirror> singleResponse = getAnnotationDesc(classDoc, ApiCookieDefinition.class, methodParser.options.environment);
+            singleResponse.forEach(annotationDesc -> addCookie(annotationDesc, restClassData));
+        }
+    }
+
+    protected void addCookie(AnnotationMirror cookieDesc, RestClassData restClassData) {
+        RestMethodData.CookieInfo cookieInfo = new RestMethodData.CookieInfo();
+
+        cookieInfo.name = extractValue(cookieDesc, "name");
+        cookieInfo.description = extractValue(cookieDesc, "description");
+        VariableElement sameSite = extractValue(cookieDesc, "sameSite");
+        cookieInfo.sameSite = sameSite == null
+                              ? CookieSameSite.UNSET
+                              : CookieSameSite.valueOf(sameSite.getSimpleName().toString());
+        cookieInfo.domain = extractValue(cookieDesc, "domain");
+        cookieInfo.path = extractValue(cookieDesc, "path");
+        cookieInfo.maxAge = extractValue(cookieDesc, "maxAge");
+        cookieInfo.secure = extractValue(cookieDesc, "secure");
+        cookieInfo.httpOnly = extractValue(cookieDesc, "httpOnly");
+
+        restClassData.cookieDefinitions.put(cookieInfo.name, cookieInfo);
     }
 
     protected void addResponsesFromAnnotations(TypeElement classDoc, RestClassData restClassData) {

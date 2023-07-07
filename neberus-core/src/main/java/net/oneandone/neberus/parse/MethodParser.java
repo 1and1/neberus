@@ -27,6 +27,7 @@ import net.oneandone.neberus.annotation.ApiResponse;
 import net.oneandone.neberus.annotation.ApiResponses;
 import net.oneandone.neberus.annotation.ApiType;
 import net.oneandone.neberus.model.ApiStatus;
+import net.oneandone.neberus.model.CookieSameSite;
 import net.oneandone.neberus.model.FormParameters;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -1033,36 +1034,14 @@ public abstract class MethodParser {
             responseData.description = description;
         }
 
-        List<AnnotationValue> headers = extractValue(response, "headers");
+        addResponseHeaders(response, responseData);
+        addResponseCookies(response, responseData);
 
-        if (headers != null) {
-            for (AnnotationValue header : headers) {
-                AnnotationMirror headerDesc = (AnnotationMirror) header.getValue();
-                RestMethodData.HeaderInfo headerInfo = new RestMethodData.HeaderInfo();
-                headerInfo.name = extractValue(headerDesc, "name");
-                headerInfo.description = extractValue(headerDesc, DESCRIPTION);
+        addResponseEntities(response, produces, responseData);
 
-                Boolean optional = extractValue(headerDesc, "optional");
-                if (optional != null) {
-                    headerInfo.required = optional ? RequiredStatus.OPTIONAL : RequiredStatus.REQUIRED;
-                }
+    }
 
-                Boolean deprecated = extractValue(headerDesc, "deprecated");
-                headerInfo.deprecated = deprecated != null && deprecated;
-                headerInfo.deprecatedDescription = extractValue(headerDesc, "deprecatedDescription");
-
-                List<AnnotationValue> allowedValues = extractValue(headerDesc, "allowedValues");
-                if (allowedValues != null) {
-                    for (AnnotationValue allowedValue : allowedValues) {
-                        AnnotationMirror allowedValueDesc = (AnnotationMirror) allowedValue.getValue();
-                        addAllowedValuesFromAnnotation(allowedValueDesc, headerInfo.allowedValues);
-                    }
-                }
-
-                responseData.headers.add(headerInfo);
-            }
-        }
-
+    private void addResponseEntities(AnnotationMirror response, List<AnnotationValue> produces, RestMethodData.ResponseData responseData) {
         List<AnnotationValue> entities = extractValue(response, "entities");
 
         if (entities != null) {
@@ -1109,7 +1088,79 @@ public abstract class MethodParser {
                 responseEntity.examples.addAll(getExamples(examples));
             }
         }
+    }
 
+    private void addResponseHeaders(AnnotationMirror response, RestMethodData.ResponseData responseData) {
+        List<AnnotationValue> headers = extractValue(response, "headers");
+
+        if (headers != null) {
+            for (AnnotationValue header : headers) {
+                AnnotationMirror headerDesc = (AnnotationMirror) header.getValue();
+                RestMethodData.HeaderInfo headerInfo = new RestMethodData.HeaderInfo();
+                headerInfo.name = extractValue(headerDesc, "name");
+                headerInfo.description = extractValue(headerDesc, DESCRIPTION);
+
+                Boolean optional = extractValue(headerDesc, "optional");
+                if (optional != null) {
+                    headerInfo.required = optional ? RequiredStatus.OPTIONAL : RequiredStatus.REQUIRED;
+                }
+
+                Boolean deprecated = extractValue(headerDesc, "deprecated");
+                headerInfo.deprecated = deprecated != null && deprecated;
+                headerInfo.deprecatedDescription = extractValue(headerDesc, "deprecatedDescription");
+
+                List<AnnotationValue> allowedValues = extractValue(headerDesc, "allowedValues");
+                if (allowedValues != null) {
+                    for (AnnotationValue allowedValue : allowedValues) {
+                        AnnotationMirror allowedValueDesc = (AnnotationMirror) allowedValue.getValue();
+                        addAllowedValuesFromAnnotation(allowedValueDesc, headerInfo.allowedValues);
+                    }
+                }
+
+                responseData.headers.add(headerInfo);
+            }
+        }
+    }
+
+    private void addResponseCookies(AnnotationMirror response, RestMethodData.ResponseData responseData) {
+        List<AnnotationValue> cookies = extractValue(response, "cookies");
+
+        if (cookies != null) {
+            for (AnnotationValue cookie : cookies) {
+                AnnotationMirror cookieDesc = (AnnotationMirror) cookie.getValue();
+                RestMethodData.CookieInfo cookieInfo = new RestMethodData.CookieInfo();
+                cookieInfo.name = extractValue(cookieDesc, "name");
+                cookieInfo.description = extractValue(cookieDesc, DESCRIPTION);
+                VariableElement sameSite = extractValue(cookieDesc, "sameSite");
+                cookieInfo.sameSite = sameSite == null
+                                      ? CookieSameSite.UNSET
+                                      : CookieSameSite.valueOf(sameSite.getSimpleName().toString());
+                cookieInfo.domain = extractValue(cookieDesc, "domain");
+                cookieInfo.path = extractValue(cookieDesc, "path");
+                cookieInfo.maxAge = extractValue(cookieDesc, "maxAge");
+                cookieInfo.secure = extractValue(cookieDesc, "secure");
+                cookieInfo.httpOnly = extractValue(cookieDesc, "httpOnly");
+
+                Boolean optional = extractValue(cookieDesc, "optional");
+                if (optional != null) {
+                    cookieInfo.required = optional ? RequiredStatus.OPTIONAL : RequiredStatus.REQUIRED;
+                }
+
+                Boolean deprecated = extractValue(cookieDesc, "deprecated");
+                cookieInfo.deprecated = deprecated != null && deprecated;
+                cookieInfo.deprecatedDescription = extractValue(cookieDesc, "deprecatedDescription");
+
+                List<AnnotationValue> allowedValues = extractValue(cookieDesc, "allowedValues");
+                if (allowedValues != null) {
+                    for (AnnotationValue allowedValue : allowedValues) {
+                        AnnotationMirror allowedValueDesc = (AnnotationMirror) allowedValue.getValue();
+                        addAllowedValuesFromAnnotation(allowedValueDesc, cookieInfo.allowedValues);
+                    }
+                }
+
+                responseData.cookies.add(cookieInfo);
+            }
+        }
     }
 
     private List<RestMethodData.Example> getExamples(List<AnnotationValue> examples) {

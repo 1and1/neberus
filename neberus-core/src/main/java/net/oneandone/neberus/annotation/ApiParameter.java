@@ -29,7 +29,7 @@ public @interface ApiParameter {
     String description() default "";
 
     /**
-     * Define the type such as "path", "query" or "header".
+     * Define the type such as "path", "query", "cookie" or "header".
      *
      * @return the type
      */
@@ -72,7 +72,7 @@ public @interface ApiParameter {
     String deprecatedDescription() default "";
 
     enum Type {
-        PATH, QUERY, HEADER
+        PATH, QUERY, HEADER, COOKIE
     }
 
 }

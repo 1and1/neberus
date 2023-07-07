@@ -1,6 +1,7 @@
 package net.oneandone.neberus.parse;
 
 import net.oneandone.neberus.model.ApiStatus;
+import net.oneandone.neberus.model.CookieSameSite;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
@@ -183,7 +184,7 @@ public class RestMethodData {
     }
 
     public enum ParameterType {
-        PATH, QUERY, BODY, HEADER, UNSET
+        PATH, QUERY, BODY, HEADER, COOKIE, UNSET
     }
 
     public static class ParameterInfo {
@@ -244,20 +245,24 @@ public class RestMethodData {
         public ApiStatus status;
         public String description = "";
         public List<HeaderInfo> headers;
+        public List<CookieInfo> cookies;
         public List<Entity> entities;
 
         public ResponseData() {
             this.headers = new ArrayList<>();
+            this.cookies = new ArrayList<>();
             this.entities = new ArrayList<>();
         }
 
         @Override
         public String toString() {
-            return "ResponseData{"
-                    + "status=" + status + ", "
-                    + "description=" + description + ", "
-                    + "headers=" + headers
-                    + '}';
+            return "ResponseData{" +
+                   "status=" + status +
+                   ", description='" + description + '\'' +
+                   ", headers=" + headers +
+                   ", cookies=" + cookies +
+                   ", entities=" + entities +
+                   '}';
         }
 
     }
@@ -326,6 +331,45 @@ public class RestMethodData {
                     ", deprecatedDescription=" + deprecatedDescription +
                     '}';
         }
+    }
+
+    public static class CookieInfo {
+
+        public String name;
+        public String description;
+        public List<AllowedValue> allowedValues = new ArrayList<>();
+        public RequiredStatus required = RequiredStatus.UNSET;
+        public CookieSameSite sameSite;
+        public String domain;
+        public String path;
+        public String maxAge;
+        public Boolean secure;
+        public Boolean httpOnly;
+        public boolean deprecated;
+        public String deprecatedDescription = "";
+
+        public boolean isRequired() {
+            return required != RequiredStatus.OPTIONAL;
+        }
+
+        @Override
+        public String toString() {
+            return "CookieInfo{" +
+                   "name='" + name + '\'' +
+                   ", description='" + description + '\'' +
+                   ", allowedValues=" + allowedValues +
+                   ", required=" + required +
+                   ", sameSite='" + sameSite + '\'' +
+                   ", domain='" + domain + '\'' +
+                   ", path='" + path + '\'' +
+                   ", maxAge='" + maxAge + '\'' +
+                   ", secure=" + secure +
+                   ", httpOnly=" + httpOnly +
+                   ", deprecated=" + deprecated +
+                   ", deprecatedDescription='" + deprecatedDescription + '\'' +
+                   '}';
+        }
+
     }
 
     public static class AllowedValue {

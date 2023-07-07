@@ -94,6 +94,57 @@
         }
     }
 
+    function getNonCookieHeaders(headers) {
+        if (!headers) return headers;
+
+        const filtered = Object.keys(headers)
+            .filter(key => key !== 'Set-Cookie')
+            .reduce((obj, key) => {
+                obj[key] = headers[key];
+                return obj;
+            }, {});
+
+        if (Object.keys(filtered).length === 0) return undefined;
+        return filtered;
+    }
+
+    function getCookieHeaders(headers) {
+        if (!headers) return headers;
+
+        let header = headers['Set-Cookie'];
+
+        if (header) {
+            console.log(header.schema.allOf);
+            return header.schema.allOf;
+        }
+
+        return undefined;
+    }
+
+    function formatCookieOptions(options) {
+        let formatted = '';
+
+        if (options['domain']) {
+            formatted += 'Domain=' + options['domain'] + '; ';
+        }
+        if (options['path']) {
+            formatted += 'Path=' + options['path'] + '; ';
+        }
+        if (options['sameSite']) {
+            formatted += 'SameSite=' + options['sameSite'].toLowerCase() + '; ';
+        }
+        if (options['maxAge']) {
+            formatted += 'Max-Age=' + options['maxAge'] + '; ';
+        }
+        if (options['secure']) {
+            formatted += 'Secure; ';
+        }
+        if (options['httpOnly']) {
+            formatted += 'HttpOnly; ';
+        }
+        return !formatted ? formatted : formatted.substring(0, formatted.length - 2);
+    }
+
     const initCollapse = el => {
         initCollapseToggle(el);
     }
@@ -184,7 +235,7 @@
                                     {/each}
                                 {/if}
 
-                                {#if operation.responses[statusCode].headers}
+                                {#if getNonCookieHeaders(operation.responses[statusCode].headers)}
                                     <div class="card card-primary card-nested card-table">
                                         <h6 class="card-header bg-dark">Headers</h6>
                                         <div class="card-body">
@@ -199,7 +250,7 @@
                                                     </tr>
                                                     </thead>
                                                     <tbody>
-                                                    {#each Object.keys(operation.responses[statusCode].headers) as header }
+                                                    {#each Object.keys(getNonCookieHeaders(operation.responses[statusCode].headers)) as header }
                                                         <tr>
                                                             <td>
                                                                 <span class="optionalIndicator">
@@ -239,6 +290,72 @@
                                             </div>
                                         </div>
                                     </div>
+                                {/if}
+                                {#if getCookieHeaders(operation.responses[statusCode].headers)}
+                                    {#each [getCookieHeaders(operation.responses[statusCode].headers)] as cookies}
+                                        <div class="card card-primary card-nested card-table">
+                                            <h6 class="card-header bg-dark">Cookies</h6>
+                                            <div class="card-body">
+                                                <div class="card-text">
+
+                                                    <table class="table table-dark table-hover table-small-head parameters">
+                                                        <thead>
+                                                        <tr>
+                                                            <th>Name</th>
+                                                            <th>Description</th>
+                                                            <th>Value</th>
+                                                            <th>Options</th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        {#each Object.keys(cookies) as cookie }
+                                                            <tr>
+                                                                <td>
+                                                                    <span class="optionalIndicator">
+                                                                        <span data-bs-container="body" data-bs-toggle="tooltip"
+                                                                              use:initTooltip data-bs-placement="top"
+                                                                              title="{(cookies[cookie].required) ? 'Mandatory' : 'Optional'}">
+                                                                            <i class="{(cookies[cookie].required) ? 'fas' : 'far'} fa-circle"></i>
+                                                                        </span>
+                                                                    </span>
+
+                                                                    {#if cookies[cookie].deprecated}
+                                                                        <span class="deprecated" data-bs-container="body"
+                                                                              data-bs-toggle="tooltip" use:initTooltip
+                                                                              data-bs-placement="top"
+                                                                              title="{cookies[cookie].extensions && cookies[cookie].extensions['x-deprecated-description'] ? cookies[cookie].extensions['x-deprecated-description'] : ''}">
+                                                                            {cookies[cookie].title}
+                                                                        </span>
+                                                                    {:else}
+                                                                        {cookies[cookie].title}
+                                                                    {/if}
+                                                                </td>
+                                                                <td>
+                                                                    {#if cookies[cookie].description}
+                                                                        {@html cookies[cookie].description}
+                                                                    {/if}
+                                                                </td>
+                                                                <td>
+                                                                    <AllowedValue
+                                                                            param={cookies[cookie]}/>
+                                                                </td>
+                                                                <td>
+                                                                    <span class="valueHint">
+                                                                        {#if cookies[cookie].extensions && cookies[cookie].extensions['x-cookie-options']}
+                                                                            {formatCookieOptions(cookies[cookie].extensions['x-cookie-options'])}
+                                                                        {/if}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        {/each}
+
+                                                        </tbody>
+                                                    </table>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {/each}
                                 {/if}
 
                             </div>

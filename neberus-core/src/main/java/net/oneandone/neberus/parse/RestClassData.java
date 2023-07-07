@@ -38,6 +38,11 @@ public class RestClassData {
     public Map<String, RestMethodData.HeaderInfo> headerDefinitions;
 
     /**
+     * Class scope defined cookies that enable the reuse of the provided cookie description in the whole class
+     */
+    public Map<String, RestMethodData.CookieInfo> cookieDefinitions;
+
+    /**
      * Class scope defined responses that will be added to every method in the whole class.
      */
     public List<RestMethodData.ResponseData> commonResponseData;
@@ -45,6 +50,7 @@ public class RestClassData {
     public RestClassData() {
         methods = new ArrayList<>();
         headerDefinitions = new LinkedHashMap<>();
+        cookieDefinitions = new LinkedHashMap<>();
         commonResponseData = new LinkedList<>();
     }
 
