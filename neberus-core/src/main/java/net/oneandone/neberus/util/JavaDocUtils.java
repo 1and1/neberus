@@ -564,7 +564,7 @@ public abstract class JavaDocUtils {
                     .filter(e -> e instanceof ExecutableElement)
                     .map(e -> (ExecutableElement) e)
                     .filter(e -> e.getKind() == ElementKind.CONSTRUCTOR)
-                    .collect(Collectors.toList());
+                    .toList();
 
 
             for (ExecutableElement ctor : ctors) {
@@ -601,11 +601,10 @@ public abstract class JavaDocUtils {
 
         Element element = environment.getTypeUtils().asElement(type);
 
-        if (!(element instanceof TypeElement)) {
+        if (!(element instanceof TypeElement typeElement)) {
             return null;
         }
 
-        TypeElement typeElement = (TypeElement) element;
         List<? extends TypeMirror> interfaces = typeElement.getInterfaces();
 
         for (TypeMirror anInterface : interfaces) {
@@ -797,7 +796,7 @@ public abstract class JavaDocUtils {
                 .filter(e -> e instanceof VariableElement)
                 .map(e -> (VariableElement) e)
                 .filter(e -> e.getModifiers().contains(Modifier.PUBLIC))
-                .collect(Collectors.toList());
+                .toList();
 
         return fields.stream().filter(JavaDocUtils::fieldIsVisible).collect(Collectors.toList());
     }
@@ -824,7 +823,7 @@ public abstract class JavaDocUtils {
                 .map(e -> (ExecutableElement) e)
                 .filter(e -> e.getReturnType() != null)
                 .filter(e -> environment.getTypeUtils().isSameType(element.asType(), e.getEnclosingElement().asType()))
-                .collect(Collectors.toList());
+                .toList();
 
         return methods.stream().filter(e -> methodIsVisibleGetter(e, environment)).collect(Collectors.toList());
     }

@@ -57,9 +57,9 @@ public abstract class ClassParser {
 
         // contained methods
         List<ExecutableElement> methods = classDoc.getEnclosedElements().stream()
-                .filter(e -> e instanceof ExecutableElement)
+                .filter(ExecutableElement.class::isInstance)
                 .map(e -> (ExecutableElement) e)
-                .collect(Collectors.toList());
+                .toList();
 
         for (ExecutableElement method : methods) {
             List<RestMethodData> parsedMethodDataList = parseMethods(method);

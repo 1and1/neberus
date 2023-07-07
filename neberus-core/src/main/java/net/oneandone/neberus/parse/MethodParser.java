@@ -174,7 +174,7 @@ public abstract class MethodParser {
 
         // convert entities
         List<RestMethodData.ParameterInfo> bodyParams = data.requestData.parameters.stream().filter(p -> p.parameterType == BODY)
-                .collect(Collectors.toList());
+                .toList();
 
         bodyParams.forEach(p -> {
             data.requestData.parameters.remove(p);
@@ -556,7 +556,7 @@ public abstract class MethodParser {
         nestedInfo.deprecated = hasAnnotation(getter, Deprecated.class, options.environment);
 
         getterBlockTags.stream()
-                .filter(tag -> tag instanceof DeprecatedTree).map(tag -> (DeprecatedTree) tag).findFirst()
+                .filter(DeprecatedTree.class::isInstance).map(DeprecatedTree.class::cast).findFirst()
                 .ifPresent(deprecatedTree -> {
                     nestedInfo.deprecatedDescription = deprecatedTree.getBody().stream()
                             .map(Object::toString)
@@ -1004,9 +1004,7 @@ public abstract class MethodParser {
         List<AnnotationValue> responses = getAnnotationValue(method, ApiResponses.class, VALUE, options.environment);
         if (responses != null) {
             //...and iterate over it's content
-            responses.forEach(repsonse -> {
-                addResponse((AnnotationMirror) repsonse.getValue(), data, produces);
-            });
+            responses.forEach(repsonse -> addResponse((AnnotationMirror) repsonse.getValue(), data, produces));
         } else {
             //or look for a single annotation
             List<? extends AnnotationMirror> singleResponse = getAnnotationDesc(method, ApiResponse.class, options.environment);

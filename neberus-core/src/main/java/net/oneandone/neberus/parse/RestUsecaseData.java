@@ -84,13 +84,13 @@ public class RestUsecaseData {
                 .filter(p -> p.parameterType != BODY && p.name.equals(paramKey) || p.name.equals(head))
                 .findFirst();
 
-        if (!param.isPresent()) {
+        if (param.isEmpty()) {
             Optional<RestMethodData.ParameterInfo> body = params.stream().filter(p -> p.parameterType == BODY).findFirst();
             if (body.isPresent()) {
                 param = body.get().nestedParameters.stream().filter(p -> p.name.equals(head)).findFirst();
             }
 
-            if (!param.isPresent()) {
+            if (param.isEmpty()) {
                 return Optional.empty();
             }
         }

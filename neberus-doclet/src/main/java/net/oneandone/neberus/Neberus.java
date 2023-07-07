@@ -80,7 +80,7 @@ public class Neberus implements Doclet {
         List<TypeElement> filteredClasses = typeElements.stream()
                 .filter(typeElement -> options.scanPackages.stream()
                         .anyMatch(pack -> getPackageName(typeElement, environment).startsWith(pack)))
-                .collect(Collectors.toList());
+                .toList();
 
 
         for (TypeElement typeElement : filteredClasses) {
@@ -130,9 +130,7 @@ public class Neberus implements Doclet {
 
         validateMultipleMethodsForSameHttpMethodAndPath(restClasses, options);
 
-        restClasses.forEach(restClassData -> {
-            docPrinter.printRestClassFile(restClassData, restClasses, restUsecases);
-        });
+        restClasses.forEach(restClassData -> docPrinter.printRestClassFile(restClassData, restClasses, restUsecases));
 
         modules.forEach(NeberusModule::print);
 
