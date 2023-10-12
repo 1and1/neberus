@@ -484,16 +484,15 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
                 if (StringUtils.isNotBlank(cookieDefinition.description)) {
                     item.description(expand(cookieDefinition.description));
                 }
-                if (StringUtils.isNotBlank(cookieDefinition.description)) {
-                    item.description(expand(cookieDefinition.description));
-                }
 
                 collectCookieOptions(options, cookieDefinition);
             }
 
 
             item.title(cookieInfo.name);
-            item.description(expand(cookieInfo.description));
+            if (StringUtils.isNotBlank(cookieInfo.description)) {
+                item.description(expand(cookieInfo.description));
+            }
             if (cookieInfo.isRequired()) {
                 item.required(List.of("self"));
             }
