@@ -208,10 +208,14 @@ public abstract class MethodParser {
         entity.contentType = extractValue(entityDefinition, "contentType");
         entity.description = extractValue(entityDefinition, DESCRIPTION);
         entity.entityClass = extractValue(entityDefinition, "entityClass");
+        VariableElement type = extractValue(entityDefinition, TYPE);
+        var typeString = type != null ? type.getSimpleName().toString() : "BODY";
 
-        if (entity.contentType == null) {
+        if ("BODY".equals(typeString) && entity.contentType == null) {
             // if unset, take the first content-type from the method
             entity.contentType = data.requestData.mediaType == null ? null : data.requestData.mediaType.get(0);
+        } else if ("QUERY".equals(typeString)) {
+            entity.contentType = null;
         }
 
         if (entity.description == null) {
@@ -227,7 +231,14 @@ public abstract class MethodParser {
 
         addNestedParameters(entity.entityClass, entity.nestedParameters, new ArrayList<>(), true);
 
-        data.requestData.entities.add(entity);
+        if ("BODY".equals(typeString)) {
+            data.requestData.entities.add(entity);
+        } else {
+            entity.nestedParameters.forEach(nested -> {
+                nested.parameterType = QUERY;
+                data.requestData.parameters.add(nested);
+            });
+        }
     }
 
     protected abstract String getPathParam(ExecutableElement method, VariableElement parameter, int index);

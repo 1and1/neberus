@@ -32,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -202,6 +203,23 @@ public class RestService {
     @ApiCurl
     @ApiRequestEntity(entityClass = GenericForm.class)
     public ResponseEntity<?> postGenericFormMethod(@RequestBody final MultiValueMap<String, String> parameters) {
+        return null;
+    }
+
+    @PostMapping(path = "/post/form/modelAttribute",
+                 consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                 produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiCurl
+    @ApiRequestEntity(entityClass = SomeFieldDto.class)
+    public ResponseEntity<?> postModelAttributeMethod(@ModelAttribute final SomeFieldDto dto) {
+        return null;
+    }
+
+    @GetMapping(path = "/post/form/modelAttribute",
+                 produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiCurl
+    @ApiRequestEntity(entityClass = SomeFieldDto.class, type = ApiRequestEntity.Type.QUERY)
+    public ResponseEntity<?> getModelAttributeMethod(@ModelAttribute final SomeFieldDto dto) {
         return null;
     }
 

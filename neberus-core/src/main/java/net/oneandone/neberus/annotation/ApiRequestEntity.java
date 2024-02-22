@@ -36,9 +36,20 @@ public @interface ApiRequestEntity {
     String description() default "";
 
     /**
+     * Type of the parameters. For QUERY, the {@link #contentType()} is ignored.
+     *
+     * @return the type of the parameters contained in {@link #entityClass()}
+     */
+    Type type() default Type.BODY;
+
+    /**
      * Custom examples for this entity. The examples will be included as is in the documentation without further checks.
      *
      * @return the examples
      */
     ApiExample[] examples() default {};
+
+    enum Type {
+        QUERY, BODY
+    }
 }
