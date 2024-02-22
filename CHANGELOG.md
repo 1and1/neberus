@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [4.2.0] - 2024-02-22
+
+### Changed
+
+- add handling for spring's @BindParam
+- extend @ApiRequestEntity to enable usage with query params
+
+
 ## [4.1.1] - 2023-10-12
 
 ### Fixed
