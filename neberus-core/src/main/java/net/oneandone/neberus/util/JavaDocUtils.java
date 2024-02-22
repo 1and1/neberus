@@ -46,6 +46,7 @@ public abstract class JavaDocUtils {
     private static final String JSON_IGNORE_LEGACY = "org.codehaus.jackson.annotate.JsonIgnore";
     private static final String JSON_PROPERTY = "com.fasterxml.jackson.annotation.JsonProperty";
     private static final String JSON_PROPERTY_LEGACY = "org.codehaus.jackson.annotate.JsonProperty";
+    private static final String BIND_PARAM = "org.springframework.web.bind.annotation.BindParam";
     public static final String XML_TRANSIENT = "javax.xml.bind.annotation.XmlTransient";
     public static final String XML_TRANSIENT_JAKARTA = "jakarta.xml.bind.annotation.XmlTransient";
     public static final String XML_ROOT_ELEMENT = "javax.xml.bind.annotation.XmlRootElement";
@@ -477,6 +478,8 @@ public abstract class JavaDocUtils {
             return getDirectAnnotationValue(param, JSON_PROPERTY, "value");
         } else if (hasDirectAnnotation(param, JSON_PROPERTY_LEGACY)) {
             return getDirectAnnotationValue(param, JSON_PROPERTY_LEGACY, "value");
+        } else if (hasDirectAnnotation(param, BIND_PARAM)) {
+            return getDirectAnnotationValue(param, BIND_PARAM, "value");
         } else {
             return param.getSimpleName().toString();
         }
@@ -854,6 +857,8 @@ public abstract class JavaDocUtils {
             return getAnnotationValue(getter, JSON_PROPERTY, "value", environment);
         } else if (hasAnnotation(getter, JSON_PROPERTY_LEGACY, environment)) {
             return getAnnotationValue(getter, JSON_PROPERTY_LEGACY, "value", environment);
+        } else if (hasAnnotation(getter, BIND_PARAM, environment)) {
+            return getAnnotationValue(getter, BIND_PARAM, "value", environment);
         } else {
             String simpleName = getter.getSimpleName().toString();
             return simpleName.substring(3, 4).toLowerCase() + simpleName.substring(4);
