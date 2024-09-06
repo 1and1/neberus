@@ -2,7 +2,6 @@ package net.oneandone.neberus.print;
 
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.Options;
-import org.asciidoctor.OptionsBuilder;
 
 public final class AsciiDocPrinter {
 
@@ -11,7 +10,7 @@ public final class AsciiDocPrinter {
 
     public AsciiDocPrinter() {
         asciidoctor = Asciidoctor.Factory.create();
-        options = OptionsBuilder.options().get();
+        options = Options.builder().build();
     }
 
     public String print(String rawAsciidoc) {

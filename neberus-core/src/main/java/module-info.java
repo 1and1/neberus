@@ -8,5 +8,5 @@ module neberus.core {
     requires com.fasterxml.jackson.annotation;
     requires io.swagger.v3.oas.models;
     requires org.commonmark;
-    requires asciidoctorj.api;
+    requires org.asciidoctor.asciidoctorj.api;
 }
