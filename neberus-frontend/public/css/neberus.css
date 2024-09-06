@@ -305,10 +305,11 @@ pre {
     z-index: 2;
     display: block;
     width: 38px;
-    height: 38px;
+    height: 20px;
     line-height: 38px;
     text-align: center;
     pointer-events: none;
+    margin-top: 10px
 }
 
 .w-100 {
