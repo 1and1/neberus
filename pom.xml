@@ -13,7 +13,7 @@
 
     <groupId>net.oneandone.neberus</groupId>
     <artifactId>neberus-parent</artifactId>
-    <version>4.2-SNAPSHOT</version>
+    <version>4.2.1</version>
     <packaging>pom</packaging>
     <url>https://github.com/1and1/neberus</url>
 
@@ -21,7 +21,7 @@
         <connection>scm:git:ssh://git@github.com/1and1/neberus.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/1and1/neberus.git</developerConnection>
         <url>https://github.com/1and1/neberus</url>
-        <tag>HEAD</tag>
+        <tag>v4.2.1</tag>
     </scm>
 
     <licenses>
