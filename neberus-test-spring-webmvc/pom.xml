@@ -94,7 +94,7 @@
                             <dependencySourceIncludes>
                                 <dependencySourceInclude>net.oneandone.neberus:neberus-test-common</dependencySourceInclude>
                             </dependencySourceIncludes>
-                            <reportOutputDirectory>${project.build.directory}</reportOutputDirectory>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
                             <useStandardDocletOptions>false</useStandardDocletOptions>
                             <additionalOptions>
                                 --apiVersion ${project.version}

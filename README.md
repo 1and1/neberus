@@ -68,12 +68,13 @@ All newer versions require Java 17+.
                             <artifactId>neberus-doclet</artifactId>
                             <version>${neberus.version}</version>
                         </docletArtifact>
-                        <reportOutputDirectory>
+						<!-- ATTENTION: <reportOutputDirectory> is not supported anymore by maven-javadoc-plugin since version 3.10.0 -->
+                        <outputDirectory>
                         <!-- recommended path for traditional '*.war' services -->
                         ${project.build.directory}/${project.build.finalName}
                         <!-- recommended path for spring boot services -->
                         ${project.build.directory}/classes/resources/
-                        </reportOutputDirectory>
+                        </outputDirectory>
                         <useStandardDocletOptions>false</useStandardDocletOptions>
                         <additionalOptions><!-- ATTENTION: this has been renamed from 'additionalparam' with maven-javadoc-plugin version 3.0.0 -->
                             --apiVersion ${project.version}
@@ -110,7 +111,7 @@ Provided by the Neberus doclet:
                   Api version.
     -d <string>   outputDirectory
     --docBasePath <path>
-                  Root path where the generated documentation is placed inside reportOutputDirectory.
+                  Root path where the generated documentation is placed inside outputDirectory.
     -ignoreErrors
                   Ignore generation errors.
     --scanPackages <package>(;<package>)*

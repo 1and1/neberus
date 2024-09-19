@@ -98,7 +98,7 @@
                                 <artifactId>neberus-doclet</artifactId>
                                 <version>${project.version}</version>
                             </docletArtifact>
-                            <reportOutputDirectory>${project.build.directory}</reportOutputDirectory>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
                             <useStandardDocletOptions>false</useStandardDocletOptions>
                             <additionalOptions>
                                 --apiVersion ${project.version}
@@ -123,7 +123,7 @@
                                 <artifactId>neberus-doclet</artifactId>
                                 <version>${project.version}</version>
                             </docletArtifact>
-                            <reportOutputDirectory>${project.build.directory}/${project.build.finalName}</reportOutputDirectory>
+                            <outputDirectory>${project.build.directory}/${project.build.finalName}</outputDirectory>
                             <useStandardDocletOptions>false</useStandardDocletOptions>
                             <additionalOptions>
                                 --apiVersion ${project.version}

@@ -237,7 +237,7 @@ public class Neberus implements Doclet {
                     }
                 },
                 new DocletOption("--docBasePath", true,
-                        "Root path where the generated documentation is placed inside reportOutputDirectory.", "<path>") {
+                        "Root path where the generated documentation is placed inside outputDirectory.", "<path>") {
                     @Override
                     public boolean process(String option, List<String> arguments) {
                         options.docBasePath = arguments.get(0);
