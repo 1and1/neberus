@@ -52,6 +52,7 @@ import static net.oneandone.neberus.util.JavaDocUtils.getPackageName;
 import static net.oneandone.neberus.util.JavaDocUtils.getTypeElements;
 import static net.oneandone.neberus.util.JavaDocUtils.hasAnnotation;
 
+//FIXME scroll to name anchor on index page broken
 public class Neberus implements Doclet {
 
     private final Options options = new Options();
@@ -289,6 +290,14 @@ public class Neberus implements Doclet {
                     @Override
                     public boolean process(String option, List<String> arguments) {
                         options.markup = Options.Markup.valueOf(arguments.get(0));
+                        return true;
+                    }
+                },
+                new DocletOption("--scanSecurityAnnotations", false, "Enable automatic parsing of security annotations "
+                                                                     + "for allowed roles like @Secured & @RolesAllowed.", null) {
+                    @Override
+                    public boolean process(String option, List<String> arguments) {
+                        options.scanSecurityAnnotations = true;
                         return true;
                     }
                 });

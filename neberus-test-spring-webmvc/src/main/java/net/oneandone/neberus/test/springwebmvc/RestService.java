@@ -17,6 +17,7 @@ import net.oneandone.neberus.annotation.ApiParameter;
 import net.oneandone.neberus.annotation.ApiRequestEntity;
 import net.oneandone.neberus.annotation.ApiRequired;
 import net.oneandone.neberus.annotation.ApiResponse;
+import net.oneandone.neberus.annotation.ApiAllowedRoles;
 import net.oneandone.neberus.annotation.ApiType;
 import net.oneandone.neberus.model.ApiStatus;
 import net.oneandone.neberus.test.request.SomeChildFieldDto;
@@ -29,6 +30,7 @@ import net.oneandone.neberus.test.response.Problem;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +43,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.validation.constraints.Max;
 
@@ -123,6 +124,7 @@ public class RestService {
             @ApiEntity(entityClass = SomeFieldDto[].class, contentType = MediaType.APPLICATION_JSON_VALUE + "+array")
     })
     @ApiParameter(name = "headerParam", description = "custom description <a href='index.html'>here</a>", type = ApiParameter.Type.HEADER)
+    @ApiAllowedRoles("ROLE_ANOTHER_GET")
     public void justYetAnotherGetMethod(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String header,
                                         @ApiRequired @RequestHeader(value = "requiredOptionalHeader", required = false) String requiredOptionalHeader,
                                         @PathVariable("pathParam") @ApiAllowedValue("the expected default value") String pathParam,
@@ -172,6 +174,7 @@ public class RestService {
                     name = "This is another awesome method again")
     @ApiResponse(status = ApiStatus.OK, description = "success")
     @ApiCurl
+    @Secured({ "ROLE_AGAIN_ANOTHER_GET", "ROLE_OTHER" })
     public SomeFieldDto againAnotherGetMethod(@RequestBody SomeGetterDto dto) {
         return null;
     }

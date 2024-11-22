@@ -96,16 +96,16 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         openAPI.addExtension("x-resources-metadata", getResourcesMetadata(restClasses));
         openAPI.addExtension("x-usecases", getUsecasesExtension(restUsecases));
 
-
         try {
             String jsonString = mapper.writeValueAsString(openAPI);
+
             saveToFile(jsonString, options.outputDirectory + options.docBasePath, "openApi.json");
 
             String escapedJsonString = jsonString.replaceAll("\\\\", "\\\\\\\\").replaceAll("`", "\\\\`");
             String jsonVar = "var openApiJsonString = `" + escapedJsonString + "`;";
             saveToFile(jsonVar, options.outputDirectory + options.docBasePath, "openApi.js");
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            System.out.println(e);
         }
     }
 
@@ -342,9 +342,15 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
         List<RestUsecaseData.UsecaseData> relatedUsecases = getRelatedUsecases(restUsecases, method);
 
         if (!relatedUsecases.isEmpty()) {
-            List<String> usecaseIds = relatedUsecases.stream().map(usecase -> usecase.id).collect(Collectors.toList());
+            List<String> usecaseIds = relatedUsecases.stream().map(usecase -> usecase.id).toList();
             operation.addExtension("x-related-usecases", usecaseIds);
         }
+
+        if (!method.methodData.allowedRoles.isEmpty()) {
+            List<String> sortedRoles = new ArrayList<>(method.methodData.allowedRoles.stream().sorted().toList());
+            operation.addExtension("x-allowed-roles", sortedRoles);
+        }
+
         return operation;
     }
 

@@ -40,6 +40,10 @@
             <artifactId>spring-webmvc</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
@@ -104,6 +108,7 @@
                                 --apiHosts "https://testserver.com[the default testserver];https://otherserver.com[the other testserver]"
                                 --scanPackages com.included;net.oneandone
                                 --markup MARKDOWN
+                                --scanSecurityAnnotations
 <!--                                -ignoreErrors-->
                             </additionalOptions>
                         </configuration>

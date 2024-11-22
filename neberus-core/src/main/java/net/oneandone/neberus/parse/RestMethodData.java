@@ -8,8 +8,10 @@ import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static net.oneandone.neberus.parse.RestMethodData.ParameterType.BODY;
@@ -52,6 +54,7 @@ public class RestMethodData {
         public boolean deprecated = false;
         public String deprecatedDescription;
         public List<ExecutableElement> links = new ArrayList<>();
+        public Set<String> allowedRoles = new HashSet<>();
 
         public MethodData(String httpMethod) {
             this.httpMethod = httpMethod;
@@ -60,17 +63,18 @@ public class RestMethodData {
         @Override
         public String toString() {
             return "MethodData{" +
-                    "methodDoc=" + methodDoc +
-                    ", httpMethod='" + httpMethod + '\'' +
-                    ", path='" + path + '\'' +
-                    ", label='" + label + '\'' +
-                    ", description='" + description + '\'' +
-                    ", curl='" + curl + '\'' +
-                    ", printCurl=" + printCurl +
-                    ", deprecated=" + deprecated +
-                    ", deprecatedDescription='" + deprecatedDescription + '\'' +
-                    ", links=" + links +
-                    '}';
+                   "methodDoc=" + methodDoc +
+                   ", httpMethod='" + httpMethod + '\'' +
+                   ", path='" + path + '\'' +
+                   ", label='" + label + '\'' +
+                   ", description='" + description + '\'' +
+                   ", curl='" + curl + '\'' +
+                   ", printCurl=" + printCurl +
+                   ", deprecated=" + deprecated +
+                   ", deprecatedDescription='" + deprecatedDescription + '\'' +
+                   ", links=" + links +
+                   ", allowedRoles=" + allowedRoles +
+                   '}';
         }
     }
 

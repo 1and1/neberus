@@ -23,6 +23,7 @@ public class Options {
     public Set<String> scanPackages = new HashSet<>();
     public boolean ignoreErrors = false;
     public Markup markup = Markup.HTML;
+    public boolean scanSecurityAnnotations;
 
     public enum Markup {
         HTML, MARKDOWN, ASCIIDOC
@@ -41,12 +42,14 @@ public class Options {
                 ", scanPackages=" + scanPackages +
                 ", ignoreErrors=" + ignoreErrors +
                 ", markup=" + markup +
+                ", scanSecurityAnnotations=" + scanSecurityAnnotations +
                 '}';
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(outputDirectory, docBasePath, apiHosts, apiBasePath, apiVersion, apiTitle, scanPackages, ignoreErrors, markup);
+        return Objects.hash(outputDirectory, docBasePath, apiHosts, apiBasePath, apiVersion, apiTitle, scanPackages,
+                ignoreErrors, markup, scanSecurityAnnotations);
     }
 
     @SuppressWarnings("CyclomaticComplexity")
@@ -72,7 +75,8 @@ public class Options {
                 && Objects.equals(this.apiTitle, other.apiTitle)
                 && Objects.equals(this.scanPackages, other.scanPackages)
                 && Objects.equals(this.ignoreErrors, other.ignoreErrors)
-                && Objects.equals(this.markup, other.markup);
+                && Objects.equals(this.markup, other.markup)
+                && Objects.equals(this.scanSecurityAnnotations, other.scanSecurityAnnotations);
     }
 
 }

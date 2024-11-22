@@ -25,6 +25,7 @@ import net.oneandone.neberus.annotation.ApiRequestEntity;
 import net.oneandone.neberus.annotation.ApiRequired;
 import net.oneandone.neberus.annotation.ApiResponse;
 import net.oneandone.neberus.annotation.ApiResponses;
+import net.oneandone.neberus.annotation.ApiAllowedRoles;
 import net.oneandone.neberus.annotation.ApiType;
 import net.oneandone.neberus.model.ApiStatus;
 import net.oneandone.neberus.model.CookieSameSite;
@@ -884,6 +885,7 @@ public abstract class MethodParser {
         addDescription(method, data);
         addCurl(method, data);
         addDeprecated(method, data);
+        addAllowedRoles(method, data);
     }
 
     protected abstract String getRootPath(TypeElement classDoc);
@@ -1186,6 +1188,27 @@ public abstract class MethodParser {
             }
         }
         return exampleList;
+    }
+
+    protected void addAllowedRoles(ExecutableElement method, RestMethodData data) {
+
+        List<AnnotationValue> apiSecuredRoles = getAnnotationValue(method, ApiAllowedRoles.class, VALUE, options.environment);
+
+        if (apiSecuredRoles != null) {
+            data.methodData.allowedRoles.addAll(apiSecuredRoles.stream().map(annotationValue -> (String) annotationValue.getValue()).toList());
+        }
+
+        if (options.scanSecurityAnnotations) {
+            List<AnnotationValue> javaxRoles = getAnnotationValue(method, "javax.annotation.security.RolesAllowed", VALUE, options.environment);
+            if (javaxRoles != null) {
+                data.methodData.allowedRoles.addAll(javaxRoles.stream().map(annotationValue -> (String) annotationValue.getValue()).toList());
+            }
+
+            List<AnnotationValue> jakartaRoles = getAnnotationValue(method, "jakarta.annotation.security.RolesAllowed", VALUE, options.environment);
+            if (jakartaRoles != null) {
+                data.methodData.allowedRoles.addAll(jakartaRoles.stream().map(annotationValue -> (String) annotationValue.getValue()).toList());
+            }
+        }
     }
 
 }

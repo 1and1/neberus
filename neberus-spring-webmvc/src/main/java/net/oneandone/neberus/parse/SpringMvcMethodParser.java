@@ -166,4 +166,16 @@ public class SpringMvcMethodParser extends MethodParser {
         }
     }
 
+    @Override
+    protected void addAllowedRoles(ExecutableElement method, RestMethodData data) {
+        super.addAllowedRoles(method, data);
+
+        if (options.scanSecurityAnnotations) {
+            List<AnnotationValue> securedRoles = getAnnotationValue(method, "org.springframework.security.access.annotation.Secured", VALUE, options.environment);
+            if (securedRoles != null) {
+                data.methodData.allowedRoles.addAll(securedRoles.stream().map(annotationValue -> (String) annotationValue.getValue()).toList());
+            }
+        }
+    }
+
 }
