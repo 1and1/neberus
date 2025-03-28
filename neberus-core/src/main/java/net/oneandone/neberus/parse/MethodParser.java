@@ -30,6 +30,7 @@ import net.oneandone.neberus.annotation.ApiType;
 import net.oneandone.neberus.model.ApiStatus;
 import net.oneandone.neberus.model.CookieSameSite;
 import net.oneandone.neberus.model.FormParameters;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
@@ -258,7 +259,11 @@ public abstract class MethodParser {
 
             if (paramTag != null) {
                 //add the description found in the @param tag
-                parameterInfo.description = getParamTreeComment(paramTag);
+                var paramDescription = getParamTreeComment(paramTag);
+
+                if (StringUtils.isNotBlank(paramDescription)) {
+                    parameterInfo.description = paramDescription;
+                }
 
                 List<? extends DocTree> paramBlockTags = getBlockTags(parameter, options.environment);
 
@@ -529,11 +534,22 @@ public abstract class MethodParser {
         nestedInfo.required = getRequiredStatus(param);
         nestedInfo.deprecated = hasDirectAnnotation(param, Deprecated.class);
 
+        // get javadoc from parameter class
+        Element element = options.environment.getTypeUtils().asElement(param.asType());
+        if (element instanceof TypeElement typeElement) {
+            nestedInfo.description = getCommentTextFromInterfaceOrClass(typeElement, options.environment, false);
+        }
+
         //add the allowed values, if specified
         addAllowedValuesFromAnnotation(param, nestedInfo);
 
         if (paramTag != null) {
-            nestedInfo.description = getParamTreeComment(paramTag);
+            var paramDescription = getParamTreeComment(paramTag);
+
+            if (StringUtils.isNotBlank(paramDescription)) {
+                nestedInfo.description = paramDescription;
+            }
+
             List<? extends DocTree> paramBlockTags = getBlockTags(param, options.environment);
 
             getAllowedValuesFromSeeTag(param, paramBlockTags).ifPresent(av -> nestedInfo.allowedValues = av);

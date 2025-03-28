@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import net.oneandone.neberus.annotation.ApiAllowedValue;
 import net.oneandone.neberus.annotation.ApiOptional;
+import net.oneandone.neberus.annotation.ApiType;
 
 /**
  * record dto class doc
@@ -18,6 +19,7 @@ import net.oneandone.neberus.annotation.ApiOptional;
  * @param stringFieldWithEnumValuesFromLinkTag  javadoc for stringFieldWithEnumValuesFromLinkTag {@link SomeEnum}
  * @param stringFieldWithConstraintsFromLinkTag {@link IncludedDto#constraintReference}
  * @param stringFieldDeprecated                 this value is deprecated
+ * @param someChildRecordDtoWithOverrideDoc     doc from param tag
  */
 @XmlRootElement(name = "someFieldDtoRootName")
 public record SomeRecordDto(
@@ -56,7 +58,14 @@ public record SomeRecordDto(
 
         @ApiOptional
         @Deprecated
-        String stringFieldDeprecated
+        String stringFieldDeprecated,
+
+        SomeChildRecordDto someChildRecordDto,
+
+        SomeChildRecordDto someChildRecordDtoWithOverrideDoc,
+
+        @ApiType(String.class)
+        SomeChildRecordDto fieldWithApiType
 ) {
 
 }
