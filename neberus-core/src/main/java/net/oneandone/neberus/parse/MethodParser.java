@@ -530,6 +530,7 @@ public abstract class MethodParser {
         nestedInfo.name = getPublicName(param);
         nestedInfo.allowedValues = getAllowedValuesFromType(param.asType());
         nestedInfo.entityClass = param.asType();
+        nestedInfo.displayClass = getAnnotationValue(param.getAnnotationMirrors(), ApiType.class.getCanonicalName(), VALUE);
         nestedInfo.constraints = getConstraints(param.getAnnotationMirrors());
         nestedInfo.required = getRequiredStatus(param);
         nestedInfo.deprecated = hasDirectAnnotation(param, Deprecated.class);
@@ -589,6 +590,7 @@ public abstract class MethodParser {
 
         nestedInfo.allowedValues = getAllowedValuesFromType(getter.getReturnType());
         nestedInfo.entityClass = getter.getReturnType();
+        nestedInfo.displayClass = getAnnotationValue(getter.getAnnotationMirrors(), ApiType.class.getCanonicalName(), VALUE);
         nestedInfo.constraints = getConstraints(getter.getAnnotationMirrors());
         nestedInfo.required = getRequiredStatus(getter);
 
@@ -628,6 +630,7 @@ public abstract class MethodParser {
         nestedInfo.description = getCommentText(field, options.environment, true);
         nestedInfo.allowedValues = getAllowedValuesFromType(field.asType());
         nestedInfo.entityClass = field.asType();
+        nestedInfo.displayClass = getAnnotationValue(field.getAnnotationMirrors(), ApiType.class.getCanonicalName(), VALUE);
         nestedInfo.constraints = getConstraints(field.getAnnotationMirrors());
         nestedInfo.required = getRequiredStatus(field);
         nestedInfo.deprecated = hasDirectAnnotation(field, Deprecated.class);

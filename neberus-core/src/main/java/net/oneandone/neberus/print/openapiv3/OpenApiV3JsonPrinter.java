@@ -39,7 +39,6 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.AbstractMap;
@@ -55,9 +54,9 @@ import java.util.stream.Collectors;
 import static net.oneandone.neberus.util.JavaDocUtils.asElement;
 import static net.oneandone.neberus.util.JavaDocUtils.containedFieldNamesAreNotAvailableOrPackageExcluded;
 import static net.oneandone.neberus.util.JavaDocUtils.getEnumValuesAsList;
+import static net.oneandone.neberus.util.JavaDocUtils.getOpenApiTypeString;
 import static net.oneandone.neberus.util.JavaDocUtils.getQualifiedName;
 import static net.oneandone.neberus.util.JavaDocUtils.getSimpleTypeName;
-import static net.oneandone.neberus.util.JavaDocUtils.getOpenApiTypeString;
 import static net.oneandone.neberus.util.JavaDocUtils.isCollectionType;
 import static net.oneandone.neberus.util.JavaDocUtils.isEnum;
 import static net.oneandone.neberus.util.JavaDocUtils.isMapType;
@@ -636,7 +635,7 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             parameterInfo.entityClass = entity.entityClass;
             parameterInfo.nestedParameters = entity.nestedParameters;
 
-            mediaType.schema(toSchema(parameterInfo, entity.entityClass, Collections.emptyMap(),
+            mediaType.schema(toSchema(parameterInfo, parameterInfo.entityClass, Collections.emptyMap(),
                     null, methodData, true, components, true));
 
             entity.examples.forEach(example -> {
@@ -705,17 +704,22 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
             }
 
             for (RestMethodData.ParameterInfo nestedParam : param.nestedParameters) {
-                if (isCollectionType(nestedParam.entityClass)) {
-                    schema.addProperty(nestedParam.name, processArrayType(nestedParam, nestedParam.entityClass,
+
+                TypeMirror nestedEntityClass = nestedParam.displayClass != null
+                                               ? nestedParam.displayClass
+                                               : nestedParam.entityClass;
+
+                if (isCollectionType(nestedEntityClass)) {
+                    schema.addProperty(nestedParam.name, processArrayType(nestedParam, nestedEntityClass,
                             parameterUsecaseValues, parent, methodData, skipEnhance, components, isRequest));
-                } else if (isMapType(nestedParam.entityClass)) {
-                    schema.addProperty(nestedParam.name, processMapType(nestedParam, nestedParam.entityClass,
+                } else if (isMapType(nestedEntityClass)) {
+                    schema.addProperty(nestedParam.name, processMapType(nestedParam, nestedEntityClass,
                             parameterUsecaseValues, parent, methodData, skipEnhance, components, isRequest));
-                } else if (containedFieldNamesAreNotAvailableOrPackageExcluded(nestedParam.entityClass, options) // stop at 'arg0' etc. this does not provide useful information
-                        || nestedParam.entityClass.equals(type)) {  // break simple recursive loops
-                    schema.addProperty(nestedParam.name, getSimpleSchema(nestedParam, nestedParam.entityClass));
+                } else if (containedFieldNamesAreNotAvailableOrPackageExcluded(nestedEntityClass, options) // stop at 'arg0' etc. this does not provide useful information
+                        || nestedEntityClass.equals(type)) {  // break simple recursive loops
+                    schema.addProperty(nestedParam.name, getSimpleSchema(nestedParam, nestedEntityClass));
                 } else {
-                    schema.addProperty(nestedParam.name, processType(nestedParam, nestedParam.entityClass, nestedParam.name,
+                    schema.addProperty(nestedParam.name, processType(nestedParam, nestedEntityClass, nestedParam.name,
                             parameterUsecaseValues, concat(parent), methodData, skipEnhance, components, isRequest));
                 }
             }
