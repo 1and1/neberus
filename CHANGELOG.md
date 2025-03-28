@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [4.4.0] - 2025-03-28
+
+### Changed
+
+- improve cookie handling in generated curls
+- improve css for asciidoc code blocks
+- normalize simple json types case-insensitive
+
+### Fixed
+
+- parse class javadoc for body parameters
+- fix @link tags in javadoc for record fields
+- parse class description for nested parameters
+- fix @ApiType for nested parameters
+- reuse schema only if fully equal
+
+
 ## [4.3.0] - 2024-11-22
 
 ### Changed
