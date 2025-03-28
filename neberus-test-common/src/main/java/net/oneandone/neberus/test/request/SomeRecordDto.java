@@ -12,6 +12,8 @@ import net.oneandone.neberus.annotation.ApiAllowedValue;
 import net.oneandone.neberus.annotation.ApiOptional;
 import net.oneandone.neberus.annotation.ApiType;
 
+import java.util.Set;
+
 /**
  * record dto class doc
  *
@@ -59,6 +61,8 @@ public record SomeRecordDto(
         @ApiOptional
         @Deprecated
         String stringFieldDeprecated,
+
+        Set<String> setField,
 
         SomeChildRecordDto someChildRecordDto,
 

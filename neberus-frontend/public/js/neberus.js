@@ -110,14 +110,6 @@ function resolveRefs(openApi, current, onlyProperties, parentTypeRefs) {
     return result;
 }
 
-function getSchemaJson(openApi, schema) {
-    let fullSchema = resolveRefs(openApi, schema, false, []);
-
-    return JSON.stringify(fullSchema, undefined, 2)
-        .replaceAll('"{int}"', '{int}')
-        .replaceAll('"{boolean}"', '{boolean}');
-}
-
 
 function scrollToHeading(selected) {
     let root = jQuery('html, body');
@@ -243,8 +235,11 @@ function toJsonPretty(fullSchema) {
                 return v;
             }
         }, 2)
-        .replaceAll('"{int}"', '{int}')
-        .replaceAll('"{boolean}"', '{boolean}');
+        .replaceAll(/"\{int}"/ig, '{int}')
+        .replaceAll(/"\{integer}"/ig, '{int}')
+        .replaceAll(/"\{float}"/ig, '{float}')
+        .replaceAll(/"\{double}"/ig, '{float}')
+        .replaceAll(/"\{boolean}"/ig, '{boolean}');
 }
 
 function toFullXmlPretty(o, root) {
