@@ -11,6 +11,7 @@
     $: curlTemplate = '';
 
     $: headers = [];
+    $: cookies = [];
     $: queryParams = [];
     $: pathParams = [];
 
@@ -63,6 +64,14 @@
                 curl += " </span>";
             }
         }
+
+        cookies.forEach(cookie => {
+            curl += "<span id=" + reference('cookie', cookie.extensions['x-name-escaped']) +
+                " data-parameter-highlight-name='" + highlightReference(cookie.extensions['x-name-escaped']) +
+                "' class='parameter-highlight' onmouseover='highlightParameter(this, event)' onmouseout='deHighlightParameter(this, event)'>";
+            curl += "-H 'Cookie: " + cookie.name + "=<span id=" + reference('cookie_value', cookie.extensions['x-name-escaped']) + ">{" + cookie.name + "}</span>'";
+            curl += " </span>";
+        });
 
         if (operation.requestBody) {
             let contentType = Object.keys(operation.requestBody.content)[0];
@@ -429,7 +438,7 @@
 
         // console.log(type);
 
-        let encodedValue = type === 'header_value' ? value : encodeURIComponent(value);
+        let encodedValue = (type === 'header_value' || type === 'cookie_value') ? value : encodeURIComponent(value);
         jQuery('#' + reference(type, name)).html(encodedValue);
     }
 
@@ -513,6 +522,7 @@
 
         if (operation.parameters) {
             let tmpHeaders = [];
+            let tmpCookies = [];
             let tmpQueryParams = [];
             let tmpPathParams = [];
 
@@ -521,12 +531,15 @@
                     tmpHeaders.push(param);
                 } else if (param.in === 'query') {
                     tmpQueryParams.push(param);
+                } else if (param.in === 'cookie') {
+                    tmpCookies.push(param);
                 } else {
                     tmpPathParams.push(param);
                 }
             });
 
             headers = tmpHeaders;
+            cookies = tmpCookies;
             queryParams = tmpQueryParams;
             pathParams = tmpPathParams;
 
@@ -623,6 +636,9 @@
                     {/if}
 
                     <CurlParamControl params={headers} type="header" name="" baseReference={baseReference}
+                                      on:toggleParam={toggleParam} on:updateParam={updateParam} on:updateEnumParam={updateEnumParam}/>
+
+                    <CurlParamControl params={cookies} type="cookie" name="Cookies" baseReference={baseReference}
                                       on:toggleParam={toggleParam} on:updateParam={updateParam} on:updateEnumParam={updateEnumParam}/>
 
                     <CurlParamControl params={queryParams} type="query" name="Query Parameters" baseReference={baseReference}
