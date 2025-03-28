@@ -2,6 +2,7 @@ package net.oneandone.neberus.test.springwebmvc;
 
 import net.oneandone.neberus.test.RestServiceInterfaceDoc;
 import net.oneandone.neberus.test.request.SomeFieldDto;
+import net.oneandone.neberus.test.request.SomeRecordDto;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,6 +51,13 @@ public class RestServiceWithInterfaceDoc implements RestServiceInterfaceDoc {
     @PostMapping(path = PATH_POST, consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
     @Override
     public void postMethod(@RequestBody SomeFieldDto dto) {
+
+    }
+
+    @PostMapping(path = PATH_POST + "/record",
+                 consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+    @Override
+    public void postRecordMethod(@RequestBody SomeRecordDto dto) {
 
     }
 

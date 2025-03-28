@@ -114,7 +114,6 @@
         let header = headers['Set-Cookie'];
 
         if (header) {
-            console.log(header.schema.allOf);
             return header.schema.allOf;
         }
 

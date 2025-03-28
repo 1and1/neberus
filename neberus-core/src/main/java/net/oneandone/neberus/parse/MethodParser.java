@@ -11,6 +11,7 @@ import com.sun.source.doctree.SeeTree;
 import com.sun.source.doctree.StartElementTree;
 import com.sun.source.doctree.TextTree;
 import net.oneandone.neberus.Options;
+import net.oneandone.neberus.annotation.ApiAllowedRoles;
 import net.oneandone.neberus.annotation.ApiAllowedValue;
 import net.oneandone.neberus.annotation.ApiAllowedValues;
 import net.oneandone.neberus.annotation.ApiCurl;
@@ -25,7 +26,6 @@ import net.oneandone.neberus.annotation.ApiRequestEntity;
 import net.oneandone.neberus.annotation.ApiRequired;
 import net.oneandone.neberus.annotation.ApiResponse;
 import net.oneandone.neberus.annotation.ApiResponses;
-import net.oneandone.neberus.annotation.ApiAllowedRoles;
 import net.oneandone.neberus.annotation.ApiType;
 import net.oneandone.neberus.model.ApiStatus;
 import net.oneandone.neberus.model.CookieSameSite;
@@ -40,7 +40,6 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -536,8 +535,15 @@ public abstract class MethodParser {
         if (paramTag != null) {
             nestedInfo.description = getParamTreeComment(paramTag);
             List<? extends DocTree> paramBlockTags = getBlockTags(param, options.environment);
+
             getAllowedValuesFromSeeTag(param, paramBlockTags).ifPresent(av -> nestedInfo.allowedValues = av);
+            getAllowedValuesFromLinkTag(param, paramBlockTags).ifPresent(av -> nestedInfo.allowedValues = av);
+            getConstraintsFromSeeTag(param, paramBlockTags).ifPresent(av -> nestedInfo.constraints = av);
             getConstraintsFromLinkTag(param, paramBlockTags).ifPresent(av -> nestedInfo.constraints = av);
+
+            // check paramTag for records, seeTag not possible here
+            getAllowedValuesFromLinkTag(param, paramTag.getDescription()).ifPresent(av -> nestedInfo.allowedValues = av);
+            getConstraintsFromLinkTag(param, paramTag.getDescription()).ifPresent(av -> nestedInfo.constraints = av);
         }
 
         parentList.add(nestedInfo);

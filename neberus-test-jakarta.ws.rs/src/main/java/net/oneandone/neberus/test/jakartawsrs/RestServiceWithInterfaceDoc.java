@@ -13,6 +13,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import net.oneandone.neberus.test.RestServiceInterfaceDoc;
 import net.oneandone.neberus.test.request.SomeFieldDto;
+import net.oneandone.neberus.test.request.SomeRecordDto;
 
 /**
  * internal javadoc
@@ -56,6 +57,14 @@ public class RestServiceWithInterfaceDoc implements RestServiceInterfaceDoc {
     @Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     @Override
     public void postMethod(SomeFieldDto dto) {
+
+    }
+
+    @POST
+    @Path(PATH_POST + "/record")
+    @Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    @Override
+    public void postRecordMethod(SomeRecordDto dto) {
 
     }
 

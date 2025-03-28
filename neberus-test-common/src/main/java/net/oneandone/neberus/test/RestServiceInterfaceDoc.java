@@ -19,11 +19,11 @@ import net.oneandone.neberus.model.CookieSameSite;
 import net.oneandone.neberus.test.request.SomeChildFieldDto;
 import net.oneandone.neberus.test.request.SomeFieldDto;
 import net.oneandone.neberus.test.request.SomeGetterDto;
+import net.oneandone.neberus.test.request.SomeRecordDto;
 import net.oneandone.neberus.test.response.Problem;
 import net.oneandone.neberus.test.response.SuccessResponse;
 
 import javax.validation.constraints.Size;
-
 import java.util.UUID;
 
 /**
@@ -88,6 +88,9 @@ public interface RestServiceInterfaceDoc extends CommonRestServiceInterfaceDoc {
                               @ApiExample(title = "some example", value = "example value")
                       })
     void postMethod(SomeFieldDto dto);
+
+    @ApiLabel("POST record method with interface doc")
+    void postRecordMethod(SomeRecordDto dto);
 
     @ApiLabel("DELETE method with interface doc")
     @ApiCurl

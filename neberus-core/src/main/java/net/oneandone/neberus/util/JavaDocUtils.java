@@ -30,7 +30,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -801,7 +800,7 @@ public abstract class JavaDocUtils {
                 .filter(e -> e.getModifiers().contains(Modifier.PUBLIC))
                 .toList();
 
-        return fields.stream().filter(JavaDocUtils::fieldIsVisible).collect(Collectors.toList());
+        return fields.stream().filter(JavaDocUtils::fieldIsVisible).toList();
     }
 
     private static boolean fieldIsVisible(VariableElement field) {
@@ -981,10 +980,16 @@ public abstract class JavaDocUtils {
     }
 
     public static Element getReferencedElement(Element e, DocTree dtree, DocletEnvironment environment) {
-        TreePath elementPath = environment.getDocTrees().getPath(e);
-        DocCommentTree docCommentTree = e instanceof ExecutableElement
-                                        ? getDocCommentTreeFromInterfaceOrClass((ExecutableElement) e, environment)
-                                        : environment.getDocTrees().getDocCommentTree(e);
+        var element = e;
+
+        if (element instanceof VariableElement variableElement) { // record field
+            element = variableElement.getEnclosingElement().getEnclosingElement();
+        }
+
+        TreePath elementPath = environment.getDocTrees().getPath(element);
+        DocCommentTree docCommentTree = element instanceof ExecutableElement
+                                        ? getDocCommentTreeFromInterfaceOrClass((ExecutableElement) element, environment)
+                                        : environment.getDocTrees().getDocCommentTree(element);
 
         if (elementPath == null || docCommentTree == null) {
             return null;
