@@ -676,14 +676,6 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
     private Schema toSchema(RestMethodData.ParameterInfo param, TypeMirror type, Map<String, String> parameterUsecaseValues,
             String parent, RestMethodData.MethodData methodData, boolean skipEnhance, Components components, boolean isRequest) {
 
-        String qualifiedName = (isRequest ? "request-" : "response-") + getQualifiedName(param.entityClass, options.environment);
-
-        if (components.getSchemas() != null && components.getSchemas().containsKey(qualifiedName)) {
-            Schema refSchema = new Schema();
-            refSchema.$ref("#/components/schemas/" + qualifiedName);
-            return refSchema;
-        }
-
         if (isCollectionType(param.entityClass)) {
             return processArrayType(param, param.entityClass, parameterUsecaseValues, parent, methodData, skipEnhance,
                     components, isRequest);
@@ -726,15 +718,45 @@ public class OpenApiV3JsonPrinter extends DocPrinter {
 
             schema.addExtension("x-java-type-expandable", schema.getProperties() != null);
 
-            if (!containedFieldNamesAreNotAvailableOrPackageExcluded(param.entityClass, options)) {
-                components.addSchemas(qualifiedName, schema);
-                Schema refSchema = new Schema();
-                refSchema.$ref("#/components/schemas/" + qualifiedName);
-                return refSchema;
+            return cacheSchema(param, isRequest, schema, components);
+        }
+    }
+
+    private Schema cacheSchema(RestMethodData.ParameterInfo param, boolean isRequest, Schema schema, Components components) {
+        // schema must be fully generated every time since there could be minor differences, which must prevent reuse
+
+        // look for an actually equal entry
+        var existingSchemaKey = Optional.ofNullable(components.getSchemas())
+                .flatMap(schemas -> schemas.entrySet().stream()
+                        .filter(entry -> entry.getValue().equals(schema))
+                        .map(Map.Entry::getKey)
+                        .findFirst()
+                );
+
+        if (existingSchemaKey.isPresent()) {
+            Schema refSchema = new Schema();
+            refSchema.$ref("#/components/schemas/" + existingSchemaKey.get());
+            return refSchema;
+        }
+
+        // else create a new entry, if feasible
+        if (!containedFieldNamesAreNotAvailableOrPackageExcluded(param.entityClass, options)) {
+
+            var qualifiedName = (isRequest ? "request-" : "response-") + getQualifiedName(param.entityClass, options.environment);
+            var key = qualifiedName;
+            var counter = 1;
+
+            while (components.getSchemas() != null && components.getSchemas().containsKey(key)) {
+                key = qualifiedName + "_" + counter++;
             }
 
-            return schema;
+            components.addSchemas(key, schema);
+            Schema refSchema = new Schema();
+            refSchema.$ref("#/components/schemas/" + key);
+            return refSchema;
         }
+
+        return schema;
     }
 
     private Schema processType(RestMethodData.ParameterInfo param, TypeMirror type, String fieldName, Map<String, String> parameterUsecaseValues, String parent,
