@@ -45,8 +45,9 @@
 }
 
 code, pre {
-    background: #1d1d1d;
+    background: #0b0b0b;
     color: whitesmoke;
+    box-shadow: inset 4px 4px 10px -6px #00000061;
 }
 
 .parameters code {
@@ -102,7 +103,7 @@ body {
 }
 
 .code {
-    background: #1F1F1F;
+    background: #0b0b0b;
     color: whitesmoke;
     box-shadow: inset 4px 4px 10px -6px #00000061;
 }
@@ -150,6 +151,10 @@ input[type='checkbox'] {
 
 .highlight, .highlight td {
     background-color: #333a54 !important;
+}
+
+pre.highlight {
+    background-color: #0b0b0b !important;
 }
 
 .fixedParameterRow {
