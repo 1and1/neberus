@@ -336,6 +336,11 @@ public abstract class MethodParser {
             parameterInfo.name = parameter.getSimpleName().toString();
             parameterInfo.parameterType = BODY;
 
+            Element element = options.environment.getTypeUtils().asElement(parameter.asType());
+            if (element instanceof TypeElement typeElement) {
+                parameterInfo.description = getCommentTextFromInterfaceOrClass(typeElement, options.environment, true);
+            }
+
             addNestedParameters(parameterInfo.displayClass != null ? parameterInfo.displayClass : parameterInfo.entityClass,
                     parameterInfo.nestedParameters, new ArrayList<>(), true);
 
